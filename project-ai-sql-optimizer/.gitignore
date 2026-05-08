@@ -1,0 +1,19 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.coverage
+.venv/
+venv/
+build/
+dist/
+
+uv.lock
+.env
+.env.local
+
+# Benchmark artifacts
+benchmark_results/
+*.report.md

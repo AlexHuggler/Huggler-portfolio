@@ -1,0 +1,38 @@
+---
+import StackPill from "./StackPill.astro";
+
+interface Props {
+  slug: string;
+  title: string;
+  tagline: string;
+  stack: string[];
+  repoUrl: string;
+}
+const { slug, title, tagline, stack, repoUrl } = Astro.props;
+---
+
+<article class="group rounded-lg border border-border p-6 hover:border-accent transition-colors">
+  <header class="flex items-start justify-between gap-4">
+    <h3 class="text-lg font-semibold tracking-tight">
+      <a href={`/projects/${slug}`} class="hover:text-accent">{title}</a>
+    </h3>
+    <a
+      href={repoUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="text-xs font-mono text-muted hover:text-fg"
+    >
+      repo
+    </a>
+  </header>
+  <p class="mt-2 text-sm text-muted">{tagline}</p>
+  <ul class="mt-4 flex flex-wrap gap-1.5">
+    {stack.map((s) => <li><StackPill label={s} /></li>)}
+  </ul>
+  <a
+    href={`/projects/${slug}`}
+    class="mt-5 inline-flex items-center text-sm text-accent hover:opacity-80"
+  >
+    Read more &rarr;
+  </a>
+</article>

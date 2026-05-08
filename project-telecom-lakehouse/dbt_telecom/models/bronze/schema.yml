@@ -1,0 +1,27 @@
+version: 2
+
+models:
+  - name: br_cdr
+    description: "Bronze: typed CDR rows straight off the raw parquet landing"
+    columns:
+      - name: cdr_id
+        tests: [unique, not_null]
+      - name: caller_msisdn
+        tests: [not_null]
+      - name: call_type
+        tests:
+          - accepted_values:
+              values: ["VOICE", "SMS", "DATA"]
+      - name: market
+        tests:
+          - accepted_values:
+              values: ["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL"]
+      - name: ingest_date
+        tests: [not_null]
+  - name: br_account_register
+    description: "Bronze: deduped account-level register derived from CDR caller msisdn"
+    columns:
+      - name: account_key
+        tests: [unique, not_null]
+      - name: caller_msisdn
+        tests: [not_null]

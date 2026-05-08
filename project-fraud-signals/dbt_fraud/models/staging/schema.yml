@@ -1,0 +1,28 @@
+version: 2
+
+models:
+  - name: stg_transactions
+    description: "Cleaned and typed transactions ready for marts"
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: account_id
+        tests: [not_null]
+      - name: amount
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: "amount > 0"
+              config:
+                where: "amount is not null"
+      - name: currency
+        tests:
+          - accepted_values:
+              values: ["USD", "EUR", "GBP", "CAD"]
+              config:
+                severity: warn
+      - name: country
+        tests:
+          - not_null:
+              config:
+                severity: warn

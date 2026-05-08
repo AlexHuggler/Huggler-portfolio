@@ -1,0 +1,57 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import StackPill from "../../components/StackPill.astro";
+import { getCollection } from "astro:content";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects");
+  return projects.map((p) => ({
+    params: { slug: p.slug },
+    props: { project: p },
+  }));
+}
+
+const { project } = Astro.props;
+const { Content } = await project.render();
+---
+
+<BaseLayout
+  title={project.data.title}
+  description={project.data.tagline}
+>
+  <article class="mx-auto max-w-prose px-6 pt-16 pb-24">
+    <p class="font-mono text-xs uppercase tracking-widest text-muted">
+      Project {String(project.data.order).padStart(2, "0")}
+    </p>
+    <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
+      {project.data.title}
+    </h1>
+    <p class="mt-3 text-lg text-muted">{project.data.tagline}</p>
+    <div class="mt-5 flex flex-wrap gap-1.5">
+      {project.data.stack.map((s: string) => <StackPill label={s} />)}
+    </div>
+    <div class="mt-5 flex flex-wrap gap-3 text-sm">
+      <a
+        class="btn"
+        href={project.data.repoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        View on GitHub
+      </a>
+    </div>
+
+    <div class="prose prose-invert mt-10 max-w-none text-fg dark:text-fg
+      prose-headings:font-semibold prose-headings:tracking-tight
+      prose-h2:text-xl prose-h2:mt-10
+      prose-h3:text-base prose-h3:mt-6
+      prose-a:text-accent prose-a:no-underline hover:prose-a:opacity-80
+      prose-code:font-mono prose-code:text-sm
+      prose-pre:bg-transparent prose-pre:border prose-pre:border-border prose-pre:rounded-lg
+      prose-li:my-1
+      prose-strong:text-fg
+    ">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>

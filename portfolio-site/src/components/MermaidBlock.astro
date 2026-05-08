@@ -1,0 +1,28 @@
+---
+interface Props {
+  code: string;
+}
+const { code } = Astro.props;
+const id = `mermaid-${Math.random().toString(36).slice(2, 10)}`;
+---
+
+<div class="mermaid-wrapper rounded-lg border border-border p-4 overflow-x-auto">
+  <pre class="mermaid" id={id}>{code}</pre>
+</div>
+
+<script>
+  import mermaid from "mermaid";
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: document.documentElement.classList.contains("dark") ? "dark" : "default",
+    securityLevel: "loose",
+    themeVariables: {
+      fontFamily: "JetBrains Mono, ui-monospace, monospace",
+      primaryColor: "#1f1f23",
+      primaryTextColor: "#ededed",
+      primaryBorderColor: "#2563eb",
+      lineColor: "#52525b",
+      background: "#0a0a0a",
+    },
+  });
+</script>

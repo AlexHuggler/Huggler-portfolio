@@ -1,0 +1,69 @@
+---
+title: "AI-Assisted SQL Optimizer"
+tagline: "CLI that uses Claude to suggest Spark/Snowflake query rewrites and partition strategies. Benchmarked against a 50-query corpus."
+order: 3
+stack:
+  - "Python"
+  - "Typer"
+  - "Anthropic SDK"
+  - "sqlglot"
+  - "pytest"
+repoUrl: "https://github.com/alexhuggler/project-ai-sql-optimizer"
+results:
+  - "[TODO: % suggestions accepted by human reviewer]"
+  - "[TODO: avg cost reduction when EXPLAIN cost available]"
+  - "[TODO: human-rated quality on the 50-query corpus]"
+---
+
+import MermaidBlock from "../../components/MermaidBlock.astro";
+
+## Problem
+
+There is a real gap between "junior writes a working query" and "senior knows
+when to broadcast, partition-prune, flatten a CTE, or rewrite a window
+function." This tool closes part of that gap by sending parsed SQL plus
+heuristic findings to Claude with a structured optimizer prompt, then
+optionally verifying the rewrite against a real EXPLAIN plan. It targets
+Spark SQL and Snowflake, the two dialects I work with most.
+
+## How it works
+
+<MermaidBlock code={`sequenceDiagram
+  participant U as User
+  participant CLI as sql-optimizer CLI
+  participant A as Analyzer (sqlglot + heuristics)
+  participant C as Claude API
+  participant E as EXPLAIN runner (optional)
+
+  U->>CLI: analyze query.sql
+  CLI->>A: parse + collect findings
+  A-->>CLI: AST + findings
+  CLI->>C: optimizer_prompt + sql + findings
+  C-->>CLI: rewrite + reasoning
+  CLI->>E: EXPLAIN original / EXPLAIN rewrite
+  E-->>CLI: cost deltas
+  CLI-->>U: markdown diff + cost report
+`} />
+
+## Methodology
+
+Fifty queries across five categories: join optimization, aggregation rewrites,
+CTE flattening, partition pruning, broadcast-join opportunities. Each is
+labeled with expected suggestion keywords and expected cost direction in
+`corpus/ground_truth.yaml`. Suggestions are scored on three axes: keyword
+overlap with ground truth, EXPLAIN cost delta (when the engine is available),
+and human review.
+
+## Results
+
+[TODO: fill in real numbers from your runs]
+
+## Honest limitations
+
+- Claude can hallucinate column or table names that look plausible but do not exist in the schema.
+- EXPLAIN-based scoring is only as good as the optimizer's cost estimates - a "cheaper" plan can still be slower in practice.
+- Dialect drift between Spark SQL and Snowflake catches edge cases (e.g. `QUALIFY`, lateral views).
+- Prompt sensitivity: small changes to the prompt template materially change suggestion quality.
+- The CLI runs against `ANTHROPIC_API_KEY`; without it, only heuristic dry-run mode is available.
+
+See the repo for the full corpus, prompt template, and CLI usage.

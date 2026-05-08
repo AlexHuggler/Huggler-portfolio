@@ -1,0 +1,64 @@
+---
+title: "Telecom Billing Lakehouse"
+tagline: "Medallion (Bronze/Silver/Gold) lakehouse over synthetic CDR data. Airflow + MinIO + Iceberg + Great Expectations + dbt."
+order: 2
+stack:
+  - "Apache Airflow"
+  - "Apache Iceberg"
+  - "MinIO / S3"
+  - "Great Expectations"
+  - "dbt"
+  - "Terraform"
+repoUrl: "https://github.com/alexhuggler/project-telecom-lakehouse"
+results:
+  - "[TODO: rows/sec ingest at Bronze]"
+  - "[TODO: GE pass rate after first month of synthetic data]"
+  - "[TODO: gold mart freshness SLA]"
+---
+
+import MermaidBlock from "../../components/MermaidBlock.astro";
+
+## Problem
+
+Telecom billing teams sit on enormous CDR (Call Detail Record) volumes and
+need a single source of truth for revenue, ARPU, and churn signals. The
+Medallion pattern (Bronze raw, Silver normalized, Gold dimensional) keeps
+late-arriving data and corrections tractable while exposing clean marts to
+BI. This project is an end-to-end implementation: synthetic CDR generation,
+Airflow orchestration, Iceberg storage on S3-compatible object storage, data
+contracts via Great Expectations, and dbt for the analytics layer - all
+runnable locally on docker-compose with no AWS account.
+
+## Architecture
+
+<MermaidBlock code={`flowchart LR
+  G[Synthetic CDR generator] -->|parquet| R[(MinIO/S3 raw zone)]
+  R -->|Airflow ingest DAG| BR[(Iceberg Bronze)]
+  BR -->|Airflow transform DAG\\nGE checks| SI[(Iceberg Silver)]
+  SI -->|dbt run| GO[(Gold marts\\nrevenue_by_market, arpu_monthly, churn_signals)]
+  GO --> BI[BI / consumers]
+`} />
+
+## Stack
+
+- **Apache Airflow (LocalExecutor)** orchestrates ingest, transform, and dbt runs with retries and SLAs.
+- **Apache Iceberg** chosen for partition evolution, hidden partitioning, and engine portability (Spark, Trino, Athena).
+- **MinIO** locally, S3 in production - identical API.
+- **Great Expectations** for column-level data contracts at Bronze (the layer where things break).
+- **dbt** for Silver-to-Gold transforms with `unique`, `not_null`, `accepted_values`, and `relationships` tests.
+- **Terraform** to provision the AWS variant (S3 + Glue + Athena) when you want to deploy for real.
+
+## Data quality strategy
+
+Bronze: Great Expectations suite enforces column types, nulls, and ranges before
+data enters the lake.
+
+Silver: dbt tests on every model. Failed tests block downstream Gold builds.
+
+Gold: snapshot-style metrics with row count and freshness alerts.
+
+## Results
+
+[TODO: fill in real numbers from your local runs - ingest throughput, GE pass rate, mart freshness SLA]
+
+See the repo for full setup, optional Terraform deployment, and limitations.

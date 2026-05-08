@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: dim_account
+    description: "Per-account aggregates used for downstream anomaly scoring"
+    columns:
+      - name: account_id
+        tests: [unique, not_null]
+      - name: event_count
+        tests: [not_null]
+      - name: avg_amount
+        tests: [not_null]
+  - name: fct_transactions
+    description: "Transaction fact joined with account-level aggregates and a per-account amount Z-score"
+    columns:
+      - name: event_id
+        tests: [unique, not_null]
+      - name: account_id
+        tests:
+          - not_null
+          - relationships:
+              to: ref('dim_account')
+              field: account_id
+      - name: amount
+        tests: [not_null]
+      - name: fraud_label
+        tests:
+          - accepted_values:
+              values: ["normal", "velocity_burst", "impossible_travel", "amount_outlier"]
+              config:
+                severity: warn

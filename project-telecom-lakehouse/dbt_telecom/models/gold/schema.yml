@@ -1,0 +1,45 @@
+version: 2
+
+models:
+  - name: revenue_by_market
+    description: "Gold: daily revenue rollup by market for FP&A"
+    columns:
+      - name: market
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL"]
+      - name: ingest_date
+        tests: [not_null]
+      - name: revenue_usd
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+  - name: arpu_monthly
+    description: "Gold: monthly ARPU by plan"
+    columns:
+      - name: month
+        tests: [not_null]
+      - name: plan_id
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["BASIC_5GB", "PRO_25GB", "UNLIMITED", "FAMILY_50GB", "PREPAID"]
+      - name: arpu_usd
+        tests:
+          - not_null
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+  - name: churn_signals
+    description: "Gold: per-caller churn-risk classification"
+    columns:
+      - name: caller_msisdn
+        tests:
+          - unique
+          - not_null
+      - name: churn_risk
+        tests:
+          - not_null
+          - accepted_values:
+              values: ["high", "medium", "low"]

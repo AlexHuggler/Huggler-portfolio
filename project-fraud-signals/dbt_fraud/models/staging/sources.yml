@@ -1,0 +1,18 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Bronze landing zone for streaming transaction events"
+    schema: main
+    tables:
+      - name: tx_events
+        description: "Append-only stream of transaction events from Kafka -> Spark -> Delta"
+        columns:
+          - name: event_id
+            tests: [unique, not_null]
+          - name: account_id
+            tests: [not_null]
+          - name: amount
+            tests: [not_null]
+          - name: ts
+            tests: [not_null]

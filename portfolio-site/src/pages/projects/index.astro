@@ -1,0 +1,36 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ProjectCard from "../../components/ProjectCard.astro";
+import { getCollection } from "astro:content";
+
+const projects = (await getCollection("projects"))
+  .sort((a, b) => a.data.order - b.data.order);
+---
+
+<BaseLayout
+  title="Projects"
+  description="Production data engineering portfolio: streaming pipelines, lakehouse architectures, and AI tooling."
+>
+  <section class="mx-auto max-w-page px-6 pt-16 pb-8">
+    <p class="font-mono text-xs uppercase tracking-widest text-muted">Projects</p>
+    <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">Selected work</h1>
+    <p class="mt-3 max-w-prose text-muted">
+      Three end-to-end projects showcasing streaming, lakehouse, and AI-assisted
+      data engineering. Each repo runs locally without external services.
+    </p>
+  </section>
+
+  <section class="mx-auto max-w-page px-6 pb-24">
+    <div class="grid gap-4 md:grid-cols-3">
+      {projects.map((p) => (
+        <ProjectCard
+          slug={p.slug}
+          title={p.data.title}
+          tagline={p.data.tagline}
+          stack={p.data.stack}
+          repoUrl={p.data.repoUrl}
+        />
+      ))}
+    </div>
+  </section>
+</BaseLayout>

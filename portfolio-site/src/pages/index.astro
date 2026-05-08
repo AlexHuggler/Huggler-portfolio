@@ -1,0 +1,131 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Stat from "../components/Stat.astro";
+import StackPill from "../components/StackPill.astro";
+import ProjectCard from "../components/ProjectCard.astro";
+import { getCollection } from "astro:content";
+import { siteConfig } from "../site.config";
+
+const projects = (await getCollection("projects"))
+  .sort((a, b) => a.data.order - b.data.order);
+
+const focus = [
+  "Streaming + lakehouse architectures (Spark, Delta, Iceberg)",
+  "Cloud data platforms on Azure and AWS",
+  "Analytics engineering with dbt + data contracts",
+  "Applied AI for data engineering productivity",
+];
+
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: siteConfig.name,
+  jobTitle: siteConfig.title,
+  url: Astro.site?.toString(),
+  sameAs: [siteConfig.github, siteConfig.linkedin],
+  knowsAbout: [
+    "Data Engineering",
+    "Apache Spark",
+    "Azure Databricks",
+    "PySpark",
+    "dbt",
+    "Apache Airflow",
+    "Snowflake",
+    "Delta Lake",
+    "Apache Iceberg",
+    "Apache Kafka",
+  ],
+};
+---
+
+<BaseLayout
+  title={`${siteConfig.name} - ${siteConfig.title}`}
+  description={siteConfig.valueProp}
+  jsonLd={jsonLd}
+>
+  <section class="relative">
+    <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+    <div class="relative mx-auto max-w-page px-6 pt-20 pb-24 md:pt-32 md:pb-32">
+      <p class="font-mono text-xs uppercase tracking-widest text-muted">
+        {siteConfig.tagline}
+      </p>
+      <h1 class="mt-4 text-4xl md:text-6xl font-semibold tracking-tight max-w-prose">
+        {siteConfig.name}
+      </h1>
+      <p class="mt-5 max-w-prose text-lg text-muted">
+        {siteConfig.valueProp}
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <a class="btn btn-primary" href="/projects">View projects</a>
+        <a class="btn" href={siteConfig.resumePath}>Download resume</a>
+        <a class="btn" href={siteConfig.github} target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a class="btn" href={siteConfig.linkedin} target="_blank" rel="noopener noreferrer">LinkedIn</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-page px-6 pb-16">
+    <div class="grid gap-4 md:grid-cols-3">
+      <Stat value="$900K/yr" label="Fraud-loss reduction delivered" />
+      <Stat value="$2.2B" label="Portfolio under analytics ownership" />
+      <Stat value="6 yrs" label="At AT&T, Azure + Databricks stack" />
+    </div>
+  </section>
+
+  <section class="mx-auto max-w-prose px-6 pb-16">
+    <h2 class="text-xl font-semibold tracking-tight">About</h2>
+    <p class="mt-3 text-muted">
+      Senior data and analytics engineer with six years at AT&T building
+      production data platforms on Azure and Databricks. I work the full stack
+      from PySpark ingestion through dbt analytics models to BI delivery, with
+      a focus on streaming, data quality, and turning ambiguous business
+      problems into tractable pipelines. Microsoft DP-203 (Data Engineering)
+      and DP-100 (AI Engineering) certified.
+    </p>
+    <h3 class="mt-8 text-sm font-mono uppercase tracking-widest text-muted">
+      Current focus
+    </h3>
+    <ul class="mt-3 space-y-1.5 text-sm">
+      {focus.map((f) => (
+        <li class="flex gap-2"><span class="text-accent">&rarr;</span><span>{f}</span></li>
+      ))}
+    </ul>
+    <h3 class="mt-8 text-sm font-mono uppercase tracking-widest text-muted">
+      Stack
+    </h3>
+    <ul class="mt-3 flex flex-wrap gap-1.5">
+      {[
+        "PySpark",
+        "Databricks",
+        "Azure Data Factory",
+        "Delta Lake",
+        "Apache Iceberg",
+        "Snowflake",
+        "dbt",
+        "Apache Airflow",
+        "Apache Kafka",
+        "Python",
+        "SQL",
+        "Terraform",
+      ].map((s) => <li><StackPill label={s} /></li>)}
+    </ul>
+  </section>
+
+  <section class="mx-auto max-w-page px-6 pb-24">
+    <div class="flex items-end justify-between mb-6">
+      <h2 class="text-xl font-semibold tracking-tight">Featured projects</h2>
+      <a href="/projects" class="text-sm text-muted hover:text-fg">All projects &rarr;</a>
+    </div>
+    <div class="grid gap-4 md:grid-cols-3">
+      {projects.map((p) => (
+        <ProjectCard
+          slug={p.slug}
+          title={p.data.title}
+          tagline={p.data.tagline}
+          stack={p.data.stack}
+          repoUrl={p.data.repoUrl}
+        />
+      ))}
+    </div>
+  </section>
+</BaseLayout>

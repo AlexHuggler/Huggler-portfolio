@@ -1,0 +1,44 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.ruff_cache/
+.venv/
+venv/
+build/
+dist/
+
+uv.lock
+.env
+.env.local
+
+data/
+*.parquet
+*.duckdb
+*.duckdb.wal
+metastore_db/
+derby.log
+
+# Airflow
+airflow.db
+airflow-webserver.pid
+logs/
+plugins/
+
+# dbt
+dbt_packages/
+target/
+profiles.yml
+!profiles.yml.example
+.user.yml
+
+# Terraform
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+crash.log
+
+# Great Expectations
+great_expectations/uncommitted/

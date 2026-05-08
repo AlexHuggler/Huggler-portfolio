@@ -1,0 +1,44 @@
+# Ground truth used by `sql-optimizer benchmark`.
+# expected_keywords are case-insensitive substrings the suggested rewrite
+# (or heuristic findings) should mention; expected_cost_direction is the
+# expected change in EXPLAIN cost vs the original.
+
+queries:
+  - query_id: 01_join_optimization
+    category: join_optimization
+    expected_keywords:
+      - "broadcast"
+      - "select"
+    expected_cost_direction: lower
+
+  - query_id: 02_aggregation_rewrite
+    category: aggregation_rewrite
+    expected_keywords:
+      - "group by"
+      - "left join"
+      - "subquery"
+    expected_cost_direction: lower
+
+  - query_id: 03_cte_flattening
+    category: cte_flattening
+    expected_keywords:
+      - "single scan"
+      - "filter(call_type"
+      - "case when"
+    expected_cost_direction: lower
+
+  - query_id: 04_partition_pruning
+    category: partition_pruning
+    expected_keywords:
+      - "ingest_date"
+      - "between"
+      - "partition"
+    expected_cost_direction: lower
+
+  - query_id: 05_broadcast_join
+    category: broadcast_join
+    expected_keywords:
+      - "broadcast"
+      - "dim_market"
+      - "dim_product"
+    expected_cost_direction: lower

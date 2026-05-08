@@ -1,0 +1,44 @@
+version: 2
+
+models:
+  - name: sl_cdr_clean
+    description: "Silver: cleaned CDR with billable_minutes / billable_mb derived"
+    columns:
+      - name: cdr_id
+        tests: [unique, not_null]
+      - name: caller_msisdn
+        tests: [not_null]
+      - name: call_type
+        tests:
+          - accepted_values:
+              values: ["VOICE", "SMS", "DATA"]
+      - name: billable_minutes
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+      - name: billable_mb
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"
+  - name: sl_account_daily
+    description: "Silver: per-account, per-day aggregate of billable usage"
+    columns:
+      - name: caller_msisdn
+        tests:
+          - not_null
+          - relationships:
+              to: ref('br_account_register')
+              field: caller_msisdn
+      - name: plan_id
+        tests: [not_null]
+      - name: ingest_date
+        tests: [not_null]
+  - name: sl_revenue_event
+    description: "Silver: per-event revenue breakdown used by gold marts"
+    columns:
+      - name: cdr_id
+        tests: [unique, not_null]
+      - name: revenue_usd
+        tests:
+          - dbt_utils.expression_is_true:
+              expression: ">= 0"

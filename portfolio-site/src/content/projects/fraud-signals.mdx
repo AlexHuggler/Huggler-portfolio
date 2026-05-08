@@ -1,0 +1,62 @@
+---
+title: "Real-Time Fraud Signals Pipeline"
+tagline: "Kafka -> Spark Structured Streaming -> Delta -> dbt -> Streamlit. Exactly-once processing, anomaly detection, dbt tests."
+order: 1
+stack:
+  - "Apache Kafka"
+  - "Spark Structured Streaming"
+  - "Delta Lake"
+  - "dbt"
+  - "Streamlit"
+  - "Python"
+repoUrl: "https://github.com/alexhuggler/project-fraud-signals"
+results:
+  - "[TODO: throughput events/sec on local Spark]"
+  - "[TODO: end-to-end p95 latency]"
+  - "[TODO: anomaly precision/recall vs synthetic ground truth]"
+---
+
+import MermaidBlock from "../../components/MermaidBlock.astro";
+
+## Problem
+
+Fraud teams in telecom and fintech need to react in seconds, not hours. Batch
+ETL surfaces compromised accounts long after the damage is done. A streaming
+fraud-signals pipeline ingests transaction events, applies rules and statistical
+anomaly detection, and writes scored events to a lakehouse where analysts can
+slice further with dbt. This project demonstrates the production patterns that
+matter: exactly-once semantics, watermark-based late-event handling, dbt tests
+on the resulting marts, and a lightweight dashboard for operators.
+
+## Architecture
+
+<MermaidBlock code={`flowchart LR
+  P[Synthetic event producer] -->|JSON events| K[(Kafka topic: tx-events)]
+  K -->|Structured Streaming| S[Spark consumer\\nwatermark + checkpoint]
+  S -->|exactly-once| D[(Delta lakehouse\\nbronze + silver)]
+  D --> M[dbt models\\nfct_transactions, dim_account]
+  M --> B[Streamlit dashboard]
+  S -.scored events.-> A[Anomaly detector\\nvelocity, geo, z-score]
+  A --> D
+`} />
+
+## Stack
+
+- **Kafka** for the event bus (replayable, ordered per partition, decouples producer from consumer).
+- **Spark Structured Streaming** for the consumer (mature exactly-once with checkpoints, broad ecosystem support).
+- **Delta Lake** for ACID lakehouse storage (cheap object store, fast incremental reads, built-in MERGE).
+- **dbt** for the analytics layer (testable, reviewable SQL with explicit lineage).
+- **Streamlit** for the operator UI (fast to ship, runs from a single file, no JS build step).
+
+## Results
+
+[TODO: fill in real numbers from your local runs - throughput, latency p50/p95/p99, anomaly precision/recall on the synthetic ground truth]
+
+## What I would do differently in production
+
+- Move anomaly detection to a dedicated feature store with versioned features.
+- Replace per-event Z-score with online algorithms (Welford or t-digest) to bound memory.
+- Add a schema registry (Confluent or AWS Glue) so producer/consumer compatibility is enforced at deploy time.
+- Push the dashboard onto a lightweight web framework with role-based access (Streamlit is fine for ops, not for customer-facing).
+
+See the repo for full setup, tradeoffs, and limitations.

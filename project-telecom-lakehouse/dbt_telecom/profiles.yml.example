@@ -1,0 +1,16 @@
+telecom:
+  target: local
+  outputs:
+    local:
+      type: duckdb
+      path: "telecom.duckdb"
+      schema: main
+      threads: 4
+    athena:
+      type: athena
+      database: telecom
+      schema: silver
+      s3_staging_dir: "s3://my-athena-staging/"
+      region_name: us-east-1
+      aws_profile_name: default
+      threads: 4

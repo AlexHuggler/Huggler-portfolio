@@ -1,0 +1,19 @@
+name: dbt_fraud
+version: "1.0.0"
+config-version: 2
+
+profile: fraud
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  dbt_fraud:
+    staging:
+      +materialized: view
+    marts:
+      +materialized: table

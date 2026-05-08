@@ -1,0 +1,71 @@
+[project]
+name = "telecom-lakehouse"
+version = "0.1.0"
+description = "End-to-end telecom CDR Medallion lakehouse: Airflow + MinIO + Iceberg + GE + dbt"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Alex Huggler" }]
+keywords = ["data-engineering", "airflow", "iceberg", "medallion", "dbt", "great-expectations"]
+
+dependencies = [
+    "duckdb>=1.0",
+    "faker>=25.0",
+    "numpy>=1.26",
+    "pandas>=2.2",
+    "pyarrow>=16.0",
+    "pydantic>=2.7",
+    "rich>=13.7",
+    "typer>=0.12",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+airflow = [
+    "apache-airflow>=2.9,<3",
+]
+quality = [
+    "great-expectations>=0.18,<0.19",
+]
+storage = [
+    "boto3>=1.34",
+    "minio>=7.2",
+]
+dbt = [
+    "dbt-core>=1.8",
+    "dbt-duckdb>=1.8",
+]
+dev = [
+    "pytest>=8.2",
+    "ruff>=0.5",
+]
+
+[project.scripts]
+telecom-gen = "data_generator.generate_cdrs:app"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["data_generator", "src/lakehouse"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+src = ["src", "data_generator", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "B", "UP", "N", "SIM", "RUF",
+]
+ignore = ["E501", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B", "SIM"]
+"dags/*" = ["E402"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q --tb=short"
+pythonpath = ["src", "data_generator", "."]

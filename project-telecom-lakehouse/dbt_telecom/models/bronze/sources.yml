@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: raw
+    description: "Raw zone: parquet landed from MinIO/S3 by the ingest DAG"
+    schema: main
+    tables:
+      - name: cdr_raw
+        description: "Synthetic CDR (Call Detail Record) parquet, partitioned by ingest_date"
+        external:
+          location: "data/raw"
+        columns:
+          - name: cdr_id
+            tests: [unique, not_null]
+          - name: caller_msisdn
+            tests: [not_null]
+          - name: start_time
+            tests: [not_null]
+          - name: call_type
+            tests:
+              - accepted_values:
+                  values: ["VOICE", "SMS", "DATA"]

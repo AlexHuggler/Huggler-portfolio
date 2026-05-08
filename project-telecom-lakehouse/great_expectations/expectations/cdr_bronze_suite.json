@@ -1,0 +1,85 @@
+{
+  "expectation_suite_name": "cdr_bronze_suite",
+  "data_asset_type": "Dataset",
+  "meta": {
+    "great_expectations_version": "0.18.x",
+    "owner": "data-platform",
+    "description": "Bronze data contract for CDR ingest. Failures should block the silver build."
+  },
+  "expectations": [
+    {
+      "expectation_type": "expect_table_columns_to_match_set",
+      "kwargs": {
+        "column_set": [
+          "cdr_id",
+          "caller_msisdn",
+          "callee_msisdn",
+          "start_time",
+          "duration_sec",
+          "bytes_used",
+          "call_type",
+          "market",
+          "plan_id",
+          "is_roaming",
+          "ingest_date"
+        ]
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": { "column": "cdr_id" }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_unique",
+      "kwargs": { "column": "cdr_id" }
+    },
+    {
+      "expectation_type": "expect_column_values_to_not_be_null",
+      "kwargs": { "column": "caller_msisdn" }
+    },
+    {
+      "expectation_type": "expect_column_values_to_match_regex",
+      "kwargs": {
+        "column": "caller_msisdn",
+        "regex": "^\\+1[0-9]{10}$"
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "call_type",
+        "value_set": ["VOICE", "SMS", "DATA"]
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "market",
+        "value_set": ["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL"]
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_in_set",
+      "kwargs": {
+        "column": "plan_id",
+        "value_set": ["BASIC_5GB", "PRO_25GB", "UNLIMITED", "FAMILY_50GB", "PREPAID"]
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "duration_sec",
+        "min_value": 0,
+        "max_value": 86400
+      }
+    },
+    {
+      "expectation_type": "expect_column_values_to_be_between",
+      "kwargs": {
+        "column": "bytes_used",
+        "min_value": 0,
+        "max_value": 100000000000
+      }
+    }
+  ]
+}

@@ -1,0 +1,24 @@
+name: dbt_telecom
+version: "1.0.0"
+config-version: 2
+
+profile: telecom
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  dbt_telecom:
+    bronze:
+      +materialized: view
+      +tags: ["bronze"]
+    silver:
+      +materialized: table
+      +tags: ["silver"]
+    gold:
+      +materialized: table
+      +tags: ["gold"]
