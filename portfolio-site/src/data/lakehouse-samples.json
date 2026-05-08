@@ -1,0 +1,23 @@
+{
+  "bronze": [
+    { "raw_payload": "{\"caller\":\"+1-214-555-0142\",\"callee\":\"+1-415-555-0188\",\"start\":\"2026-04-01T08:14:23Z\",\"dur\":342,\"type\":\"voice\"}", "ingested_at": "2026-04-01T08:15:01Z", "source_file": "cdr_2026_04_01_08.json.gz", "schema_version": "v1.2", "ingest_partition": "dt=2026-04-01/hr=08" },
+    { "raw_payload": "{\"caller\":\"+1-512-555-0190\",\"callee\":\"+44-20-7946-0958\",\"start\":\"2026-04-01T08:14:55Z\",\"dur\":null,\"type\":\"voice\"}", "ingested_at": "2026-04-01T08:15:02Z", "source_file": "cdr_2026_04_01_08.json.gz", "schema_version": "v1.2", "ingest_partition": "dt=2026-04-01/hr=08" },
+    { "raw_payload": "{\"caller\":\"+1-214-555-0173\",\"callee\":\"+1-718-555-0119\",\"start\":\"2026-04-01T08:15:11Z\",\"dur\":58,\"type\":\"sms\"}", "ingested_at": "2026-04-01T08:15:13Z", "source_file": "cdr_2026_04_01_08.json.gz", "schema_version": "v1.2", "ingest_partition": "dt=2026-04-01/hr=08" },
+    { "raw_payload": "{\"caller\":\"+1-415-555-0188\",\"callee\":\"+1-214-555-0142\",\"start\":\"2026-04-01T08:15:42Z\",\"dur\":127,\"type\":\"voice\"}", "ingested_at": "2026-04-01T08:15:45Z", "source_file": "cdr_2026_04_01_08.json.gz", "schema_version": "v1.2", "ingest_partition": "dt=2026-04-01/hr=08" },
+    { "raw_payload": "{\"caller\":\"+1-303-555-0166\",\"callee\":\"+1-303-555-0166\",\"start\":\"2026-04-01T08:16:02Z\",\"dur\":3,\"type\":\"voice\"}", "ingested_at": "2026-04-01T08:16:04Z", "source_file": "cdr_2026_04_01_08.json.gz", "schema_version": "v1.2", "ingest_partition": "dt=2026-04-01/hr=08" }
+  ],
+  "silver": [
+    { "caller": "+1-214-555-0142", "callee": "+1-415-555-0188", "start_time": "2026-04-01T08:14:23Z", "duration_sec": 342, "call_type": "voice", "market": "Dallas", "is_valid": true, "validation_notes": null },
+    { "caller": "+1-512-555-0190", "callee": "+44-20-7946-0958", "start_time": "2026-04-01T08:14:55Z", "duration_sec": null, "call_type": "voice", "market": "Austin", "is_valid": false, "validation_notes": "missing duration" },
+    { "caller": "+1-214-555-0173", "callee": "+1-718-555-0119", "start_time": "2026-04-01T08:15:11Z", "duration_sec": 58, "call_type": "sms", "market": "Dallas", "is_valid": true, "validation_notes": null },
+    { "caller": "+1-415-555-0188", "callee": "+1-214-555-0142", "start_time": "2026-04-01T08:15:42Z", "duration_sec": 127, "call_type": "voice", "market": "San Francisco", "is_valid": true, "validation_notes": null },
+    { "caller": "+1-303-555-0166", "callee": "+1-303-555-0166", "start_time": "2026-04-01T08:16:02Z", "duration_sec": 3, "call_type": "voice", "market": "Denver", "is_valid": false, "validation_notes": "self-loop / probable test" }
+  ],
+  "gold": [
+    { "market": "Dallas", "month": "2026-03", "total_revenue": 8412905, "active_subscribers": 142308, "arpu": 59.12, "churn_rate_pct": 1.42 },
+    { "market": "Austin", "month": "2026-03", "total_revenue": 5187420, "active_subscribers": 89640, "arpu": 57.86, "churn_rate_pct": 1.61 },
+    { "market": "San Francisco", "month": "2026-03", "total_revenue": 9930117, "active_subscribers": 147810, "arpu": 67.18, "churn_rate_pct": 1.29 },
+    { "market": "Denver", "month": "2026-03", "total_revenue": 4023580, "active_subscribers": 71140, "arpu": 56.55, "churn_rate_pct": 1.78 },
+    { "market": "Atlanta", "month": "2026-03", "total_revenue": 6584902, "active_subscribers": 113217, "arpu": 58.16, "churn_rate_pct": 1.55 }
+  ]
+}
