@@ -1,0 +1,77 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { siteConfig } from "../site.config";
+---
+
+<BaseLayout
+  title="Contact"
+  description={`Get in touch with ${siteConfig.name} — hiring, collaboration, or speaking inquiries.`}
+>
+  <section class="mx-auto max-w-prose px-6 pt-16 pb-24">
+    <p class="font-mono text-xs uppercase tracking-widest text-muted">Contact</p>
+    <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
+      Send me a message
+    </h1>
+    <p class="mt-6 text-muted">
+      Best for hiring inquiries, collaboration on data engineering or
+      analytics work, and speaking opportunities. I read every message
+      and reply within a few business days.
+    </p>
+
+    <form
+      action={siteConfig.contactFormEndpoint}
+      method="POST"
+      class="mt-10 space-y-6"
+    >
+      <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;" />
+      <input type="hidden" name="_captcha" value="false" />
+      <input type="hidden" name="_subject" value="New message from www.alexhuggler.com" />
+      <input type="hidden" name="_template" value="table" />
+      <input type="hidden" name="_next" value="https://www.alexhuggler.com/contact/sent" />
+
+      <div>
+        <label for="name" class="block text-sm font-medium">Name</label>
+        <input id="name" name="name" type="text" required autocomplete="name" class="mt-2 w-full rounded-md border border-border bg-bg px-3 py-2 text-fg placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+      </div>
+
+      <div>
+        <label for="email" class="block text-sm font-medium">Email</label>
+        <input id="email" name="email" type="email" required autocomplete="email" class="mt-2 w-full rounded-md border border-border bg-bg px-3 py-2 text-fg placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+      </div>
+
+      <div>
+        <label for="company" class="block text-sm font-medium">Company <span class="text-muted">(optional)</span></label>
+        <input id="company" name="company" type="text" autocomplete="organization" class="mt-2 w-full rounded-md border border-border bg-bg px-3 py-2 text-fg placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+      </div>
+
+      <div>
+        <label for="subject" class="block text-sm font-medium">Subject <span class="text-muted">(optional)</span></label>
+        <input id="subject" name="subject" type="text" class="mt-2 w-full rounded-md border border-border bg-bg px-3 py-2 text-fg placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent" />
+      </div>
+
+      <div>
+        <label for="message" class="block text-sm font-medium">Message</label>
+        <textarea id="message" name="message" rows="6" required class="mt-2 w-full rounded-md border border-border bg-bg px-3 py-2 text-fg placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"></textarea>
+      </div>
+
+      <button type="submit" class="rounded-md bg-accent px-5 py-2 text-sm font-medium text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-bg">Send message</button>
+    </form>
+
+    <hr class="my-12 border-border" />
+
+    <div class="space-y-2 text-sm">
+      <p class="text-muted">Prefer to email directly?</p>
+      <p>
+        <a class="text-accent hover:opacity-80" href={`mailto:${siteConfig.email}`}>
+          {siteConfig.email}
+        </a>
+      </p>
+      <p class="mt-6 text-muted">
+        Also reachable on
+        <a class="text-accent hover:opacity-80" href={siteConfig.linkedin}>LinkedIn</a>
+        and
+        <a class="text-accent hover:opacity-80" href={siteConfig.github}>GitHub</a>.
+      </p>
+    </div>
+  </section>
+</BaseLayout>
