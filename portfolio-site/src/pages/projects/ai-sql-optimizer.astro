@@ -1,0 +1,230 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import MermaidBlock from "../../components/MermaidBlock.astro";
+import SectionHeader from "../../components/shared/SectionHeader.astro";
+import GitHubBadge from "../../components/shared/GitHubBadge.astro";
+import SqlOptimizerDemo from "../../components/sqlopt/SqlOptimizerDemo.tsx";
+import SequenceDiagram from "../../components/sqlopt/SequenceDiagram.tsx";
+import BenchmarkChart from "../../components/sqlopt/BenchmarkChart.tsx";
+import { getCollection } from "astro:content";
+
+const project = (await getCollection("projects")).find(
+  (p) => p.slug === "ai-sql-optimizer",
+)!;
+
+const stack = [
+  { label: "Python",        rationale: "CLI runtime." },
+  { label: "Typer",         rationale: "CLI framework." },
+  { label: "Anthropic SDK", rationale: "Claude API client." },
+  { label: "sqlglot",       rationale: "Multi-dialect SQL parser." },
+  { label: "pytest",        rationale: "Corpus regression tests." },
+];
+---
+
+<BaseLayout
+  title={project.data.title}
+  description={project.data.tagline}
+>
+  <article>
+    <!-- Hero band -->
+    <section class="relative">
+      <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-page px-6 pt-14 pb-10">
+        <p class="demo-eyebrow">Project 03 · AI-assisted data engineering</p>
+        <h1 class="mt-2 demo-headline">AI-Assisted SQL Optimizer</h1>
+        <p class="demo-tagline">
+          A CLI that uses Claude to suggest Spark and Snowflake query
+          rewrites and partition strategies. Benchmarked against a 50-query
+          corpus with sqlglot-driven heuristics and an optional EXPLAIN
+          verifier.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <GitHubBadge href={project.data.repoUrl} />
+          <a class="btn" href="#demo">Try the demo</a>
+          <a class="btn" href="#methodology">Methodology</a>
+        </div>
+        <div class="mt-8 demo-card relative overflow-hidden">
+          <SequenceDiagram client:visible />
+        </div>
+      </div>
+    </section>
+
+    <!-- Live demo -->
+    <section class="demo-section" id="demo">
+      <SectionHeader
+        eyebrow="Live demo"
+        title="Pick a query, see the rewrite"
+        description="Output is replayed from a static fixture so the page never makes an external API call by default. The repo includes the full CLI plus an optional Cloudflare Worker proxy for self-hosted live mode."
+      />
+      <SqlOptimizerDemo client:visible />
+    </section>
+
+    <!-- Benchmark chart -->
+    <section class="demo-section" id="benchmark">
+      <SectionHeader
+        eyebrow="Corpus"
+        title="Estimated cost reduction across the sample queries"
+        description="Per-query cost-reduction estimates from the 50-query corpus. The five queries in the live demo are shown here; full results are in the repo."
+      />
+      <BenchmarkChart client:visible />
+    </section>
+
+    <!-- Methodology -->
+    <section class="demo-section" id="methodology">
+      <SectionHeader
+        eyebrow="Methodology"
+        title="How the optimizer works, scores, and where it fails"
+        description="Three columns: how it works, how suggestions are scored, and the limitations a senior reviewer would call out."
+      />
+      <div class="grid gap-4 md:grid-cols-3">
+        <article class="demo-card">
+          <h3 class="text-sm font-semibold tracking-tight">How it works</h3>
+          <ul class="mt-3 space-y-2 text-sm text-muted leading-relaxed list-disc pl-5">
+            <li>sqlglot parses the input into an AST and a small heuristic pass collects findings (function-wrapped partition columns, SELECT *, exact COUNT DISTINCT, missing broadcast hints).</li>
+            <li>Findings + raw SQL are sent to the Anthropic Messages API with a structured optimizer prompt. Output is constrained to a JSON envelope of rewrite + reasoning.</li>
+            <li>An optional EXPLAIN runner (Spark or Snowflake) executes both plans against a shadow database and reports the cost delta back to the CLI.</li>
+          </ul>
+        </article>
+        <article class="demo-card">
+          <h3 class="text-sm font-semibold tracking-tight">Scoring rubric</h3>
+          <ul class="mt-3 space-y-2 text-sm text-muted leading-relaxed list-disc pl-5">
+            <li>Keyword overlap with ground-truth labels in <code class="font-mono text-xs">corpus/ground_truth.yaml</code> &mdash; coarse but cheap to run on every change.</li>
+            <li>EXPLAIN cost delta when a Spark or Snowflake engine is reachable; treated as approximate, not authoritative.</li>
+            <li>Human review on the full 50-query corpus, recorded in the repo with the reviewer&rsquo;s rationale per query.</li>
+          </ul>
+        </article>
+        <article class="demo-card">
+          <h3 class="text-sm font-semibold tracking-tight">Limitations</h3>
+          <ul class="mt-3 space-y-2 text-sm text-muted leading-relaxed list-disc pl-5">
+            <li><strong class="text-fg">Claude can hallucinate column or table names</strong> not in the schema &mdash; especially for novel dialects.</li>
+            <li>EXPLAIN-based scoring is approximate: a "cheaper" plan can still be slower in practice.</li>
+            <li>Dialect drift between Spark SQL and Snowflake catches edge cases (QUALIFY, lateral views, named struct fields).</li>
+            <li>Suggestions require human review before applying to production. The CLI defaults to printing diffs, never auto-rewriting files.</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <!-- Want to run this live? callout -->
+    <section class="demo-section" id="live-mode">
+      <div class="demo-card">
+        <header class="flex flex-wrap items-baseline justify-between gap-2">
+          <div>
+            <p class="demo-eyebrow">Live mode</p>
+            <h3 class="mt-1 text-base font-semibold tracking-tight">
+              Want to run this against a real Claude key?
+            </h3>
+          </div>
+          <span class="placeholder-banner inline-block">No API keys in client code</span>
+        </header>
+        <p class="mt-3 text-sm text-muted leading-relaxed">
+          The on-page demo uses pre-computed responses for security &mdash; no
+          API keys are bundled into the client. The GitHub repo ships the
+          full CLI plus an optional Cloudflare Worker proxy at
+          <code class="font-mono text-xs">src/workers/sql-optimizer-proxy/</code>
+          for live API calls when self-hosted with your own
+          <code class="font-mono text-xs">ANTHROPIC_API_KEY</code>. When you
+          deploy the Worker, set
+          <code class="font-mono text-xs">PUBLIC_LIVE_DEMO_URL</code> at build
+          time and the demo swaps fixture lookup for a Worker fetch. The
+          default build never reaches the network.
+        </p>
+      </div>
+    </section>
+
+    <!-- Architecture deep-dive -->
+    <section class="demo-section" id="architecture">
+      <SectionHeader
+        eyebrow="Architecture"
+        title="How it works under the hood"
+        description="Sequence diagram from the project content. Mirrors the animated hero diagram, with the additional EXPLAIN-runner branch the hero collapses into the Verified node."
+      />
+      <div class="demo-card">
+        <MermaidBlock code={`sequenceDiagram
+          participant U as User
+          participant CLI as sql-optimizer CLI
+          participant A as Analyzer (sqlglot + heuristics)
+          participant C as Claude API
+          participant E as EXPLAIN runner (optional)
+
+          U->>CLI: analyze query.sql
+          CLI->>A: parse + collect findings
+          A-->>CLI: AST + findings
+          CLI->>C: optimizer_prompt + sql + findings
+          C-->>CLI: rewrite + reasoning
+          CLI->>E: EXPLAIN original / EXPLAIN rewrite
+          E-->>CLI: cost deltas
+          CLI-->>U: markdown diff + cost report
+        `} />
+      </div>
+      <div class="prose prose-invert mt-8 max-w-none text-fg
+        prose-headings:font-semibold prose-headings:tracking-tight
+        prose-h3:text-base prose-h3:mt-6
+        prose-p:text-muted prose-p:leading-relaxed
+        prose-strong:text-fg
+      ">
+        <p>
+          <strong>Why heuristics + LLM, not just the LLM?</strong> Sending
+          raw SQL to Claude works, but the model spends most of its budget
+          re-deriving facts a parser already knows: which columns appear in
+          the projection, where the partition column lives, whether the
+          predicate is wrapped in a function. A small sqlglot pass extracts
+          those cheaply and ships them as findings, leaving the model to
+          decide what to do with them.
+        </p>
+        <p>
+          <strong>Why EXPLAIN is optional.</strong> EXPLAIN cost numbers are
+          informative, not ground truth. They reflect the planner&rsquo;s
+          stale statistics and its own broadcast threshold. The CLI treats
+          them as a tiebreaker between candidate rewrites, never as the
+          deciding signal.
+        </p>
+        <p>
+          <strong>Prompt sensitivity.</strong> Small changes to the optimizer
+          prompt materially change suggestion quality. The prompt template
+          is versioned in the repo, and corpus tests pin a known prompt
+          version so regressions surface in CI rather than in production.
+        </p>
+      </div>
+    </section>
+
+    <!-- Stack pills -->
+    <section class="demo-section">
+      <SectionHeader eyebrow="Stack" title="What this project uses, and why" />
+      <ul class="flex flex-wrap gap-2">
+        {stack.map((s) => (
+          <li>
+            <span class="pill" title={s.rationale} aria-label={`${s.label}: ${s.rationale}`}>
+              {s.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="demo-section">
+      <div class="demo-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight">See the full code</h3>
+          <p class="mt-1 text-sm text-muted">
+            The CLI, the 50-query corpus, the prompt template, and the
+            optional EXPLAIN runner are all in the repo. Self-hosted live
+            mode goes through a small Cloudflare Worker that holds your key.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <GitHubBadge href={project.data.repoUrl} label="View repository" />
+          <a
+            class="btn"
+            href={`${project.data.repoUrl}/blob/main/prompts/optimizer_prompt.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read the prompt template
+          </a>
+        </div>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

@@ -1,0 +1,110 @@
+/*
+ * Shared visual primitives for interactive project demos.
+ * Loaded by every project page; uses Tailwind layers to stay composable.
+ */
+
+@layer components {
+  .demo-card {
+    @apply rounded-lg border border-border bg-bg/40 p-5;
+  }
+  html:not(.dark) .demo-card {
+    @apply border-border-light bg-white;
+  }
+
+  .demo-surface {
+    @apply rounded-lg border border-border bg-bg/30 p-4;
+  }
+  html:not(.dark) .demo-surface {
+    @apply border-border-light bg-white;
+  }
+
+  .demo-tag {
+    @apply inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-mono text-muted;
+  }
+  html:not(.dark) .demo-tag {
+    @apply border-border-light text-muted-light;
+  }
+
+  .demo-section {
+    @apply mx-auto max-w-page px-6 py-12 md:py-16;
+  }
+
+  .demo-headline {
+    @apply text-3xl md:text-5xl font-semibold tracking-tight;
+  }
+
+  .demo-tagline {
+    @apply mt-3 text-lg text-muted max-w-prose;
+  }
+
+  .demo-eyebrow {
+    @apply font-mono text-xs uppercase tracking-widest text-muted;
+  }
+
+  .demo-grid-bg {
+    background-image:
+      linear-gradient(to right, rgba(37, 99, 235, 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+
+  .demo-divider {
+    @apply h-px w-full bg-border;
+  }
+  html:not(.dark) .demo-divider {
+    @apply bg-border-light;
+  }
+
+  .placeholder-banner {
+    @apply rounded-md border border-dashed border-accent/40 bg-accent/5 px-3 py-2 text-xs text-muted;
+  }
+
+  .code-block {
+    @apply rounded-md border border-border bg-bg/60 p-3 font-mono text-[12px] leading-snug overflow-x-auto;
+  }
+  html:not(.dark) .code-block {
+    @apply border-border-light bg-zinc-50 text-fg-light;
+  }
+
+  .demo-fade-in {
+    animation: demo-fade-in 320ms ease-out both;
+  }
+
+  @keyframes demo-fade-in {
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  .demo-dot-pulse {
+    animation: demo-dot-pulse 1200ms ease-in-out infinite;
+  }
+  @keyframes demo-dot-pulse {
+    0%,100% { opacity: 0.5; transform: scale(1); }
+    50%     { opacity: 1;   transform: scale(1.35); }
+  }
+
+  /*
+   * Honor prefers-reduced-motion in CSS too. React islands also gate via
+   * useReducedMotion; this catches purely-CSS animated elements.
+   */
+  @media (prefers-reduced-motion: reduce) {
+    .demo-fade-in,
+    .demo-dot-pulse {
+      animation: none !important;
+    }
+    .demo-fade-in { opacity: 1; transform: none; }
+  }
+
+  /* Visually hidden table for chart accessibility. */
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    white-space: nowrap;
+    border: 0;
+  }
+}

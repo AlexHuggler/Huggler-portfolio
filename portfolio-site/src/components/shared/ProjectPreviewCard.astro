@@ -1,0 +1,56 @@
+---
+/**
+ * ProjectPreviewCard
+ *
+ * Rich preview card for the /projects landing page. Hosts a small visual
+ * preview slot, project copy, stack pills, and a CTA to the full
+ * interactive demo. The preview renders as a static SVG / code snippet —
+ * no React island here so the landing page stays zero-JS.
+ */
+import StackPill from "../StackPill.astro";
+
+interface Props {
+  slug: string;
+  number: string;
+  title: string;
+  tagline: string;
+  stack: string[];
+  repoUrl: string;
+}
+const { slug, number, title, tagline, stack, repoUrl } = Astro.props;
+---
+
+<article class="group flex flex-col rounded-lg border border-border overflow-hidden hover:border-accent transition-colors">
+  <div class="relative aspect-[5/3] border-b border-border bg-bg/30 grid place-items-center overflow-hidden">
+    <slot name="preview" />
+  </div>
+  <div class="flex flex-1 flex-col p-5">
+    <p class="font-mono text-[11px] uppercase tracking-widest text-muted">
+      Project {number}
+    </p>
+    <h3 class="mt-1 text-lg font-semibold tracking-tight">
+      <a href={`/projects/${slug}`} class="hover:text-accent">{title}</a>
+    </h3>
+    <p class="mt-2 text-sm text-muted">{tagline}</p>
+    <ul class="mt-3 flex flex-wrap gap-1.5">
+      {stack.slice(0, 5).map((s) => <li><StackPill label={s} /></li>)}
+    </ul>
+    <div class="mt-auto pt-4 flex items-center justify-between text-sm">
+      <a
+        href={`/projects/${slug}`}
+        class="inline-flex items-center gap-1 text-accent hover:opacity-80"
+      >
+        View interactive demo &rarr;
+      </a>
+      <a
+        href={repoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="font-mono text-xs text-muted hover:text-fg"
+        aria-label={`${title} GitHub repository (opens in new tab)`}
+      >
+        repo
+      </a>
+    </div>
+  </div>
+</article>

@@ -1,0 +1,171 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import StackPill from "../../components/StackPill.astro";
+import MermaidBlock from "../../components/MermaidBlock.astro";
+import SectionHeader from "../../components/shared/SectionHeader.astro";
+import GitHubBadge from "../../components/shared/GitHubBadge.astro";
+import FraudPipelineCanvas from "../../components/fraud/FraudPipelineCanvas.tsx";
+import TransactionFeed from "../../components/fraud/TransactionFeed.tsx";
+import ThroughputChart from "../../components/fraud/ThroughputChart.tsx";
+import AnomalyPatternCards from "../../components/fraud/AnomalyPatternCards.tsx";
+import { getCollection } from "astro:content";
+
+const project = (await getCollection("projects")).find(
+  (p) => p.slug === "fraud-signals",
+)!;
+
+const stack = [
+  { label: "Python",                   rationale: "Producer + analytics tooling." },
+  { label: "PySpark",                  rationale: "Structured Streaming consumer." },
+  { label: "Apache Kafka",             rationale: "Replayable event bus, ordered per partition." },
+  { label: "Delta Lake",               rationale: "ACID lakehouse storage with MERGE." },
+  { label: "dbt",                      rationale: "Tested SQL transforms with explicit lineage." },
+  { label: "Streamlit",                rationale: "Single-file operator dashboard." },
+  { label: "Docker",                   rationale: "docker-compose for local Kafka + Spark." },
+  { label: "GitHub Actions",           rationale: "CI: lint, type-check, dbt parse." },
+];
+---
+
+<BaseLayout
+  title={project.data.title}
+  description={project.data.tagline}
+>
+  <article>
+    <!-- Hero band -->
+    <section class="relative">
+      <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-page px-6 pt-14 pb-10">
+        <p class="demo-eyebrow">Project 01 · Streaming + lakehouse</p>
+        <h1 class="mt-2 demo-headline">Real-Time Fraud Signals Pipeline</h1>
+        <p class="demo-tagline">
+          A production-pattern streaming pipeline: synthetic transaction events
+          ingested through Kafka, scored by Spark Structured Streaming with
+          exactly-once semantics, persisted to Delta, modeled in dbt, and
+          surfaced to an operator dashboard.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <GitHubBadge href={project.data.repoUrl} />
+          <a class="btn" href="#feed">See the live feed</a>
+          <a class="btn" href="#architecture">Architecture deep-dive</a>
+        </div>
+        <div class="mt-8 demo-card relative overflow-hidden">
+          <FraudPipelineCanvas client:visible />
+        </div>
+      </div>
+    </section>
+
+    <!-- Live feed + throughput -->
+    <section class="demo-section" id="feed">
+      <SectionHeader
+        eyebrow="Live demo"
+        title="Synthetic stream + rolling throughput"
+        description="Plays back a 1,000-event fixture at ~2 events per second. About 5% are anomalies, balanced across velocity, geographic, and amount-outlier patterns."
+      />
+      <div class="grid gap-4 lg:grid-cols-2">
+        <TransactionFeed client:visible />
+        <ThroughputChart client:visible />
+      </div>
+    </section>
+
+    <!-- Anomaly patterns -->
+    <section class="demo-section" id="patterns">
+      <SectionHeader
+        eyebrow="Detection logic"
+        title="Three fraud patterns"
+        description="Each pattern is implemented in PySpark with a watermarked window or stateful aggregation. See the project repo for the full operators and unit tests."
+      />
+      <AnomalyPatternCards client:visible />
+    </section>
+
+    <!-- Architecture deep-dive -->
+    <section class="demo-section" id="architecture">
+      <SectionHeader
+        eyebrow="Architecture"
+        title="From event to dashboard"
+        description="Mermaid below. The engineering write-up underneath calls out the trade-offs that recruiters and senior reviewers tend to ask about."
+      />
+      <div class="demo-card">
+        <MermaidBlock code={`flowchart LR
+          P[Synthetic event producer] -->|JSON events| K[(Kafka topic: tx-events)]
+          K -->|Structured Streaming| S[Spark consumer\nwatermark + checkpoint]
+          S -->|exactly-once| D[(Delta lakehouse\nbronze + silver)]
+          D --> M[dbt models\nfct_transactions, dim_account]
+          M --> B[Streamlit dashboard]
+          S -.scored events.-> A[Anomaly detector\nvelocity, geo, z-score]
+          A --> D
+        `} />
+      </div>
+      <div class="prose prose-invert mt-8 max-w-none text-fg
+        prose-headings:font-semibold prose-headings:tracking-tight
+        prose-h3:text-base prose-h3:mt-6
+        prose-p:text-muted prose-p:leading-relaxed
+        prose-strong:text-fg
+      ">
+        <p>
+          <strong>Why streaming over batch?</strong> Fraud ages out fast. A
+          batch ETL that lands an anomaly two hours late is informational, not
+          operational. The producer publishes JSON events to a Kafka topic
+          partitioned by <code>account_id</code>, which preserves per-account
+          ordering even when consumers scale horizontally.
+        </p>
+        <p>
+          <strong>Why Spark Structured Streaming over Flink?</strong> Both are
+          mature; Flink has lower latency at the tail and richer stateful
+          semantics. I picked Spark for this project because (a) the
+          downstream lakehouse is already Spark-native via Delta, so the
+          interop story is one engine instead of two, and (b) Structured
+          Streaming's batch-equivalence model matches how analytics teams
+          already reason about SQL. For sub-100ms detection, Flink would be
+          the right call.
+        </p>
+        <p>
+          <strong>Exactly-once trade-offs.</strong> Spark's exactly-once
+          guarantee is "exactly-once across the checkpoint boundary," which
+          assumes the sink is idempotent. Delta MERGE on a deterministic key
+          is idempotent; raw Kafka-to-Kafka is not. I document the failure
+          modes (e.g., committing the offset before the Delta write) in the
+          repo's <code>docs/architecture.md</code>, alongside the watermark
+          policy that bounds late-event memory.
+        </p>
+      </div>
+    </section>
+
+    <!-- Stack pills -->
+    <section class="demo-section">
+      <SectionHeader eyebrow="Stack" title="What this project uses, and why" />
+      <ul class="flex flex-wrap gap-2">
+        {stack.map((s) => (
+          <li>
+            <span class="pill" title={s.rationale} aria-label={`${s.label}: ${s.rationale}`}>
+              {s.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="demo-section">
+      <div class="demo-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight">See the full code</h3>
+          <p class="mt-1 text-sm text-muted">
+            The repo runs locally on docker-compose with no cloud account.
+            Architecture doc, dbt tests, and the producer are all there.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <GitHubBadge href={project.data.repoUrl} label="View repository" />
+          <a
+            class="btn"
+            href={`${project.data.repoUrl}/blob/main/docs/architecture.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read the architecture doc
+          </a>
+        </div>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

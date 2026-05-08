@@ -1,0 +1,214 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import StackPill from "../../components/StackPill.astro";
+import MermaidBlock from "../../components/MermaidBlock.astro";
+import SectionHeader from "../../components/shared/SectionHeader.astro";
+import GitHubBadge from "../../components/shared/GitHubBadge.astro";
+import MedallionDiagram from "../../components/lakehouse/MedallionDiagram.tsx";
+import LayerDrillDown from "../../components/lakehouse/LayerDrillDown.tsx";
+import AirflowDagViewer from "../../components/lakehouse/AirflowDagViewer.tsx";
+import DataQualityScorecard from "../../components/lakehouse/DataQualityScorecard.tsx";
+import DbtLineagePreview from "../../components/lakehouse/DbtLineagePreview.tsx";
+import { getCollection } from "astro:content";
+
+const project = (await getCollection("projects")).find(
+  (p) => p.slug === "telecom-lakehouse",
+)!;
+
+const stack = [
+  {
+    label: "Apache Airflow",
+    rationale:
+      "Orchestrates ingest/transform/dbt with retries and SLAs.",
+  },
+  {
+    label: "Apache Iceberg",
+    rationale:
+      "Partition evolution, hidden partitioning, engine portability.",
+  },
+  {
+    label: "MinIO / S3",
+    rationale:
+      "Local object storage with the production API surface.",
+  },
+  {
+    label: "Great Expectations",
+    rationale: "Column-level data contracts at Bronze.",
+  },
+  {
+    label: "dbt",
+    rationale: "Silver-to-Gold transforms with tests on every model.",
+  },
+  {
+    label: "Terraform",
+    rationale: "Provisions the AWS variant when deploying for real.",
+  },
+];
+---
+
+<BaseLayout
+  title={project.data.title}
+  description={project.data.tagline}
+>
+  <article>
+    <!-- Hero band -->
+    <section class="relative">
+      <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-page px-6 pt-14 pb-10">
+        <p class="demo-eyebrow">Project 02 · Lakehouse + orchestration</p>
+        <h1 class="mt-2 demo-headline">
+          Telecom Billing Lakehouse — Medallion Architecture
+        </h1>
+        <p class="demo-tagline">
+          Bronze, Silver, and Gold tiers built over synthetic Call Detail
+          Records. Airflow orchestrates ingestion onto Iceberg-on-S3, Great
+          Expectations enforces contracts at the boundary, and dbt models
+          analyst-ready marts on top.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <GitHubBadge href={project.data.repoUrl} />
+          <a class="btn" href="#drill-down">Explore the tiers</a>
+          <a class="btn" href="#architecture">Architecture deep-dive</a>
+        </div>
+        <div class="mt-8 demo-card relative overflow-hidden">
+          <MedallionDiagram
+            client:visible
+            scrollTargetId="drill-down"
+          />
+        </div>
+      </div>
+    </section>
+
+    <!-- Layer drill-down -->
+    <section class="demo-section" id="drill-down">
+      <SectionHeader
+        eyebrow="Tier drill-down"
+        title="Bronze, Silver, Gold — what changes between them"
+        description="Click a tier above or use the tabs below to see the schema, sample rows, transformations, and data-quality checks at each stage of the medallion."
+      />
+      <LayerDrillDown client:visible />
+    </section>
+
+    <!-- Airflow DAG -->
+    <section class="demo-section" id="orchestration">
+      <SectionHeader
+        eyebrow="Orchestration"
+        title="Daily Airflow DAG"
+        description="A linear pipeline that generates synthetic CDR data, lands it on Bronze, validates with Great Expectations, normalizes into Silver, builds Gold marts via dbt, and notifies on completion."
+      />
+      <AirflowDagViewer client:visible />
+    </section>
+
+    <!-- Data quality scorecard -->
+    <section class="demo-section" id="data-quality">
+      <SectionHeader
+        eyebrow="Data quality"
+        title="Scorecard across the four pillars"
+        description="Completeness, validity, uniqueness, and freshness — measured by the dbt + Great Expectations test surface and surfaced into a simple scorecard."
+      />
+      <DataQualityScorecard client:visible />
+    </section>
+
+    <!-- dbt lineage -->
+    <section class="demo-section" id="lineage">
+      <SectionHeader
+        eyebrow="dbt lineage"
+        title="From sources to marts"
+        description="Hover or focus a model to see its source file. The graph mirrors the dbt project's actual model layout."
+      />
+      <DbtLineagePreview client:visible />
+    </section>
+
+    <!-- Architecture deep-dive -->
+    <section class="demo-section" id="architecture">
+      <SectionHeader
+        eyebrow="Architecture"
+        title="From producer to BI"
+        description="Mermaid diagram of the full pipeline. The engineering write-up underneath calls out the trade-offs that recruiters and reviewers tend to ask about."
+      />
+      <div class="demo-card">
+        <MermaidBlock code={`flowchart LR
+          G[Synthetic CDR generator] -->|parquet| R[(MinIO/S3 raw zone)]
+          R -->|Airflow ingest DAG| BR[(Iceberg Bronze)]
+          BR -->|Airflow transform DAG\nGE checks| SI[(Iceberg Silver)]
+          SI -->|dbt run| GO[(Gold marts\nrevenue_by_market, arpu_monthly, churn_signals)]
+          GO --> BI[BI / consumers]
+        `} />
+      </div>
+      <div class="prose prose-invert mt-8 max-w-none text-fg
+        prose-headings:font-semibold prose-headings:tracking-tight
+        prose-h3:text-base prose-h3:mt-6
+        prose-p:text-muted prose-p:leading-relaxed
+        prose-strong:text-fg
+      ">
+        <p>
+          <strong>Why medallion over a single table?</strong> Telecom CDR
+          volumes are huge and lossy. Keeping a Bronze append-only layer
+          means a schema change, a parsing bug, or a vendor-side correction
+          can be replayed without re-ingesting from upstream. Silver is
+          where validation happens but rows are never dropped — bad rows are
+          flagged via <code>is_valid</code> + <code>validation_notes</code>
+          so analysts can audit them. Gold is the only layer BI tools see.
+        </p>
+        <p>
+          <strong>Why Iceberg over Delta?</strong> Both work. Iceberg's
+          hidden partitioning and partition evolution made schema migrations
+          on the synthetic data far less painful than rewrite-on-write
+          tables, and it gives engine portability if a downstream consumer
+          wants Trino or Athena instead of Spark. Delta would be a fine
+          choice in a Spark-mostly shop.
+        </p>
+        <p>
+          <strong>Why Great Expectations at Bronze and dbt tests at
+          Silver/Gold?</strong> GE catches the bad records before they enter
+          the lake — schema, null rates, source checksums. dbt tests catch
+          the bad <em>relationships</em>: uniqueness, referential integrity,
+          accepted values. The two tools cover complementary failure modes,
+          and both block the downstream task in Airflow if they fail.
+        </p>
+      </div>
+    </section>
+
+    <!-- Stack pills -->
+    <section class="demo-section">
+      <SectionHeader eyebrow="Stack" title="What this project uses, and why" />
+      <ul class="flex flex-wrap gap-2">
+        {stack.map((s) => (
+          <li>
+            <span
+              class="pill"
+              title={s.rationale}
+              aria-label={`${s.label}: ${s.rationale}`}
+            >
+              {s.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Footer CTA -->
+    <section class="demo-section">
+      <div class="demo-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight">See the full code</h3>
+          <p class="mt-1 text-sm text-muted">
+            The repo runs locally on docker-compose with no AWS account.
+            Airflow, MinIO, Iceberg, GE, and the dbt project are all there.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <GitHubBadge href={project.data.repoUrl} label="View repository" />
+          <a
+            class="btn"
+            href={`${project.data.repoUrl}/blob/main/docs/data-quality.md`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Read the data contracts doc
+          </a>
+        </div>
+      </div>
+    </section>
+  </article>
+</BaseLayout>
