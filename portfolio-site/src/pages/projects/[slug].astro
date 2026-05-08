@@ -4,11 +4,20 @@ import StackPill from "../../components/StackPill.astro";
 import { getCollection } from "astro:content";
 
 export async function getStaticPaths() {
+  // Projects with dedicated interactive pages own their routes directly;
+  // this dynamic route only generates stubs for any future MDX-only entries.
+  const interactiveSlugs = new Set([
+    "fraud-signals",
+    "telecom-lakehouse",
+    "ai-sql-optimizer",
+  ]);
   const projects = await getCollection("projects");
-  return projects.map((p) => ({
-    params: { slug: p.slug },
-    props: { project: p },
-  }));
+  return projects
+    .filter((p) => !interactiveSlugs.has(p.slug))
+    .map((p) => ({
+      params: { slug: p.slug },
+      props: { project: p },
+    }));
 }
 
 const { project } = Astro.props;

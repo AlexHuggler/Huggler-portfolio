@@ -1,0 +1,17 @@
+{
+  "name": "sql-optimizer-proxy",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cloudflare Worker that proxies the Anthropic API for the portfolio's SQL optimizer demo. Optional and off by default.",
+  "main": "src/worker.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260101.0",
+    "typescript": "^5.7.2",
+    "wrangler": "^3.90.0"
+  }
+}

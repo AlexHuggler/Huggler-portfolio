@@ -1,0 +1,26 @@
+name = "sql-optimizer-proxy"
+main = "src/worker.ts"
+compatibility_date = "2026-01-01"
+
+# Bind a KV namespace for per-IP rate limiting. Create with:
+#   wrangler kv:namespace create RATE_LIMIT
+# then paste the resulting id below before deploying.
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "REPLACE_WITH_KV_NAMESPACE_ID"
+
+# Production route. Bind the worker to your domain via the Cloudflare dashboard
+# (Workers Routes) or uncomment the route block below and run `wrangler deploy`.
+# [[routes]]
+# pattern = "REPLACE_WITH_YOUR_DOMAIN.com/api/sql-optimize/*"
+# zone_name = "REPLACE_WITH_YOUR_DOMAIN.com"
+
+[vars]
+# Comma-separated list of allowed CORS origins. Default to the production
+# portfolio domain. Localhost is allowed when running `wrangler dev`.
+ALLOWED_ORIGINS = "https://REPLACE_WITH_YOUR_DOMAIN.com,https://www.REPLACE_WITH_YOUR_DOMAIN.com"
+RATE_LIMIT_PER_MIN = "10"
+ANTHROPIC_MODEL = "claude-sonnet-4-6"
+
+# Secrets are NEVER committed. Set via:
+#   wrangler secret put ANTHROPIC_API_KEY

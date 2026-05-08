@@ -3,6 +3,7 @@ import { defineConfig } from "astro/config";
 import tailwind from "@astrojs/tailwind";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
+import react from "@astrojs/react";
 
 // Two deployment scenarios are supported. Pick ONE and uncomment.
 //
@@ -23,8 +24,14 @@ export default defineConfig({
   // base: BASE,
   trailingSlash: "ignore",
   integrations: [
+    react(),
     tailwind({ applyBaseStyles: false }),
     mdx(),
     sitemap(),
   ],
+  vite: {
+    ssr: {
+      noExternal: ["react-diff-viewer-continued"],
+    },
+  },
 });

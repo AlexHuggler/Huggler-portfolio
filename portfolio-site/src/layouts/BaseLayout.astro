@@ -3,6 +3,7 @@ import "../styles/global.css";
 import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import { siteConfig } from "../site.config";
+import { ClientRouter } from "astro:transitions";
 
 interface Props {
   title: string;
@@ -25,6 +26,9 @@ const fullTitle = title.includes(siteConfig.name)
   : `${title} | ${siteConfig.name}`;
 const ogUrl = canonical ?? new URL(Astro.url.pathname, Astro.site).toString();
 const imageUrl = new URL(image, Astro.site).toString();
+const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN as
+  | string
+  | undefined;
 ---
 
 <!doctype html>
@@ -53,6 +57,7 @@ const imageUrl = new URL(image, Astro.site).toString();
         set:html={JSON.stringify(jsonLd)}
       />
     )}
+    <ClientRouter />
     <script is:inline>
       // Theme bootstrap — runs before paint to avoid flash.
       const stored = localStorage.getItem("theme");
@@ -60,10 +65,24 @@ const imageUrl = new URL(image, Astro.site).toString();
       const theme = stored ?? (prefersDark ? "dark" : "dark");
       document.documentElement.classList.toggle("dark", theme === "dark");
     </script>
+    {cfAnalyticsToken && (
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={`{"token": "${cfAnalyticsToken}"}`}
+      />
+    )}
   </head>
   <body class="min-h-screen flex flex-col">
+    <a
+      href="#main-content"
+      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-accent focus:px-3 focus:py-2 focus:text-white"
+    >
+      Skip to content
+    </a>
     <Nav />
-    <main class="flex-1 w-full">
+    <main id="main-content" class="flex-1 w-full">
       <slot />
     </main>
     <Footer />
