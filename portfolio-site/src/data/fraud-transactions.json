@@ -1,0 +1,29 @@
+{
+  "transactions": [
+    { "txn_id": "T0001", "account_id": "ACCT_84120943", "amount": 42.18, "merchant": "Whole Foods Market", "merchant_category": "grocery", "country": "US", "device_id": "DEV_001", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0002", "account_id": "ACCT_84120943", "amount": 12.50, "merchant": "Starbucks", "merchant_category": "food", "country": "US", "device_id": "DEV_001", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0003", "account_id": "ACCT_70239812", "amount": 9.99, "merchant": "Spotify", "merchant_category": "subscription", "country": "US", "device_id": "DEV_002", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0004", "account_id": "ACCT_55810402", "amount": 4280.00, "merchant": "LuxeWatches Online", "merchant_category": "luxury", "country": "RU", "device_id": "DEV_003", "is_fraud": true, "fraud_pattern": "amount_outlier" },
+    { "txn_id": "T0005", "account_id": "ACCT_44017523", "amount": 18.75, "merchant": "Target", "merchant_category": "retail", "country": "US", "device_id": "DEV_004", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0006", "account_id": "ACCT_70239812", "amount": 119.45, "merchant": "Best Buy", "merchant_category": "electronics", "country": "US", "device_id": "DEV_002", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0007", "account_id": "ACCT_91038457", "amount": 67.20, "merchant": "Gulf Gas Station", "merchant_category": "fuel", "country": "US", "device_id": "DEV_005", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0008", "account_id": "ACCT_82740193", "amount": 1899.00, "merchant": "Crypto Exchange Wire", "merchant_category": "crypto", "country": "VN", "device_id": "DEV_006", "is_fraud": true, "fraud_pattern": "geo_anomaly" },
+    { "txn_id": "T0009", "account_id": "ACCT_44017523", "amount": 32.10, "merchant": "Trader Joe's", "merchant_category": "grocery", "country": "US", "device_id": "DEV_004", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0010", "account_id": "ACCT_36918274", "amount": 159.99, "merchant": "REI Co-op", "merchant_category": "retail", "country": "US", "device_id": "DEV_007", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0011", "account_id": "ACCT_70239812", "amount": 22.40, "merchant": "Chipotle", "merchant_category": "food", "country": "US", "device_id": "DEV_002", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0012", "account_id": "ACCT_55810402", "amount": 850.00, "merchant": "PayDay Cash Wire", "merchant_category": "money_transfer", "country": "NG", "device_id": "DEV_008", "is_fraud": true, "fraud_pattern": "geo_anomaly" },
+    { "txn_id": "T0013", "account_id": "ACCT_84120943", "amount": 6.50, "merchant": "DoorDash", "merchant_category": "food", "country": "US", "device_id": "DEV_001", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0014", "account_id": "ACCT_91038457", "amount": 89.30, "merchant": "Walmart", "merchant_category": "retail", "country": "US", "device_id": "DEV_005", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0015", "account_id": "ACCT_82740193", "amount": 1499.99, "merchant": "Apple Store", "merchant_category": "electronics", "country": "US", "device_id": "DEV_006", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0016", "account_id": "ACCT_29384715", "amount": 215.00, "merchant": "Amazon", "merchant_category": "retail", "country": "US", "device_id": "DEV_009", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0017", "account_id": "ACCT_29384715", "amount": 218.00, "merchant": "Amazon", "merchant_category": "retail", "country": "US", "device_id": "DEV_009", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0018", "account_id": "ACCT_29384715", "amount": 211.50, "merchant": "Amazon", "merchant_category": "retail", "country": "US", "device_id": "DEV_009", "is_fraud": true, "fraud_pattern": "velocity" },
+    { "txn_id": "T0019", "account_id": "ACCT_29384715", "amount": 209.99, "merchant": "Amazon", "merchant_category": "retail", "country": "US", "device_id": "DEV_009", "is_fraud": true, "fraud_pattern": "velocity" },
+    { "txn_id": "T0020", "account_id": "ACCT_29384715", "amount": 222.30, "merchant": "Amazon", "merchant_category": "retail", "country": "US", "device_id": "DEV_009", "is_fraud": true, "fraud_pattern": "velocity" },
+    { "txn_id": "T0021", "account_id": "ACCT_61829304", "amount": 14.50, "merchant": "Subway", "merchant_category": "food", "country": "US", "device_id": "DEV_010", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0022", "account_id": "ACCT_44017523", "amount": 78.00, "merchant": "CVS", "merchant_category": "pharmacy", "country": "US", "device_id": "DEV_004", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0023", "account_id": "ACCT_36918274", "amount": 5450.00, "merchant": "Offshore Wire Co", "merchant_category": "money_transfer", "country": "BS", "device_id": "DEV_011", "is_fraud": true, "fraud_pattern": "amount_outlier" },
+    { "txn_id": "T0024", "account_id": "ACCT_70239812", "amount": 19.95, "merchant": "Netflix", "merchant_category": "subscription", "country": "US", "device_id": "DEV_002", "is_fraud": false, "fraud_pattern": null },
+    { "txn_id": "T0025", "account_id": "ACCT_84120943", "amount": 145.00, "merchant": "Costco", "merchant_category": "grocery", "country": "US", "device_id": "DEV_001", "is_fraud": false, "fraud_pattern": null }
+  ]
+}
