@@ -1,0 +1,74 @@
+{
+  "queries": [
+    {
+      "id": "predicate-pushdown",
+      "title": "Predicate pushdown into the inner join",
+      "category": "Filter placement",
+      "original_sql": "SELECT u.id, o.total\nFROM users u\nJOIN orders o ON o.user_id = u.id\nWHERE o.created_at >= '2026-01-01'\n  AND u.country = 'US';",
+      "optimized_sql": "SELECT u.id, o.total\nFROM (\n  SELECT id\n  FROM users\n  WHERE country = 'US'\n) u\nJOIN (\n  SELECT user_id, total\n  FROM orders\n  WHERE created_at >= '2026-01-01'\n) o\n  ON o.user_id = u.id;",
+      "reasoning": [
+        { "icon": "Filter", "text": "Push country and date filters into subqueries so each side scans fewer rows before the join." },
+        { "icon": "Database", "text": "On Snowflake / Iceberg this lets the engine prune partitions and apply Bloom filters before shuffle." },
+        { "icon": "Gauge", "text": "Typical 3-10x reduction in shuffle bytes on joins with selective filters." }
+      ],
+      "estimated_cost_reduction_pct": 62,
+      "explanation": "Filters higher in the plan get pushed down to scan-time, dropping rows before they participate in the join."
+    },
+    {
+      "id": "broadcast-vs-shuffle",
+      "title": "Broadcast small dimension instead of shuffle join",
+      "category": "Join strategy",
+      "original_sql": "SELECT t.txn_id, p.product_name\nFROM transactions t\nJOIN products p ON p.product_id = t.product_id;",
+      "optimized_sql": "SELECT /*+ BROADCAST(p) */ t.txn_id, p.product_name\nFROM transactions t\nJOIN products p ON p.product_id = t.product_id;",
+      "reasoning": [
+        { "icon": "Layers", "text": "products is ~80 MB; transactions is ~2 TB. Broadcasting the small side avoids hashing 2 TB across the cluster." },
+        { "icon": "Network", "text": "Cuts network shuffle from ~2 TB to ~80 MB times executor count." },
+        { "icon": "Cpu", "text": "Reduces executor memory pressure; the join becomes a hash lookup per partition." }
+      ],
+      "estimated_cost_reduction_pct": 45,
+      "explanation": "Broadcast joins replace a full shuffle with a one-time replication of the small side."
+    },
+    {
+      "id": "partition-pruning",
+      "title": "Add partition predicate so the planner can prune",
+      "category": "Partition pruning",
+      "original_sql": "SELECT COUNT(*)\nFROM events\nWHERE event_type = 'signup';",
+      "optimized_sql": "SELECT COUNT(*)\nFROM events\nWHERE event_type = 'signup'\n  AND event_date >= CURRENT_DATE - INTERVAL 90 DAY;",
+      "reasoning": [
+        { "icon": "Calendar", "text": "events is partitioned by event_date; without a date predicate the engine scans all partitions." },
+        { "icon": "Database", "text": "Adding the 90-day window prunes ~95% of partitions for a year-long table." },
+        { "icon": "DollarSign", "text": "Direct cost win on Snowflake (per-byte) and BigQuery (per-byte slot-time)." }
+      ],
+      "estimated_cost_reduction_pct": 88,
+      "explanation": "The optimizer can only prune partitions when the predicate explicitly references the partition column."
+    },
+    {
+      "id": "window-vs-self-join",
+      "title": "Replace self-join with window function",
+      "category": "Set operations",
+      "original_sql": "SELECT a.user_id, a.amount, a.amount - b.prev_amount AS delta\nFROM payments a\nJOIN payments b\n  ON b.user_id = a.user_id\n AND b.payment_id = (\n    SELECT MAX(payment_id)\n    FROM payments p\n    WHERE p.user_id = a.user_id\n      AND p.payment_id < a.payment_id\n  );",
+      "optimized_sql": "SELECT user_id,\n       amount,\n       amount - LAG(amount) OVER (\n         PARTITION BY user_id\n         ORDER BY payment_id\n       ) AS delta\nFROM payments;",
+      "reasoning": [
+        { "icon": "Sigma", "text": "The self-join + correlated subquery requires multiple passes; LAG() is one pass with a sort." },
+        { "icon": "Gauge", "text": "Eliminates O(n^2) worst-case behavior on heavy users." },
+        { "icon": "Sparkles", "text": "Far more readable and easier to extend (LAG offset, RANGE windows, etc.)." }
+      ],
+      "estimated_cost_reduction_pct": 70,
+      "explanation": "Window functions are designed for previous/next-row lookups and avoid the cost of self-joins."
+    },
+    {
+      "id": "select-star-projection",
+      "title": "Project only required columns",
+      "category": "Projection pruning",
+      "original_sql": "SELECT *\nFROM customer_orders\nWHERE order_status = 'open';",
+      "optimized_sql": "SELECT order_id, customer_id, total, currency\nFROM customer_orders\nWHERE order_status = 'open';",
+      "reasoning": [
+        { "icon": "Columns", "text": "On columnar formats (Parquet / Iceberg / Delta), reading only needed columns skips entire column files." },
+        { "icon": "Database", "text": "Avoids materializing wide nested struct columns the consumer never uses." },
+        { "icon": "FileText", "text": "Smaller projection reduces serialization cost across BI tool boundaries." }
+      ],
+      "estimated_cost_reduction_pct": 30,
+      "explanation": "Columnar storage rewards projection pruning. SELECT * defeats every column-pruning optimization."
+    }
+  ]
+}
