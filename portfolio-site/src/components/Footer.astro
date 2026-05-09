@@ -4,12 +4,52 @@ import { siteConfig } from "../site.config";
 
 <footer class="border-t border-border mt-24">
   <div class="mx-auto max-w-page px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted">
-    <p>{`Built by ${siteConfig.name}. MIT licensed.`}</p>
-    <div class="flex items-center gap-4">
-      <a href="/contact" class="hover:text-fg">Contact</a>
-      <a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="hover:text-fg">GitHub</a>
-      <a href={siteConfig.linkedin} target="_blank" rel="noopener noreferrer" class="hover:text-fg">LinkedIn</a>
-      <a href={siteConfig.resumePath} class="hover:text-fg">Resume</a>
+    <div class="flex flex-col gap-1 text-center md:text-left">
+      <p>Built by {siteConfig.name}.</p>
+      <p class="text-xs">
+        <a
+          href={siteConfig.githubRepo}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Portfolio source on GitHub (opens in new tab)"
+          class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+        >
+          Source available on GitHub
+        </a>
+      </p>
+    </div>
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a
+        href="/contact"
+        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+      >
+        Contact
+      </a>
+      <a
+        href={siteConfig.github}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Alex's GitHub profile (opens in new tab)"
+        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+      >
+        GitHub
+      </a>
+      <a
+        href={siteConfig.linkedin}
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Alex's LinkedIn profile (opens in new tab)"
+        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+      >
+        LinkedIn
+      </a>
+      <a
+        href={siteConfig.resumePath}
+        aria-label="Download resume PDF"
+        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+      >
+        Resume
+      </a>
     </div>
   </div>
 </footer>

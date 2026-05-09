@@ -9,6 +9,20 @@ const projects = (await getCollection("projects"))
 function previewFor(slug: string): string {
   return slug;
 }
+
+const demonstratesBySlug: Record<string, string[]> = {
+  "fraud-signals": ["Streaming ingestion", "Data quality", "Fraud analytics"],
+  "telecom-lakehouse": ["Lakehouse design", "Data contracts", "Medallion architecture"],
+  "ai-sql-optimizer": ["LLM tooling", "SQL parsing", "Benchmark methodology"],
+};
+
+const pipelineNodes = [
+  { x: 32,  label: "Kafka" },
+  { x: 96,  label: "Spark" },
+  { x: 160, label: "Delta" },
+  { x: 224, label: "dbt" },
+  { x: 288, label: "Streamlit" },
+];
 ---
 
 <BaseLayout
@@ -20,8 +34,10 @@ function previewFor(slug: string): string {
     <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">Selected work</h1>
     <p class="mt-3 max-w-prose text-muted">
       Three end-to-end projects showcasing streaming, lakehouse, and AI-assisted
-      data engineering. Each repo runs locally without external services. Click
-      any card for a live, interactive walkthrough of the architecture.
+      data engineering. Each repo is designed to run locally with synthetic
+      data — the AI-assisted optimizer includes local/mock workflows, with
+      optional Claude integration where configured. Click any card for a live,
+      interactive walkthrough of the architecture.
     </p>
   </section>
 
@@ -35,62 +51,149 @@ function previewFor(slug: string): string {
           tagline={p.data.tagline}
           stack={p.data.stack}
           repoUrl={p.data.repoUrl}
+          demonstrates={demonstratesBySlug[p.slug]}
         >
           {previewFor(p.slug) === "fraud-signals" && (
             <svg
               slot="preview"
               role="img"
-              aria-label="Pipeline preview: producer to Kafka to Spark to Delta to dbt to dashboard"
+              aria-label="Pipeline: Kafka to Spark to Delta to dbt to Streamlit dashboard"
               viewBox="0 0 320 120"
               class="w-full h-full"
             >
               <defs>
-                <linearGradient id="fp-track" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stop-color="rgba(37,99,235,0.05)" />
-                  <stop offset="100%" stop-color="rgba(37,99,235,0.45)" />
+                <linearGradient id="fp-flow" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%"   stop-color="rgba(37,99,235,0.15)" />
+                  <stop offset="50%"  stop-color="rgba(37,99,235,0.55)" />
+                  <stop offset="100%" stop-color="rgba(37,99,235,0.15)" />
                 </linearGradient>
+                <marker id="fp-arrow" viewBox="0 0 8 8" refX="6" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 Z" fill="rgba(148,163,184,0.7)" />
+                </marker>
               </defs>
-              {[28, 80, 132, 184, 236, 288].map((cx) => (
+
+              {pipelineNodes.slice(0, -1).map((n, idx) => (
+                <line
+                  x1={n.x + 18}
+                  y1={56}
+                  x2={pipelineNodes[idx + 1].x - 18}
+                  y2={56}
+                  stroke="url(#fp-flow)"
+                  stroke-width="1.5"
+                  marker-end="url(#fp-arrow)"
+                />
+              ))}
+
+              {pipelineNodes.map((n, idx) => (
                 <g>
-                  <circle cx={cx} cy={60} r={12} fill="rgba(15,23,42,0.85)" stroke="rgba(148,163,184,0.45)" />
+                  <rect
+                    x={n.x - 18}
+                    y={44}
+                    width={36}
+                    height={24}
+                    rx={5}
+                    fill="rgba(15,23,42,0.85)"
+                    stroke={idx === 2 ? "rgba(37,99,235,0.85)" : "rgba(148,163,184,0.45)"}
+                    stroke-width={idx === 2 ? 1.25 : 1}
+                  />
+                  <text
+                    x={n.x}
+                    y={92}
+                    text-anchor="middle"
+                    font-family="JetBrains Mono, ui-monospace, monospace"
+                    font-size="10"
+                    fill="#a1a1aa"
+                  >{n.label}</text>
                 </g>
               ))}
-              <line x1={28} y1={60} x2={288} y2={60} stroke="url(#fp-track)" stroke-width={2} />
-              {[52, 110, 160, 220].map((cx, i) => (
-                <circle cx={cx} cy={60} r={3} fill={i === 1 ? "#ef4444" : "#2563eb"} opacity={0.85} />
-              ))}
+
+              <circle class="pipeline-flow-dot" cx="0" cy="56" r="2.5" fill="#2563eb">
+                <animate
+                  attributeName="cx"
+                  values="32;96;160;224;288;32"
+                  keyTimes="0;0.22;0.46;0.70;0.94;1"
+                  dur="5s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  values="0;1;1;1;1;0"
+                  keyTimes="0;0.05;0.46;0.85;0.94;1"
+                  dur="5s"
+                  repeatCount="indefinite"
+                />
+              </circle>
             </svg>
           )}
           {previewFor(p.slug) === "telecom-lakehouse" && (
             <svg
               slot="preview"
               role="img"
-              aria-label="Medallion architecture preview: Bronze, Silver, Gold tiers"
+              aria-label="Medallion architecture: Bronze raw, Silver cleansed, Gold business marts"
               viewBox="0 0 320 120"
               class="w-full h-full"
             >
-              <rect x={20} y={14}  width={280} height={26} rx={4} fill="#b45309" opacity={0.55} />
-              <rect x={20} y={48}  width={280} height={26} rx={4} fill="#94a3b8" opacity={0.45} />
-              <rect x={20} y={82}  width={280} height={26} rx={4} fill="#f59e0b" opacity={0.55} />
-              <text x={28} y={32}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#fef3c7">BRONZE · raw landings</text>
-              <text x={28} y={66}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#e2e8f0">SILVER · cleansed events</text>
-              <text x={28} y={100} font-family="JetBrains Mono, ui-monospace, monospace" font-size="11" fill="#fef3c7">GOLD · business marts</text>
+              <defs>
+                <filter id="ml-inset" x="-5%" y="-30%" width="110%" height="160%">
+                  <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" />
+                  <feOffset dx="0" dy="0.5" result="offsetblur" />
+                  <feFlood flood-color="rgba(0,0,0,0.55)" />
+                  <feComposite in2="offsetblur" operator="in" />
+                  <feComposite in2="SourceGraphic" operator="over" />
+                </filter>
+              </defs>
+
+              <g filter="url(#ml-inset)">
+                <rect x={36} y={10}  width={248} height={26} rx={3} fill="#b45309" opacity={0.6} stroke="rgba(254,215,170,0.18)" stroke-width="0.5" />
+                <rect x={28} y={44}  width={264} height={26} rx={3} fill="#94a3b8" opacity={0.5} stroke="rgba(241,245,249,0.18)" stroke-width="0.5" />
+                <rect x={20} y={78}  width={280} height={26} rx={3} fill="#f59e0b" opacity={0.6} stroke="rgba(254,243,199,0.18)" stroke-width="0.5" />
+              </g>
+
+              <text x={46}  y={27}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" fill="#fed7aa" letter-spacing="0.5">BRONZE</text>
+              <text x={278} y={27}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="9"  fill="#a1a1aa" text-anchor="end">raw landings</text>
+
+              <text x={38}  y={61}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" fill="#f1f5f9" letter-spacing="0.5">SILVER</text>
+              <text x={286} y={61}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="9"  fill="#a1a1aa" text-anchor="end">cleansed events</text>
+
+              <text x={30}  y={95}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" fill="#fef3c7" letter-spacing="0.5">GOLD</text>
+              <text x={294} y={95}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="9"  fill="#a1a1aa" text-anchor="end">business marts</text>
+
+              <path d="M308,23 L308,91" stroke="rgba(148,163,184,0.25)" stroke-width="0.75" stroke-dasharray="2 2" />
+              <path d="M308,91 L304,87 M308,91 L312,87" stroke="rgba(148,163,184,0.55)" stroke-width="0.75" fill="none" />
             </svg>
           )}
           {previewFor(p.slug) === "ai-sql-optimizer" && (
-            <pre slot="preview" class="m-0 w-full h-full p-4 text-[11px] leading-snug font-mono text-muted overflow-hidden whitespace-pre"
-><span class="text-zinc-500">-- before</span>
-SELECT *
-FROM events
-WHERE date_format(ts,'yyyy-MM') = '2026-04';
-
-<span class="text-emerald-400/80">-- after</span>
-SELECT * FROM events
-WHERE ts &gt;= TIMESTAMP '2026-04-01'
-  AND ts &lt;  TIMESTAMP '2026-05-01';</pre>
+            <div
+              slot="preview"
+              class="w-full h-full p-3 grid grid-rows-2 gap-2 font-mono text-[10px] leading-snug"
+              role="img"
+              aria-label="Before / after SQL rewrite: replacing date_format with timestamp range filter"
+            >
+              <div class="relative rounded border border-border/60 bg-bg/40 pl-3 pr-2 py-1.5 overflow-hidden">
+                <span class="absolute left-0 top-0 bottom-0 w-[2px] bg-red-500/70" aria-hidden="true"></span>
+                <p class="font-mono text-[9px] uppercase tracking-wider text-red-400/80">Before</p>
+                <pre class="m-0 mt-0.5 whitespace-pre text-muted"><span class="text-sky-400/80">SELECT</span> *
+<span class="text-sky-400/80">FROM</span> events
+<span class="text-sky-400/80">WHERE</span> <span class="text-red-300/90">date_format</span>(ts,<span class="text-amber-300/80">'yyyy-MM'</span>) = <span class="text-amber-300/80">'2026-04'</span>;</pre>
+              </div>
+              <div class="relative rounded border border-border/60 bg-bg/40 pl-3 pr-2 py-1.5 overflow-hidden">
+                <span class="absolute left-0 top-0 bottom-0 w-[2px] bg-emerald-500/70" aria-hidden="true"></span>
+                <p class="font-mono text-[9px] uppercase tracking-wider text-emerald-400/80">After</p>
+                <pre class="m-0 mt-0.5 whitespace-pre text-muted"><span class="text-sky-400/80">SELECT</span> * <span class="text-sky-400/80">FROM</span> events
+<span class="text-sky-400/80">WHERE</span> ts &gt;= <span class="text-emerald-300/90">TIMESTAMP</span> <span class="text-amber-300/80">'2026-04-01'</span>
+  <span class="text-sky-400/80">AND</span> ts &lt;  <span class="text-emerald-300/90">TIMESTAMP</span> <span class="text-amber-300/80">'2026-05-01'</span>;</pre>
+              </div>
+            </div>
           )}
         </ProjectPreviewCard>
       ))}
     </div>
   </section>
 </BaseLayout>
+
+<style>
+  @media (prefers-reduced-motion: reduce) {
+    .pipeline-flow-dot { animation: none !important; opacity: 0; }
+    :global(.pipeline-flow-dot animate) { display: none; }
+  }
+</style>
