@@ -9,29 +9,48 @@ const links = [
   { href: "/resume", label: "Resume" },
   { href: "/contact", label: "Contact" },
 ];
+
+const path = Astro.url.pathname;
+const normalize = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+const currentPath = normalize(path);
+const isActive = (href: string) =>
+  href === "/" ? currentPath === "/" : currentPath === href || currentPath.startsWith(`${href}/`);
 ---
 
 <header class="border-b border-border dark:border-border sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-bg/70 dark:supports-[backdrop-filter]:bg-bg/70">
-  <nav class="mx-auto flex max-w-page items-center justify-between px-6 py-4">
-    <a href="/" class="font-semibold tracking-tight">{siteConfig.name}</a>
-    <ul class="hidden md:flex items-center gap-6 text-sm">
-      {links.map((link) => (
-        <li>
-          <a
-            href={link.href}
-            class="text-muted hover:text-fg dark:hover:text-fg"
-          >
-            {link.label}
-          </a>
-        </li>
-      ))}
+  <nav class="mx-auto flex max-w-page flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4">
+    <a
+      href="/"
+      class="font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+    >
+      {siteConfig.name}
+    </a>
+    <ul class="order-3 md:order-2 flex flex-wrap items-center gap-3 md:gap-6 text-xs md:text-sm w-full md:w-auto">
+      {links.map((link) => {
+        const active = isActive(link.href);
+        return (
+          <li>
+            <a
+              href={link.href}
+              aria-current={active ? "page" : undefined}
+              class:list={[
+                "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm",
+                active ? "text-fg font-medium" : "text-muted hover:text-fg dark:hover:text-fg",
+              ]}
+            >
+              {link.label}
+            </a>
+          </li>
+        );
+      })}
     </ul>
-    <div class="flex items-center gap-3">
+    <div class="order-2 md:order-3 flex items-center gap-3">
       <a
         href={siteConfig.github}
-        class="text-sm text-muted hover:text-fg"
+        class="text-sm text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
         target="_blank"
         rel="noopener noreferrer"
+        aria-label="Alex's GitHub profile (opens in new tab)"
       >
         GitHub
       </a>

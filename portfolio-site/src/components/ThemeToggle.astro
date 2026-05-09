@@ -4,25 +4,77 @@
   id="theme-toggle"
   type="button"
   aria-label="Toggle color theme"
-  class="rounded-md border border-border px-2.5 py-1.5 text-xs font-mono hover:opacity-80"
+  class="rounded-md border border-border px-2 py-1.5 hover:bg-fg/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
 >
-  <span data-theme-label>theme</span>
+  <svg
+    data-theme-icon-dark
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2"></path>
+    <path d="M12 20v2"></path>
+    <path d="m4.93 4.93 1.41 1.41"></path>
+    <path d="m17.66 17.66 1.41 1.41"></path>
+    <path d="M2 12h2"></path>
+    <path d="M20 12h2"></path>
+    <path d="m6.34 17.66-1.41 1.41"></path>
+    <path d="m19.07 4.93-1.41 1.41"></path>
+  </svg>
+  <svg
+    data-theme-icon-light
+    width="16"
+    height="16"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+    class="hidden"
+  >
+    <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+  </svg>
 </button>
 
 <script is:inline>
   (() => {
-    const button = document.getElementById("theme-toggle");
-    const label = button?.querySelector("[data-theme-label]");
-    if (!button || !label) return;
-    const setLabel = () => {
-      label.textContent = document.documentElement.classList.contains("dark") ? "light" : "dark";
+    const init = () => {
+      const button = document.getElementById("theme-toggle");
+      if (!button || button.dataset.themeBound === "true") {
+        syncIcons();
+        return;
+      }
+      button.dataset.themeBound = "true";
+      button.addEventListener("click", () => {
+        const next = !document.documentElement.classList.contains("dark");
+        document.documentElement.classList.toggle("dark", next);
+        localStorage.setItem("theme", next ? "dark" : "light");
+        syncIcons();
+      });
+      syncIcons();
     };
-    setLabel();
-    button.addEventListener("click", () => {
-      const next = !document.documentElement.classList.contains("dark");
-      document.documentElement.classList.toggle("dark", next);
-      localStorage.setItem("theme", next ? "dark" : "light");
-      setLabel();
-    });
+
+    const syncIcons = () => {
+      const button = document.getElementById("theme-toggle");
+      if (!button) return;
+      const sun = button.querySelector("[data-theme-icon-dark]");
+      const moon = button.querySelector("[data-theme-icon-light]");
+      if (!sun || !moon) return;
+      const isDark = document.documentElement.classList.contains("dark");
+      sun.classList.toggle("hidden", !isDark);
+      moon.classList.toggle("hidden", isDark);
+    };
+
+    init();
+    document.addEventListener("astro:after-swap", init);
   })();
 </script>

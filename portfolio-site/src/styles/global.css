@@ -75,4 +75,32 @@
   .prose-callout {
     @apply rounded-md border border-border p-4 text-sm text-muted;
   }
+  .hero-glow {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(
+      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      rgba(37, 99, 235, 0.12),
+      transparent 40%
+    );
+    transition: opacity 300ms ease;
+  }
+  .card-glow {
+    transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
+  }
+  .card-glow:hover {
+    border-color: rgba(37, 99, 235, 0.4);
+    box-shadow:
+      0 0 0 1px rgba(37, 99, 235, 0.15),
+      0 8px 30px -8px rgba(37, 99, 235, 0.20);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-glow {
+      transition: none;
+    }
+    .card-glow {
+      transition: none;
+    }
+  }
 }
