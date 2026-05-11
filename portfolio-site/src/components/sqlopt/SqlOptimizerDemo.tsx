@@ -376,7 +376,12 @@ export default function SqlOptimizerDemo() {
                     Claude is analyzing…
                   </p>
                   <p className="text-[11px] text-muted max-w-[18rem]">
-                    sqlglot AST + heuristics &rarr; Messages API &rarr;
+                    sqlglot AST + heuristics
+                    <span aria-hidden="true"> &rarr; </span>
+                    <span className="sr-only"> to </span>
+                    Messages API
+                    <span aria-hidden="true"> &rarr; </span>
+                    <span className="sr-only"> to </span>
                     structured rewrite
                   </p>
                 </div>

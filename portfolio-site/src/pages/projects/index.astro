@@ -32,12 +32,14 @@ const pipelineNodes = [
   <section class="mx-auto max-w-page px-6 pt-16 pb-8">
     <p class="font-mono text-xs uppercase tracking-widest text-muted">Projects</p>
     <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">Selected work</h1>
-    <p class="mt-3 max-w-prose text-muted">
-      Three end-to-end projects showcasing streaming, lakehouse, and AI-assisted
-      data engineering. Each repo is designed to run locally with synthetic
-      data — the AI-assisted optimizer includes local/mock workflows, with
-      optional Claude integration where configured. Click any card for a live,
-      interactive walkthrough of the architecture.
+    <p class="mt-3 max-w-prose text-muted leading-relaxed">
+      Three end-to-end projects showcasing streaming, lakehouse, and
+      AI-assisted data engineering. Each repo is designed to run locally
+      with synthetic data. The AI-assisted optimizer includes local heuristic
+      and mock-response workflows out of the box, with optional Claude
+      integration when an <code class="font-mono text-xs">ANTHROPIC_API_KEY</code>
+      is configured. Click any card for a live, interactive walkthrough of
+      the architecture.
     </p>
   </section>
 
@@ -129,37 +131,82 @@ const pipelineNodes = [
             <svg
               slot="preview"
               role="img"
-              aria-label="Medallion architecture: Bronze raw, Silver cleansed, Gold business marts"
-              viewBox="0 0 320 120"
+              aria-label="Medallion architecture: Bronze raw landings, Silver cleansed events, Gold business marts"
+              viewBox="0 0 320 130"
               class="w-full h-full"
             >
               <defs>
-                <filter id="ml-inset" x="-5%" y="-30%" width="110%" height="160%">
-                  <feGaussianBlur in="SourceAlpha" stdDeviation="0.6" />
-                  <feOffset dx="0" dy="0.5" result="offsetblur" />
-                  <feFlood flood-color="rgba(0,0,0,0.55)" />
-                  <feComposite in2="offsetblur" operator="in" />
-                  <feComposite in2="SourceGraphic" operator="over" />
-                </filter>
+                <linearGradient id="ml-bronze" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%"   stop-color="rgba(180, 83, 9, 0.45)" />
+                  <stop offset="100%" stop-color="rgba(180, 83, 9, 0.18)" />
+                </linearGradient>
+                <linearGradient id="ml-silver" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%"   stop-color="rgba(148, 163, 184, 0.40)" />
+                  <stop offset="100%" stop-color="rgba(148, 163, 184, 0.16)" />
+                </linearGradient>
+                <linearGradient id="ml-gold" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%"   stop-color="rgba(245, 158, 11, 0.55)" />
+                  <stop offset="100%" stop-color="rgba(245, 158, 11, 0.22)" />
+                </linearGradient>
+                <linearGradient id="ml-flow" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%"   stop-color="rgba(148, 163, 184, 0)" />
+                  <stop offset="50%"  stop-color="rgba(148, 163, 184, 0.55)" />
+                  <stop offset="100%" stop-color="rgba(148, 163, 184, 0)" />
+                </linearGradient>
               </defs>
 
-              <g filter="url(#ml-inset)">
-                <rect x={36} y={10}  width={248} height={26} rx={3} fill="#b45309" opacity={0.6} stroke="rgba(254,215,170,0.18)" stroke-width="0.5" />
-                <rect x={28} y={44}  width={264} height={26} rx={3} fill="#94a3b8" opacity={0.5} stroke="rgba(241,245,249,0.18)" stroke-width="0.5" />
-                <rect x={20} y={78}  width={280} height={26} rx={3} fill="#f59e0b" opacity={0.6} stroke="rgba(254,243,199,0.18)" stroke-width="0.5" />
+              {/* Bronze — narrowest layer (raw, messy, at the bottom of the funnel of trust) */}
+              <g>
+                <rect x={48} y={14}  width={224} height={26} rx={4}
+                  fill="url(#ml-bronze)"
+                  stroke="rgba(254, 215, 170, 0.35)" stroke-width="0.75" />
+                <text x={58} y={31}
+                  font-family="JetBrains Mono, ui-monospace, monospace"
+                  font-size="10" font-weight="600" fill="#fbbf24" letter-spacing="0.6">BRONZE</text>
+                <text x={264} y={31}
+                  font-family="JetBrains Mono, ui-monospace, monospace"
+                  font-size="9" fill="#a1a1aa" text-anchor="end">raw landings</text>
               </g>
 
-              <text x={46}  y={27}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" fill="#fed7aa" letter-spacing="0.5">BRONZE</text>
-              <text x={278} y={27}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="9"  fill="#a1a1aa" text-anchor="end">raw landings</text>
+              {/* Silver — slightly wider, validated */}
+              <g>
+                <rect x={36} y={50} width={248} height={26} rx={4}
+                  fill="url(#ml-silver)"
+                  stroke="rgba(241, 245, 249, 0.30)" stroke-width="0.75" />
+                <text x={46} y={67}
+                  font-family="JetBrains Mono, ui-monospace, monospace"
+                  font-size="10" font-weight="600" fill="#e2e8f0" letter-spacing="0.6">SILVER</text>
+                <text x={276} y={67}
+                  font-family="JetBrains Mono, ui-monospace, monospace"
+                  font-size="9" fill="#a1a1aa" text-anchor="end">cleansed events</text>
+              </g>
 
-              <text x={38}  y={61}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" fill="#f1f5f9" letter-spacing="0.5">SILVER</text>
-              <text x={286} y={61}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="9"  fill="#a1a1aa" text-anchor="end">cleansed events</text>
+              {/* Gold — widest, business-ready marts */}
+              <g>
+                <rect x={24} y={86} width={272} height={26} rx={4}
+                  fill="url(#ml-gold)"
+                  stroke="rgba(254, 243, 199, 0.35)" stroke-width="0.75" />
+                <text x={34} y={103}
+                  font-family="JetBrains Mono, ui-monospace, monospace"
+                  font-size="10" font-weight="600" fill="#fcd34d" letter-spacing="0.6">GOLD</text>
+                <text x={286} y={103}
+                  font-family="JetBrains Mono, ui-monospace, monospace"
+                  font-size="9" fill="#a1a1aa" text-anchor="end">business marts</text>
+              </g>
 
-              <text x={30}  y={95}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="10" fill="#fef3c7" letter-spacing="0.5">GOLD</text>
-              <text x={294} y={95}  font-family="JetBrains Mono, ui-monospace, monospace" font-size="9"  fill="#a1a1aa" text-anchor="end">business marts</text>
+              {/* Flow connectors — vertical lines on the right showing transformation */}
+              <line x1={306} y1={40} x2={306} y2={50}
+                stroke="url(#ml-flow)" stroke-width="1" />
+              <line x1={306} y1={76} x2={306} y2={86}
+                stroke="url(#ml-flow)" stroke-width="1" />
 
-              <path d="M308,23 L308,91" stroke="rgba(148,163,184,0.25)" stroke-width="0.75" stroke-dasharray="2 2" />
-              <path d="M308,91 L304,87 M308,91 L312,87" stroke="rgba(148,163,184,0.55)" stroke-width="0.75" fill="none" />
+              <text x={120} y={126}
+                font-family="JetBrains Mono, ui-monospace, monospace"
+                font-size="8" fill="rgba(161, 161, 170, 0.7)"
+                letter-spacing="0.4"
+                aria-hidden="true">
+                ingest → validate → model
+              </text>
             </svg>
           )}
           {previewFor(p.slug) === "ai-sql-optimizer" && (
@@ -167,21 +214,31 @@ const pipelineNodes = [
               slot="preview"
               class="w-full h-full p-3 grid grid-rows-2 gap-2 font-mono text-[10px] leading-snug"
               role="img"
-              aria-label="Before / after SQL rewrite: replacing date_format with timestamp range filter"
+              aria-label="Before / after SQL rewrite: replacing date_format with a sargable timestamp range filter for partition pruning"
             >
-              <div class="relative rounded border border-border/60 bg-bg/40 pl-3 pr-2 py-1.5 overflow-hidden">
-                <span class="absolute left-0 top-0 bottom-0 w-[2px] bg-red-500/70" aria-hidden="true"></span>
-                <p class="font-mono text-[9px] uppercase tracking-wider text-red-400/80">Before</p>
+              <div class="relative rounded border border-red-500/30 bg-red-500/[0.04] pl-3 pr-2 py-1.5 overflow-hidden">
+                <span class="absolute left-0 top-0 bottom-0 w-[2px] bg-red-500/80" aria-hidden="true"></span>
+                <div class="flex items-center justify-between">
+                  <p class="font-mono text-[9px] uppercase tracking-wider text-red-400/90">Before</p>
+                  <p class="font-mono text-[9px] uppercase tracking-wider text-red-300/80">
+                    full scan
+                  </p>
+                </div>
                 <pre class="m-0 mt-0.5 whitespace-pre text-muted"><span class="text-sky-400/80">SELECT</span> *
 <span class="text-sky-400/80">FROM</span> events
-<span class="text-sky-400/80">WHERE</span> <span class="text-red-300/90">date_format</span>(ts,<span class="text-amber-300/80">'yyyy-MM'</span>) = <span class="text-amber-300/80">'2026-04'</span>;</pre>
+<span class="text-sky-400/80">WHERE</span> <span class="text-red-300/95 underline decoration-red-500/60 decoration-wavy underline-offset-2">date_format</span>(ts,<span class="text-amber-300/80">'yyyy-MM'</span>) = <span class="text-amber-300/80">'2026-04'</span>;</pre>
               </div>
-              <div class="relative rounded border border-border/60 bg-bg/40 pl-3 pr-2 py-1.5 overflow-hidden">
-                <span class="absolute left-0 top-0 bottom-0 w-[2px] bg-emerald-500/70" aria-hidden="true"></span>
-                <p class="font-mono text-[9px] uppercase tracking-wider text-emerald-400/80">After</p>
+              <div class="relative rounded border border-emerald-500/30 bg-emerald-500/[0.04] pl-3 pr-2 py-1.5 overflow-hidden">
+                <span class="absolute left-0 top-0 bottom-0 w-[2px] bg-emerald-500/80" aria-hidden="true"></span>
+                <div class="flex items-center justify-between">
+                  <p class="font-mono text-[9px] uppercase tracking-wider text-emerald-400/90">After</p>
+                  <p class="font-mono text-[9px] uppercase tracking-wider text-emerald-300/80">
+                    partition prunes
+                  </p>
+                </div>
                 <pre class="m-0 mt-0.5 whitespace-pre text-muted"><span class="text-sky-400/80">SELECT</span> * <span class="text-sky-400/80">FROM</span> events
-<span class="text-sky-400/80">WHERE</span> ts &gt;= <span class="text-emerald-300/90">TIMESTAMP</span> <span class="text-amber-300/80">'2026-04-01'</span>
-  <span class="text-sky-400/80">AND</span> ts &lt;  <span class="text-emerald-300/90">TIMESTAMP</span> <span class="text-amber-300/80">'2026-05-01'</span>;</pre>
+<span class="text-sky-400/80">WHERE</span> ts &gt;= <span class="text-emerald-300/95">TIMESTAMP</span> <span class="text-amber-300/80">'2026-04-01'</span>
+  <span class="text-sky-400/80">AND</span> ts &lt;  <span class="text-emerald-300/95">TIMESTAMP</span> <span class="text-amber-300/80">'2026-05-01'</span>;</pre>
               </div>
             </div>
           )}

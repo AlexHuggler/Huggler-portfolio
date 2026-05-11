@@ -29,7 +29,7 @@ const stack = [
     <!-- Hero band -->
     <section class="relative">
       <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
-      <div class="relative mx-auto max-w-page px-6 pt-14 pb-10">
+      <div class="relative mx-auto max-w-page px-6 pt-16 pb-10">
         <p class="demo-eyebrow">Project 03 · AI-assisted data engineering</p>
         <h1 class="mt-2 demo-headline">AI-Assisted SQL Optimizer</h1>
         <p class="demo-tagline">
@@ -110,24 +110,25 @@ const stack = [
       <div class="demo-card">
         <header class="flex flex-wrap items-baseline justify-between gap-2">
           <div>
-            <p class="demo-eyebrow">Live mode</p>
+            <p class="demo-eyebrow">Local vs. live</p>
             <h3 class="mt-1 text-base font-semibold tracking-tight">
-              Want to run this against a real Claude key?
+              Runs locally by default. Claude is optional.
             </h3>
           </div>
           <span class="placeholder-banner inline-block">No API keys in client code</span>
         </header>
         <p class="mt-3 text-sm text-muted leading-relaxed">
-          The on-page demo uses pre-computed responses for security &mdash; no
-          API keys are bundled into the client. The GitHub repo ships the
-          full CLI plus an optional Cloudflare Worker proxy at
+          The on-page demo replays pre-computed responses, so no API keys
+          are bundled into the client and the default build never reaches
+          the network. The repo ships the full CLI with a heuristic /
+          mock-response mode that works offline, plus an optional
+          Cloudflare Worker proxy at
           <code class="font-mono text-xs">src/workers/sql-optimizer-proxy/</code>
-          for live API calls when self-hosted with your own
-          <code class="font-mono text-xs">ANTHROPIC_API_KEY</code>. When you
-          deploy the Worker, set
-          <code class="font-mono text-xs">PUBLIC_LIVE_DEMO_URL</code> at build
-          time and the demo swaps fixture lookup for a Worker fetch. The
-          default build never reaches the network.
+          for live calls when self-hosted with your own
+          <code class="font-mono text-xs">ANTHROPIC_API_KEY</code>. When
+          you deploy the Worker, set
+          <code class="font-mono text-xs">PUBLIC_LIVE_DEMO_URL</code> at
+          build time and the demo swaps fixture lookup for a Worker fetch.
         </p>
       </div>
     </section>

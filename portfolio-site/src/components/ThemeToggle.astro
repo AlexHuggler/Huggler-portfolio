@@ -1,11 +1,20 @@
 ---
+/**
+ * ThemeToggle
+ *
+ * Icon-only theme switch. Always announces as "Theme" in the accessible
+ * name and updates aria-pressed + an SR-only label as state changes —
+ * never reads inconsistently between pages.
+ */
 ---
 <button
   id="theme-toggle"
   type="button"
-  aria-label="Toggle color theme"
+  aria-label="Theme"
+  aria-pressed="true"
   class="rounded-md border border-border px-2 py-1.5 hover:bg-fg/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
 >
+  <span class="sr-only" data-theme-label>Switch to light theme</span>
   <svg
     data-theme-icon-dark
     width="16"
@@ -49,17 +58,16 @@
   (() => {
     const init = () => {
       const button = document.getElementById("theme-toggle");
-      if (!button || button.dataset.themeBound === "true") {
-        syncIcons();
-        return;
+      if (!button) return;
+      if (button.dataset.themeBound !== "true") {
+        button.dataset.themeBound = "true";
+        button.addEventListener("click", () => {
+          const next = !document.documentElement.classList.contains("dark");
+          document.documentElement.classList.toggle("dark", next);
+          localStorage.setItem("theme", next ? "dark" : "light");
+          syncIcons();
+        });
       }
-      button.dataset.themeBound = "true";
-      button.addEventListener("click", () => {
-        const next = !document.documentElement.classList.contains("dark");
-        document.documentElement.classList.toggle("dark", next);
-        localStorage.setItem("theme", next ? "dark" : "light");
-        syncIcons();
-      });
       syncIcons();
     };
 
@@ -68,10 +76,16 @@
       if (!button) return;
       const sun = button.querySelector("[data-theme-icon-dark]");
       const moon = button.querySelector("[data-theme-icon-light]");
-      if (!sun || !moon) return;
+      const label = button.querySelector("[data-theme-label]");
       const isDark = document.documentElement.classList.contains("dark");
-      sun.classList.toggle("hidden", !isDark);
-      moon.classList.toggle("hidden", isDark);
+      if (sun) sun.classList.toggle("hidden", !isDark);
+      if (moon) moon.classList.toggle("hidden", isDark);
+      button.setAttribute("aria-pressed", String(isDark));
+      if (label) {
+        label.textContent = isDark
+          ? "Switch to light theme"
+          : "Switch to dark theme";
+      }
     };
 
     init();
