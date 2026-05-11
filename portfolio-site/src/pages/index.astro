@@ -1,6 +1,5 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Stat from "../components/Stat.astro";
 import StackPill from "../components/StackPill.astro";
 import FeaturedProjectCard from "../components/FeaturedProjectCard.astro";
 import { getCollection } from "astro:content";
@@ -150,34 +149,9 @@ const jsonLd = {
     </div>
   </section>
 
-  <!-- Metrics / proof points -->
-  <section
-    class="mx-auto max-w-page px-6 pb-14 md:pb-16"
-    aria-labelledby="metrics-heading"
-  >
-    <h2 id="metrics-heading" class="sr-only">Impact metrics</h2>
-    <div class="grid gap-4 md:grid-cols-3">
-      <Stat
-        value="$900K+/yr"
-        label="Fraud-loss reduction identified or enabled"
-        sublabel="AT&T · fraud + revenue analytics"
-      />
-      <Stat
-        value="$2.2B+"
-        label="Portfolio supported by analytics systems"
-        sublabel="Revenue + operational coverage"
-      />
-      <Stat
-        value="6 yrs"
-        label="AT&T · Azure · Databricks · BI platforms"
-        sublabel="Production data engineering"
-      />
-    </div>
-  </section>
-
   <!-- Featured projects -->
   <section
-    class="mx-auto max-w-page px-6 pb-20 md:pb-24"
+    class="mx-auto max-w-page px-6 pt-4 pb-20 md:pt-6 md:pb-24"
     aria-labelledby="featured-heading"
   >
     <div class="flex items-end justify-between mb-6">
@@ -233,14 +207,31 @@ const jsonLd = {
     >
       Senior data &amp; analytics engineer
     </h2>
-    <p class="mt-4 text-muted leading-relaxed">
-      I'm a senior data and analytics engineer with six years at AT&amp;T
-      building production data platforms on Azure and Databricks. My work spans
-      PySpark ingestion, dbt analytics models, BI delivery, streaming systems,
-      and data quality. I specialize in turning ambiguous fraud, revenue, and
-      operational problems into reliable pipelines and decision-ready
-      analytics.
-    </p>
+    <div class="mt-4 space-y-4 text-muted leading-relaxed">
+      <p>
+        I'm a senior data and analytics engineer with six years at AT&amp;T
+        building production data platforms on Azure and Databricks. My work
+        spans PySpark ingestion, dbt analytics models, BI delivery, streaming
+        systems, and data quality. I specialize in turning ambiguous fraud,
+        revenue, and operational problems into reliable pipelines and
+        decision-ready analytics.
+      </p>
+      <p>
+        Recent impact includes identifying or enabling
+        <span class="text-fg">$900K+/yr</span> in fraud-loss reduction and
+        supporting analytics for a
+        <span class="text-fg">$2.2B</span> portfolio of revenue and operational
+        data — work that spans streaming detection, lakehouse design, and BI
+        delivery on AT&amp;T's data platform.
+      </p>
+      <p>
+        I treat tests, observability, runbooks, and data contracts as part of
+        the deliverable, not as follow-ups. The projects above demonstrate that
+        approach end-to-end: streaming pipelines with watermarks and
+        exactly-once semantics, lakehouses with data quality at the boundary,
+        and AI tooling with corpus-tested behavior.
+      </p>
+    </div>
     <div class="mt-5 flex flex-wrap items-center gap-2">
       <span class="font-mono text-[11px] uppercase tracking-widest text-muted">
         Certified
