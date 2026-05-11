@@ -21,7 +21,7 @@ interface Props {
 const { slug, number, title, tagline, stack, repoUrl, demonstrates } = Astro.props;
 ---
 
-<article class="group flex flex-col rounded-lg border border-border overflow-hidden hover:border-accent hover:shadow-[0_0_0_1px_rgba(37,99,235,0.15),0_14px_40px_-16px_rgba(37,99,235,0.30)] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 transition-[border-color,box-shadow,transform] duration-200">
+<article class="spotlight-card group flex flex-col rounded-lg border border-border overflow-hidden hover:border-accent hover:shadow-[0_0_0_1px_rgba(37,99,235,0.15),0_14px_40px_-16px_rgba(37,99,235,0.30)] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 transition-[border-color,box-shadow,transform] duration-200">
   <div class="relative aspect-[5/3] border-b border-border bg-bg/30 grid place-items-center overflow-hidden">
     <slot name="preview" />
   </div>

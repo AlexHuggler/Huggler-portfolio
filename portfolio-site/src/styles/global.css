@@ -86,6 +86,94 @@
     );
     transition: opacity 300ms ease;
   }
+
+  /* Hero grid brighten — overlays the existing grid-bg and lights up
+     a small halo of grid lines around the cursor. Reads the same
+     --mouse-x / --mouse-y custom properties the hero already tracks. */
+  .grid-bg-hot {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      linear-gradient(to right, rgba(255, 255, 255, 0.11) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.11) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(
+      240px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      black 0%,
+      transparent 70%
+    );
+    -webkit-mask-image: radial-gradient(
+      240px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+      black 0%,
+      transparent 70%
+    );
+    opacity: 0.9;
+    transition: opacity 200ms ease;
+  }
+  html:not(.dark) .grid-bg-hot {
+    background-image:
+      linear-gradient(to right, rgba(0, 0, 0, 0.10) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.10) 1px, transparent 1px);
+  }
+
+  /* Spotlight card — per-card cursor halo + edge ring. Opt in by
+     adding the `spotlight-card` class. Pointer position is written
+     into --mx / --my by a delegated pointermove listener. */
+  .spotlight-card {
+    position: relative;
+  }
+  .spotlight-card::before,
+  .spotlight-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity 240ms ease;
+  }
+  .spotlight-card::before {
+    background: radial-gradient(
+      180px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(37, 99, 235, 0.18),
+      transparent 60%
+    );
+  }
+  .spotlight-card::after {
+    padding: 1px;
+    background: radial-gradient(
+      260px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(37, 99, 235, 0.55),
+      transparent 70%
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+  }
+  .spotlight-card:hover::before,
+  .spotlight-card:hover::after,
+  .spotlight-card:focus-within::before,
+  .spotlight-card:focus-within::after {
+    opacity: 1;
+  }
+  html:not(.dark) .spotlight-card::before {
+    background: radial-gradient(
+      180px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(37, 99, 235, 0.10),
+      transparent 60%
+    );
+  }
+  html:not(.dark) .spotlight-card::after {
+    background: radial-gradient(
+      260px circle at var(--mx, 50%) var(--my, 50%),
+      rgba(37, 99, 235, 0.45),
+      transparent 70%
+    );
+  }
+
   .card-glow {
     transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
   }
@@ -213,6 +301,15 @@
     .hero-node {
       animation: none;
       opacity: 0;
+    }
+    .grid-bg-hot {
+      opacity: 0 !important;
+      transition: none;
+    }
+    .spotlight-card::before,
+    .spotlight-card::after {
+      opacity: 0 !important;
+      transition: none;
     }
   }
 }
