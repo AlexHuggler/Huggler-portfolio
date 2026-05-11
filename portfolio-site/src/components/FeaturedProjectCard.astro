@@ -1,0 +1,89 @@
+---
+/**
+ * FeaturedProjectCard
+ *
+ * Homepage-grade project card with problem framing, technical framing,
+ * "what this demonstrates" line, tech tags, and dual CTAs (interactive
+ * demo + repo). Keeps the card dense-but-skimmable so it can earn its
+ * place above the About section without crowding the page.
+ */
+import StackPill from "./StackPill.astro";
+
+interface Props {
+  slug: string;
+  index: number;
+  title: string;
+  problem: string;
+  technical: string;
+  demonstrates: string[];
+  stack: string[];
+  repoUrl: string;
+}
+
+const { slug, index, title, problem, technical, demonstrates, stack, repoUrl } =
+  Astro.props;
+const projectNumber = String(index).padStart(2, "0");
+---
+
+<article
+  class="featured-card group relative flex flex-col rounded-lg border border-border bg-bg/40 p-5 md:p-6"
+>
+  <header class="flex items-baseline justify-between gap-3">
+    <p class="font-mono text-[11px] uppercase tracking-widest text-muted">
+      Project {projectNumber}
+    </p>
+    <a
+      href={repoUrl}
+      target="_blank"
+      rel="noopener noreferrer"
+      class="font-mono text-[11px] text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+      aria-label={`${title} GitHub repository (opens in new tab)`}
+    >
+      repo
+    </a>
+  </header>
+
+  <h3 class="mt-2 text-lg font-semibold tracking-tight">
+    <a
+      href={`/projects/${slug}`}
+      class="hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+    >
+      {title}
+    </a>
+  </h3>
+
+  <p class="mt-3 text-sm text-fg/90 leading-relaxed">{problem}</p>
+  <p class="mt-2 font-mono text-xs text-muted leading-relaxed">{technical}</p>
+
+  <ul class="mt-4 flex flex-wrap gap-1.5">
+    {stack.slice(0, 5).map((s) => <li><StackPill label={s} /></li>)}
+  </ul>
+
+  <div class="mt-4 border-t border-border pt-3">
+    <p class="font-mono text-[10px] uppercase tracking-widest text-muted">
+      What this demonstrates
+    </p>
+    <ul class="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-muted">
+      {demonstrates.map((d) => (
+        <li class="inline-flex items-center gap-1.5">
+          <span class="h-1 w-1 rounded-full bg-accent/70" aria-hidden="true"></span>
+          <span>{d}</span>
+        </li>
+      ))}
+    </ul>
+  </div>
+
+  <a
+    href={`/projects/${slug}`}
+    class="mt-5 inline-flex items-center gap-1 text-sm font-medium text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+    aria-label={`Open the interactive demo for ${title}`}
+  >
+    View interactive demo
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M5 12h14"/>
+      <path d="m12 5 7 7-7 7"/>
+    </svg>
+  </a>
+
+  <span class="featured-card-edge" aria-hidden="true"></span>
+</article>

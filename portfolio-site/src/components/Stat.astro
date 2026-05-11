@@ -2,10 +2,20 @@
 interface Props {
   value: string;
   label: string;
+  sublabel?: string;
 }
-const { value, label } = Astro.props;
+const { value, label, sublabel } = Astro.props;
 ---
-<div class="card-glow rounded-lg border border-border p-5">
-  <div class="font-mono text-2xl md:text-3xl font-semibold tracking-tight">{value}</div>
-  <div class="mt-1 text-sm text-muted">{label}</div>
+<div class="metric-card">
+  <div class="relative z-10">
+    <div class="font-mono text-2xl md:text-3xl font-semibold tracking-tight text-fg">
+      {value}
+    </div>
+    <div class="mt-1.5 text-sm text-muted leading-snug">{label}</div>
+    {sublabel && (
+      <div class="mt-2 font-mono text-[10px] uppercase tracking-widest text-muted/80">
+        {sublabel}
+      </div>
+    )}
+  </div>
 </div>

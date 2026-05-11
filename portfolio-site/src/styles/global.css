@@ -95,12 +95,124 @@
       0 0 0 1px rgba(37, 99, 235, 0.15),
       0 8px 30px -8px rgba(37, 99, 235, 0.20);
   }
+
+  /* Metric card — subtle hover and monospace polish without becoming flashy. */
+  .metric-card {
+    @apply relative overflow-hidden rounded-lg border border-border bg-bg/40 p-5;
+    transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  }
+  .metric-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: linear-gradient(
+      120deg,
+      transparent 0%,
+      rgba(37, 99, 235, 0.06) 50%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 220ms ease;
+  }
+  .metric-card:hover {
+    border-color: rgba(37, 99, 235, 0.4);
+    box-shadow:
+      0 0 0 1px rgba(37, 99, 235, 0.12),
+      0 8px 28px -10px rgba(37, 99, 235, 0.22);
+    transform: translateY(-1px);
+  }
+  .metric-card:hover::before {
+    opacity: 1;
+  }
+  html:not(.dark) .metric-card {
+    @apply border-border-light bg-white;
+  }
+
+  /* Featured project card — homepage projects. */
+  .featured-card {
+    transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  }
+  .featured-card:hover {
+    border-color: rgba(37, 99, 235, 0.5);
+    box-shadow:
+      0 0 0 1px rgba(37, 99, 235, 0.12),
+      0 14px 40px -16px rgba(37, 99, 235, 0.30);
+    transform: translateY(-2px);
+  }
+  .featured-card-edge {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    border-top-left-radius: theme("borderRadius.lg");
+    border-bottom-left-radius: theme("borderRadius.lg");
+    background: linear-gradient(
+      180deg,
+      transparent 0%,
+      rgba(37, 99, 235, 0.55) 50%,
+      transparent 100%
+    );
+    opacity: 0;
+    transition: opacity 220ms ease;
+  }
+  .featured-card:hover .featured-card-edge,
+  .featured-card:focus-within .featured-card-edge {
+    opacity: 1;
+  }
+  html:not(.dark) .featured-card {
+    @apply border-border-light bg-white;
+  }
+
+  /* Focus list — small accent bullets with subtle hover sweep. */
+  .focus-item {
+    @apply relative pl-5 text-sm leading-relaxed;
+  }
+  .focus-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.55rem;
+    width: 0.55rem;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(37, 99, 235, 0.85), transparent);
+  }
+
+  /* Hero data-node decoration — tasteful, non-distracting. */
+  .hero-node {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgba(37, 99, 235, 0.45);
+    box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
+    opacity: 0;
+    animation: hero-node-pulse 6.5s ease-in-out infinite;
+  }
+  @keyframes hero-node-pulse {
+    0%, 100% { opacity: 0; transform: scale(0.6); }
+    40%      { opacity: 0.75; transform: scale(1); }
+    60%      { opacity: 0.55; transform: scale(1); }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .hero-glow {
       transition: none;
     }
-    .card-glow {
+    .card-glow,
+    .metric-card,
+    .featured-card {
       transition: none;
+      transform: none !important;
+    }
+    .metric-card::before,
+    .featured-card-edge {
+      transition: none;
+    }
+    .hero-node {
+      animation: none;
+      opacity: 0;
     }
   }
 }

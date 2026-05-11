@@ -31,12 +31,12 @@ const stack = [
 
     <div class="mt-8 space-y-5 text-muted leading-relaxed">
       <p>
-        I'm a senior data and analytics engineer with six years at AT&T building
-        production data platforms on Azure and Databricks. My work spans PySpark
-        ingestion, dbt analytics models, BI delivery, streaming systems, and
-        data quality. I specialize in turning ambiguous fraud, revenue, and
-        operational problems into reliable pipelines and decision-ready
-        analytics.
+        I'm a senior data and analytics engineer with six years at AT&amp;T
+        building production data platforms on Azure and Databricks. My work
+        spans PySpark ingestion, dbt analytics models, BI delivery, streaming
+        systems, and data quality. I specialize in turning ambiguous fraud,
+        revenue, and operational problems into reliable pipelines and
+        decision-ready analytics.
       </p>
       <p>
         Recent impact: $900K+/yr fraud-loss reduction identified or enabled,
@@ -50,9 +50,12 @@ const stack = [
       </p>
     </div>
 
-    <div class="mt-8 flex flex-wrap gap-2">
-      <span class="pill"><span class="text-accent">DP-203</span> Azure Data Engineering</span>
-      <span class="pill"><span class="text-accent">DP-100</span> Azure AI Engineering</span>
+    <div class="mt-8 flex flex-wrap items-center gap-2">
+      <span class="font-mono text-[11px] uppercase tracking-widest text-muted">
+        Certified
+      </span>
+      <span class="pill"><span class="text-accent">DP-203</span>&nbsp;Azure Data Engineering</span>
+      <span class="pill"><span class="text-accent">DP-100</span>&nbsp;Azure AI Engineering</span>
     </div>
 
     <h2 class="mt-12 text-xl font-semibold tracking-tight">Stack proficiency</h2>
@@ -81,19 +84,35 @@ const stack = [
     <ul class="mt-4 space-y-2 text-sm">
       <li>
         <span class="text-muted">GitHub:</span>{" "}
-        <a class="text-accent hover:opacity-80" href={siteConfig.github}>
+        <a
+          class="text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+          href={siteConfig.github}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Alex's GitHub profile (opens in new tab)"
+        >
           {siteConfig.github.replace("https://", "")}
         </a>
       </li>
       <li>
         <span class="text-muted">LinkedIn:</span>{" "}
-        <a class="text-accent hover:opacity-80" href={siteConfig.linkedin}>
+        <a
+          class="text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+          href={siteConfig.linkedin}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Alex's LinkedIn profile (opens in new tab)"
+        >
           {siteConfig.linkedin.replace("https://", "")}
         </a>
       </li>
       <li>
         <span class="text-muted">Resume:</span>{" "}
-        <a class="text-accent hover:opacity-80" href={siteConfig.resumePath}>
+        <a
+          class="text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+          href={siteConfig.resumePath}
+          aria-label="Download resume PDF"
+        >
           download PDF
         </a>
       </li>

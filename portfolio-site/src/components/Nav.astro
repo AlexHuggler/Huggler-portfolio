@@ -11,17 +11,26 @@ const links = [
 ];
 
 const path = Astro.url.pathname;
-const normalize = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+const normalize = (p: string) =>
+  p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p;
 const currentPath = normalize(path);
 const isActive = (href: string) =>
-  href === "/" ? currentPath === "/" : currentPath === href || currentPath.startsWith(`${href}/`);
+  href === "/"
+    ? currentPath === "/"
+    : currentPath === href || currentPath.startsWith(`${href}/`);
 ---
 
-<header class="border-b border-border dark:border-border sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-bg/70 dark:supports-[backdrop-filter]:bg-bg/70">
-  <nav class="mx-auto flex max-w-page flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4">
+<header
+  class="border-b border-border sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-bg/70 dark:supports-[backdrop-filter]:bg-bg/70"
+>
+  <nav
+    class="mx-auto flex max-w-page flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4"
+    aria-label="Primary"
+  >
     <a
       href="/"
       class="font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+      aria-label="Home"
     >
       {siteConfig.name}
     </a>
@@ -34,8 +43,10 @@ const isActive = (href: string) =>
               href={link.href}
               aria-current={active ? "page" : undefined}
               class:list={[
-                "transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm",
-                active ? "text-fg font-medium" : "text-muted hover:text-fg dark:hover:text-fg",
+                "nav-link relative inline-flex items-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm",
+                active
+                  ? "text-fg font-medium nav-link-active"
+                  : "text-muted hover:text-fg",
               ]}
             >
               {link.label}
@@ -47,7 +58,7 @@ const isActive = (href: string) =>
     <div class="order-2 md:order-3 flex items-center gap-3">
       <a
         href={siteConfig.github}
-        class="text-sm text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+        class="hidden sm:inline text-sm text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
         target="_blank"
         rel="noopener noreferrer"
         aria-label="Alex's GitHub profile (opens in new tab)"
@@ -58,3 +69,17 @@ const isActive = (href: string) =>
     </div>
   </nav>
 </header>
+
+<style>
+  .nav-link-active::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -4px;
+    height: 1.5px;
+    background: theme("colors.accent");
+    border-radius: 1px;
+    opacity: 0.9;
+  }
+</style>
