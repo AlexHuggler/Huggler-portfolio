@@ -218,7 +218,7 @@ const stack = [
           <GitHubBadge href={project.data.repoUrl} label="View repository" />
           <a
             class="btn"
-            href={`${project.data.repoUrl}/blob/main/prompts/optimizer_prompt.md`}
+            href={`${project.data.repoUrl.replace("/tree/main/", "/blob/main/")}/src/sql_optimizer/prompts/optimizer_prompt.md`}
             target="_blank"
             rel="noopener noreferrer"
           >

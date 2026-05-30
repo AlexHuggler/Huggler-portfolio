@@ -200,11 +200,11 @@ const stack = [
           <GitHubBadge href={project.data.repoUrl} label="View repository" />
           <a
             class="btn"
-            href={`${project.data.repoUrl}/blob/main/docs/data-quality.md`}
+            href={`${project.data.repoUrl.replace("/tree/main/", "/blob/main/")}/docs/architecture.md`}
             target="_blank"
             rel="noopener noreferrer"
           >
-            Read the data contracts doc
+            Read the architecture &amp; data-contracts doc
           </a>
         </div>
       </div>

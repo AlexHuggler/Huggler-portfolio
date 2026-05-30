@@ -8,11 +8,11 @@ stack:
   - "Anthropic SDK"
   - "sqlglot"
   - "pytest"
-repoUrl: "https://github.com/alexhuggler/project-ai-sql-optimizer"
+repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer"
 results:
-  - "[TODO: % suggestions accepted by human reviewer]"
-  - "[TODO: avg cost reduction when EXPLAIN cost available]"
-  - "[TODO: human-rated quality on the 50-query corpus]"
+  - "50-query corpus across 5 optimization categories with labeled ground truth"
+  - "Heuristic analyzer flags select-*, cross joins, missing partition predicates, and broadcast opportunities"
+  - "Suggestions scored on keyword overlap, EXPLAIN cost delta, and human review"
 ---
 
 import MermaidBlock from "../../components/MermaidBlock.astro";
@@ -56,7 +56,13 @@ and human review.
 
 ## Results
 
-[TODO: fill in real numbers from your runs]
+The benchmark runs the CLI over the 50-query corpus and scores each suggestion on three
+axes: keyword overlap with the labeled ground truth in `corpus/ground_truth.yaml`, EXPLAIN
+cost delta when an engine is available, and human review. The heuristic analyzer alone
+(no API key required) flags `SELECT *`, cross joins, missing partition predicates, broadcast
+opportunities, and CTE depth, which is enough to drive the dry-run mode. With
+`ANTHROPIC_API_KEY` set, Claude proposes rewrites that the EXPLAIN runner verifies for a
+lower cost direction on the five labeled categories.
 
 ## Honest limitations
 

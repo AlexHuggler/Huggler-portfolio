@@ -1,0 +1,100 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SectionHeader from "../components/shared/SectionHeader.astro";
+import FraudDashboard from "../components/viz/FraudDashboard.tsx";
+import TelecomDashboard from "../components/viz/TelecomDashboard.tsx";
+import SqlOptDashboard from "../components/viz/SqlOptDashboard.tsx";
+
+const sections = [
+  {
+    id: "telecom",
+    eyebrow: "Dashboard 01 · Telecom revenue & churn",
+    title: "Telecom Billing Lakehouse",
+    description:
+      "Revenue, ARPU, call-mix, and churn marts derived from 50,000 rated Call Detail Records — the Gold layer of the Medallion lakehouse, visualized.",
+    repo: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-telecom-lakehouse",
+  },
+  {
+    id: "fraud",
+    eyebrow: "Dashboard 02 · Real-time fraud analytics",
+    title: "Fraud Signals",
+    description:
+      "Fraud-rate, geography, pattern mix, and streaming throughput from the synthetic transaction producer feeding the Spark/Delta pipeline.",
+    repo: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-fraud-signals",
+  },
+  {
+    id: "sqlopt",
+    eyebrow: "Dashboard 03 · Query optimization benchmark",
+    title: "AI-Assisted SQL Optimizer",
+    description:
+      "Cost-reduction and analyzer-finding benchmarks across the 50-query optimization corpus.",
+    repo: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer",
+  },
+];
+---
+
+<BaseLayout
+  title="Data Visualizations"
+  description="Interactive BI-style dashboards built with Apache ECharts on data from Alex Huggler's data-engineering projects — hosted entirely on GitHub Pages, no Power BI or Tableau license required."
+>
+  <article>
+    <!-- Hero band -->
+    <section class="relative">
+      <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-page px-6 pt-16 pb-10">
+        <p class="demo-eyebrow">Data Visualizations</p>
+        <h1 class="mt-2 demo-headline">Dashboards from the pipelines</h1>
+        <p class="demo-tagline">
+          The same kind of executive dashboards I build in Power BI and Tableau,
+          rebuilt here as fully self-hosted, interactive visualizations. Every
+          chart is rendered in your browser with
+          <a
+            class="underline decoration-accent/40 underline-offset-2 hover:decoration-accent"
+            href="https://echarts.apache.org/"
+            target="_blank"
+            rel="noopener noreferrer">Apache ECharts</a
+          >
+          over data generated from the three projects' own data generators — no
+          third-party BI service, no license, just static JSON on GitHub Pages.
+        </p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <a class="btn" href="#telecom">Telecom</a>
+          <a class="btn" href="#fraud">Fraud</a>
+          <a class="btn" href="#sqlopt">SQL optimizer</a>
+          <a class="btn" href="/projects">See the projects</a>
+        </div>
+        <p class="mt-4 text-xs text-muted">
+          Tip: toggle the theme (top-right) — the charts restyle live. Numbers
+          are synthetic and seeded; they illustrate the shape of the data, not
+          production figures.
+        </p>
+      </div>
+    </section>
+
+    {
+      sections.map((s) => (
+        <section id={s.id} class="demo-section scroll-mt-20">
+          <SectionHeader
+            eyebrow={s.eyebrow}
+            title={s.title}
+            description={s.description}
+          />
+          <div class="mb-4">
+            <a
+              class="text-sm text-accent hover:underline"
+              href={s.repo}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              View the project repository ↗
+            </a>
+          </div>
+          {s.id === "telecom" && <TelecomDashboard client:only="react" />}
+          {s.id === "fraud" && <FraudDashboard client:only="react" />}
+          {s.id === "sqlopt" && <SqlOptDashboard client:only="react" />}
+          <div class="demo-divider mt-12" />
+        </section>
+      ))
+    }
+  </article>
+</BaseLayout>
