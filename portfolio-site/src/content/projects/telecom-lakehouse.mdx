@@ -9,11 +9,11 @@ stack:
   - "Great Expectations"
   - "dbt"
   - "Terraform"
-repoUrl: "https://github.com/alexhuggler/project-telecom-lakehouse"
+repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-telecom-lakehouse"
 results:
-  - "[TODO: rows/sec ingest at Bronze]"
-  - "[TODO: GE pass rate after first month of synthetic data]"
-  - "[TODO: gold mart freshness SLA]"
+  - "50,000 synthetic CDRs per run, partitioned by ingest_date across 3 days"
+  - "Great Expectations contracts enforce column types, nulls, and ranges at Bronze"
+  - "Gold marts (revenue_by_market, arpu_monthly, churn_signals) rebuilt on every dbt run"
 ---
 
 import MermaidBlock from "../../components/MermaidBlock.astro";
@@ -59,6 +59,12 @@ Gold: snapshot-style metrics with row count and freshness alerts.
 
 ## Results
 
-[TODO: fill in real numbers from your local runs - ingest throughput, GE pass rate, mart freshness SLA]
+A default run generates 50,000 synthetic CDRs partitioned by `ingest_date` across three
+days, which the Airflow ingest DAG lands in Iceberg Bronze. Great Expectations contracts
+gate the Bronze-to-Silver step on column types, nulls, and ranges, and the Silver-to-Gold
+dbt models (`revenue_by_market`, `arpu_monthly`, `churn_signals`) rebuild with their
+`unique` / `not_null` / `accepted_values` tests on every run. The whole stack runs locally
+on docker-compose with no AWS account; the Terraform variant provisions the S3 + Glue +
+Athena equivalent when you want to deploy for real.
 
 See the repo for full setup, optional Terraform deployment, and limitations.

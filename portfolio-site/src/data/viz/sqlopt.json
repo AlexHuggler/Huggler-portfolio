@@ -1,0 +1,470 @@
+{
+  "_meta": {
+    "synthetic": true,
+    "seed": 42,
+    "source": "project-ai-sql-optimizer/corpus",
+    "note": "50-query corpus across 5 optimization categories; cost reductions and analyzer findings are seeded illustrative values.",
+    "generated_by": "portfolio-site/scripts/generate_viz_data.py"
+  },
+  "kpis": {
+    "corpus_size": 50,
+    "median_cost_reduction_pct": 43.6,
+    "win_rate_pct": 94.0,
+    "avg_findings_per_query": 1.98
+  },
+  "cost_reduction": [
+    {
+      "query_id": "24",
+      "category": "partition_pruning",
+      "reduction_pct": 82.3,
+      "cost_before": 47099,
+      "cost_after": 8337
+    },
+    {
+      "query_id": "29",
+      "category": "partition_pruning",
+      "reduction_pct": 80.4,
+      "cost_before": 44129,
+      "cost_after": 8649
+    },
+    {
+      "query_id": "34",
+      "category": "partition_pruning",
+      "reduction_pct": 76.0,
+      "cost_before": 9185,
+      "cost_after": 2204
+    },
+    {
+      "query_id": "19",
+      "category": "partition_pruning",
+      "reduction_pct": 72.9,
+      "cost_before": 25909,
+      "cost_after": 7021
+    },
+    {
+      "query_id": "15",
+      "category": "broadcast_join",
+      "reduction_pct": 69.5,
+      "cost_before": 39837,
+      "cost_after": 12150
+    },
+    {
+      "query_id": "21",
+      "category": "join_optimization",
+      "reduction_pct": 67.9,
+      "cost_before": 44469,
+      "cost_after": 14275
+    },
+    {
+      "query_id": "09",
+      "category": "partition_pruning",
+      "reduction_pct": 66.5,
+      "cost_before": 12189,
+      "cost_after": 4083
+    },
+    {
+      "query_id": "40",
+      "category": "broadcast_join",
+      "reduction_pct": 66.4,
+      "cost_before": 24293,
+      "cost_after": 8162
+    },
+    {
+      "query_id": "10",
+      "category": "broadcast_join",
+      "reduction_pct": 66.2,
+      "cost_before": 8698,
+      "cost_after": 2940
+    },
+    {
+      "query_id": "25",
+      "category": "broadcast_join",
+      "reduction_pct": 64.1,
+      "cost_before": 5665,
+      "cost_after": 2034
+    },
+    {
+      "query_id": "45",
+      "category": "broadcast_join",
+      "reduction_pct": 63.0,
+      "cost_before": 41909,
+      "cost_after": 15506
+    },
+    {
+      "query_id": "05",
+      "category": "broadcast_join",
+      "reduction_pct": 60.1,
+      "cost_before": 3739,
+      "cost_after": 1492
+    },
+    {
+      "query_id": "06",
+      "category": "join_optimization",
+      "reduction_pct": 59.9,
+      "cost_before": 47962,
+      "cost_after": 19233
+    },
+    {
+      "query_id": "39",
+      "category": "partition_pruning",
+      "reduction_pct": 59.6,
+      "cost_before": 37190,
+      "cost_after": 15025
+    },
+    {
+      "query_id": "44",
+      "category": "partition_pruning",
+      "reduction_pct": 59.2,
+      "cost_before": 42979,
+      "cost_after": 17535
+    },
+    {
+      "query_id": "20",
+      "category": "broadcast_join",
+      "reduction_pct": 56.9,
+      "cost_before": 45920,
+      "cost_after": 19792
+    },
+    {
+      "query_id": "31",
+      "category": "join_optimization",
+      "reduction_pct": 55.8,
+      "cost_before": 40311,
+      "cost_after": 17817
+    },
+    {
+      "query_id": "04",
+      "category": "partition_pruning",
+      "reduction_pct": 55.0,
+      "cost_before": 8140,
+      "cost_after": 3663
+    },
+    {
+      "query_id": "30",
+      "category": "broadcast_join",
+      "reduction_pct": 54.6,
+      "cost_before": 18162,
+      "cost_after": 8246
+    },
+    {
+      "query_id": "50",
+      "category": "broadcast_join",
+      "reduction_pct": 53.9,
+      "cost_before": 39182,
+      "cost_after": 18063
+    },
+    {
+      "query_id": "41",
+      "category": "join_optimization",
+      "reduction_pct": 53.6,
+      "cost_before": 31735,
+      "cost_after": 14725
+    },
+    {
+      "query_id": "46",
+      "category": "join_optimization",
+      "reduction_pct": 52.3,
+      "cost_before": 12587,
+      "cost_after": 6004
+    },
+    {
+      "query_id": "35",
+      "category": "broadcast_join",
+      "reduction_pct": 51.3,
+      "cost_before": 46596,
+      "cost_after": 22692
+    },
+    {
+      "query_id": "12",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 44.1,
+      "cost_before": 49823,
+      "cost_after": 27851
+    },
+    {
+      "query_id": "33",
+      "category": "cte_flattening",
+      "reduction_pct": 43.9,
+      "cost_before": 35392,
+      "cost_after": 19855
+    },
+    {
+      "query_id": "47",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 43.4,
+      "cost_before": 36757,
+      "cost_after": 20804
+    },
+    {
+      "query_id": "16",
+      "category": "join_optimization",
+      "reduction_pct": 42.5,
+      "cost_before": 45336,
+      "cost_after": 26068
+    },
+    {
+      "query_id": "36",
+      "category": "join_optimization",
+      "reduction_pct": 42.1,
+      "cost_before": 27009,
+      "cost_after": 15638
+    },
+    {
+      "query_id": "26",
+      "category": "join_optimization",
+      "reduction_pct": 40.1,
+      "cost_before": 22673,
+      "cost_after": 13581
+    },
+    {
+      "query_id": "01",
+      "category": "join_optimization",
+      "reduction_pct": 39.5,
+      "cost_before": 20024,
+      "cost_after": 12115
+    },
+    {
+      "query_id": "32",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 39.0,
+      "cost_before": 25723,
+      "cost_after": 15691
+    },
+    {
+      "query_id": "03",
+      "category": "cte_flattening",
+      "reduction_pct": 38.0,
+      "cost_before": 7697,
+      "cost_after": 4772
+    },
+    {
+      "query_id": "08",
+      "category": "cte_flattening",
+      "reduction_pct": 37.3,
+      "cost_before": 12463,
+      "cost_after": 7814
+    },
+    {
+      "query_id": "18",
+      "category": "cte_flattening",
+      "reduction_pct": 37.2,
+      "cost_before": 26911,
+      "cost_after": 16900
+    },
+    {
+      "query_id": "38",
+      "category": "cte_flattening",
+      "reduction_pct": 37.1,
+      "cost_before": 2752,
+      "cost_after": 1731
+    },
+    {
+      "query_id": "37",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 36.9,
+      "cost_before": 18476,
+      "cost_after": 11658
+    },
+    {
+      "query_id": "17",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 33.3,
+      "cost_before": 7229,
+      "cost_after": 4822
+    },
+    {
+      "query_id": "07",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 31.6,
+      "cost_before": 40618,
+      "cost_after": 27783
+    },
+    {
+      "query_id": "48",
+      "category": "cte_flattening",
+      "reduction_pct": 31.6,
+      "cost_before": 34021,
+      "cost_after": 23270
+    },
+    {
+      "query_id": "43",
+      "category": "cte_flattening",
+      "reduction_pct": 30.0,
+      "cost_before": 13708,
+      "cost_after": 9596
+    },
+    {
+      "query_id": "02",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 29.2,
+      "cost_before": 8717,
+      "cost_after": 6172
+    },
+    {
+      "query_id": "28",
+      "category": "cte_flattening",
+      "reduction_pct": 26.9,
+      "cost_before": 44954,
+      "cost_after": 32861
+    },
+    {
+      "query_id": "27",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 26.4,
+      "cost_before": 39170,
+      "cost_after": 28829
+    },
+    {
+      "query_id": "23",
+      "category": "cte_flattening",
+      "reduction_pct": 23.6,
+      "cost_before": 26867,
+      "cost_after": 20526
+    },
+    {
+      "query_id": "13",
+      "category": "cte_flattening",
+      "reduction_pct": 22.5,
+      "cost_before": 26807,
+      "cost_after": 20775
+    },
+    {
+      "query_id": "49",
+      "category": "partition_pruning",
+      "reduction_pct": 3.1,
+      "cost_before": 22153,
+      "cost_after": 21466
+    },
+    {
+      "query_id": "42",
+      "category": "aggregation_rewrite",
+      "reduction_pct": 0.7,
+      "cost_before": 49164,
+      "cost_after": 48820
+    },
+    {
+      "query_id": "22",
+      "category": "aggregation_rewrite",
+      "reduction_pct": -0.4,
+      "cost_before": 37005,
+      "cost_after": 37153
+    },
+    {
+      "query_id": "14",
+      "category": "partition_pruning",
+      "reduction_pct": -4.5,
+      "cost_before": 43198,
+      "cost_after": 45142
+    },
+    {
+      "query_id": "11",
+      "category": "join_optimization",
+      "reduction_pct": -6.8,
+      "cost_before": 24541,
+      "cost_after": 26210
+    }
+  ],
+  "by_category": [
+    {
+      "category": "join_optimization",
+      "count": 10,
+      "median": 47.4,
+      "min": -6.8,
+      "max": 67.9
+    },
+    {
+      "category": "aggregation_rewrite",
+      "count": 10,
+      "median": 32.5,
+      "min": -0.4,
+      "max": 44.1
+    },
+    {
+      "category": "cte_flattening",
+      "count": 10,
+      "median": 34.4,
+      "min": 22.5,
+      "max": 43.9
+    },
+    {
+      "category": "partition_pruning",
+      "count": 10,
+      "median": 63.0,
+      "min": -4.5,
+      "max": 82.3
+    },
+    {
+      "category": "broadcast_join",
+      "count": 10,
+      "median": 61.5,
+      "min": 51.3,
+      "max": 69.5
+    }
+  ],
+  "reduction_distribution": [
+    {
+      "bucket": "0-20",
+      "count": 2
+    },
+    {
+      "bucket": "20-30",
+      "count": 5
+    },
+    {
+      "bucket": "30-40",
+      "count": 11
+    },
+    {
+      "bucket": "40-50",
+      "count": 6
+    },
+    {
+      "bucket": "50-60",
+      "count": 11
+    },
+    {
+      "bucket": "60-70",
+      "count": 8
+    },
+    {
+      "bucket": "70-80",
+      "count": 2
+    },
+    {
+      "bucket": "80+",
+      "count": 2
+    }
+  ],
+  "findings_by_rule": [
+    {
+      "rule": "correlated_subquery",
+      "count": 30,
+      "severity": "warn"
+    },
+    {
+      "rule": "missing_partition_predicate",
+      "count": 19,
+      "severity": "high"
+    },
+    {
+      "rule": "cross_join",
+      "count": 17,
+      "severity": "high"
+    },
+    {
+      "rule": "deep_cte_nesting",
+      "count": 16,
+      "severity": "warn"
+    },
+    {
+      "rule": "broadcast_opportunity",
+      "count": 9,
+      "severity": "warn"
+    },
+    {
+      "rule": "select_star",
+      "count": 8,
+      "severity": "info"
+    }
+  ]
+}

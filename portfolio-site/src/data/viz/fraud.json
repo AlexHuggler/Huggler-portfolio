@@ -1,0 +1,650 @@
+{
+  "_meta": {
+    "synthetic": true,
+    "seed": 42,
+    "source": "project-fraud-signals/src/producer/generate.py",
+    "note": "Synthetic transaction stream with 5% seeded fraud across velocity, impossible-travel, and amount-outlier patterns.",
+    "generated_by": "portfolio-site/scripts/generate_viz_data.py"
+  },
+  "kpis": {
+    "events_scored": 24000,
+    "fraud_rate_pct": 2.18,
+    "flagged_amount_usd": 319560.45,
+    "top_pattern": "velocity_burst"
+  },
+  "fraud_by_category": [
+    {
+      "category": "online_retail",
+      "total": 2991,
+      "fraud": 104,
+      "fraud_rate": 3.48
+    },
+    {
+      "category": "atm_withdrawal",
+      "total": 3059,
+      "fraud": 88,
+      "fraud_rate": 2.88
+    },
+    {
+      "category": "electronics",
+      "total": 2976,
+      "fraud": 80,
+      "fraud_rate": 2.69
+    },
+    {
+      "category": "grocery",
+      "total": 3006,
+      "fraud": 70,
+      "fraud_rate": 2.33
+    },
+    {
+      "category": "subscription",
+      "total": 3004,
+      "fraud": 52,
+      "fraud_rate": 1.73
+    },
+    {
+      "category": "gas",
+      "total": 3045,
+      "fraud": 50,
+      "fraud_rate": 1.64
+    },
+    {
+      "category": "restaurant",
+      "total": 3002,
+      "fraud": 45,
+      "fraud_rate": 1.5
+    },
+    {
+      "category": "travel",
+      "total": 2917,
+      "fraud": 35,
+      "fraud_rate": 1.2
+    }
+  ],
+  "fraud_by_country": [
+    {
+      "country": "ZA",
+      "total": 2453,
+      "fraud": 54,
+      "fraud_rate": 2.2
+    },
+    {
+      "country": "BR",
+      "total": 2201,
+      "fraud": 52,
+      "fraud_rate": 2.36
+    },
+    {
+      "country": "IT",
+      "total": 1804,
+      "fraud": 49,
+      "fraud_rate": 2.72
+    },
+    {
+      "country": "AU",
+      "total": 2652,
+      "fraud": 49,
+      "fraud_rate": 1.85
+    },
+    {
+      "country": "NG",
+      "total": 1572,
+      "fraud": 49,
+      "fraud_rate": 3.12
+    },
+    {
+      "country": "US",
+      "total": 2464,
+      "fraud": 44,
+      "fraud_rate": 1.79
+    },
+    {
+      "country": "GB",
+      "total": 2334,
+      "fraud": 41,
+      "fraud_rate": 1.76
+    },
+    {
+      "country": "CA",
+      "total": 1549,
+      "fraud": 40,
+      "fraud_rate": 2.58
+    },
+    {
+      "country": "DE",
+      "total": 2105,
+      "fraud": 40,
+      "fraud_rate": 1.9
+    },
+    {
+      "country": "FR",
+      "total": 1021,
+      "fraud": 39,
+      "fraud_rate": 3.82
+    },
+    {
+      "country": "ES",
+      "total": 1779,
+      "fraud": 39,
+      "fraud_rate": 2.19
+    },
+    {
+      "country": "JP",
+      "total": 2066,
+      "fraud": 28,
+      "fraud_rate": 1.36
+    }
+  ],
+  "pattern_breakdown": [
+    {
+      "pattern": "velocity_burst",
+      "count": 375,
+      "avg_amount": 762.94
+    },
+    {
+      "pattern": "impossible_travel",
+      "count": 98,
+      "avg_amount": 128.92
+    },
+    {
+      "pattern": "amount_outlier",
+      "count": 51,
+      "avg_amount": 408.31
+    }
+  ],
+  "amount_distribution": [
+    {
+      "bucket": "0-25",
+      "normal": 1274,
+      "fraud": 6
+    },
+    {
+      "bucket": "25-50",
+      "normal": 3170,
+      "fraud": 16
+    },
+    {
+      "bucket": "50-100",
+      "normal": 5111,
+      "fraud": 20
+    },
+    {
+      "bucket": "100-200",
+      "normal": 8454,
+      "fraud": 72
+    },
+    {
+      "bucket": "200-400",
+      "normal": 5331,
+      "fraud": 81
+    },
+    {
+      "bucket": "400-800",
+      "normal": 136,
+      "fraud": 178
+    },
+    {
+      "bucket": "800-1600",
+      "normal": 0,
+      "fraud": 133
+    },
+    {
+      "bucket": "1600+",
+      "normal": 0,
+      "fraud": 18
+    }
+  ],
+  "throughput": [
+    {
+      "t": 0,
+      "events_per_sec": 61,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 1,
+      "events_per_sec": 52,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 2,
+      "events_per_sec": 47,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 3,
+      "events_per_sec": 50,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 4,
+      "events_per_sec": 39,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 5,
+      "events_per_sec": 43,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 6,
+      "events_per_sec": 37,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 7,
+      "events_per_sec": 43,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 8,
+      "events_per_sec": 51,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 9,
+      "events_per_sec": 49,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 10,
+      "events_per_sec": 53,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 11,
+      "events_per_sec": 44,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 12,
+      "events_per_sec": 50,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 13,
+      "events_per_sec": 56,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 14,
+      "events_per_sec": 39,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 15,
+      "events_per_sec": 54,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 16,
+      "events_per_sec": 53,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 17,
+      "events_per_sec": 44,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 18,
+      "events_per_sec": 44,
+      "flagged_per_sec": 3
+    },
+    {
+      "t": 19,
+      "events_per_sec": 56,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 20,
+      "events_per_sec": 41,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 21,
+      "events_per_sec": 52,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 22,
+      "events_per_sec": 54,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 23,
+      "events_per_sec": 43,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 24,
+      "events_per_sec": 51,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 25,
+      "events_per_sec": 46,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 26,
+      "events_per_sec": 36,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 27,
+      "events_per_sec": 47,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 28,
+      "events_per_sec": 56,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 29,
+      "events_per_sec": 29,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 30,
+      "events_per_sec": 43,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 31,
+      "events_per_sec": 61,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 32,
+      "events_per_sec": 41,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 33,
+      "events_per_sec": 55,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 34,
+      "events_per_sec": 52,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 35,
+      "events_per_sec": 54,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 36,
+      "events_per_sec": 50,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 37,
+      "events_per_sec": 51,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 38,
+      "events_per_sec": 48,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 39,
+      "events_per_sec": 51,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 40,
+      "events_per_sec": 44,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 41,
+      "events_per_sec": 49,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 42,
+      "events_per_sec": 59,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 43,
+      "events_per_sec": 39,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 44,
+      "events_per_sec": 53,
+      "flagged_per_sec": 3
+    },
+    {
+      "t": 45,
+      "events_per_sec": 48,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 46,
+      "events_per_sec": 44,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 47,
+      "events_per_sec": 65,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 48,
+      "events_per_sec": 57,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 49,
+      "events_per_sec": 52,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 50,
+      "events_per_sec": 47,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 51,
+      "events_per_sec": 52,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 52,
+      "events_per_sec": 50,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 53,
+      "events_per_sec": 67,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 54,
+      "events_per_sec": 48,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 55,
+      "events_per_sec": 64,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 56,
+      "events_per_sec": 60,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 57,
+      "events_per_sec": 62,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 58,
+      "events_per_sec": 50,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 59,
+      "events_per_sec": 61,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 60,
+      "events_per_sec": 66,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 61,
+      "events_per_sec": 50,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 62,
+      "events_per_sec": 49,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 63,
+      "events_per_sec": 28,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 64,
+      "events_per_sec": 67,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 65,
+      "events_per_sec": 48,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 66,
+      "events_per_sec": 39,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 67,
+      "events_per_sec": 45,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 68,
+      "events_per_sec": 56,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 69,
+      "events_per_sec": 44,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 70,
+      "events_per_sec": 55,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 71,
+      "events_per_sec": 58,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 72,
+      "events_per_sec": 51,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 73,
+      "events_per_sec": 42,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 74,
+      "events_per_sec": 64,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 75,
+      "events_per_sec": 52,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 76,
+      "events_per_sec": 44,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 77,
+      "events_per_sec": 64,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 78,
+      "events_per_sec": 47,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 79,
+      "events_per_sec": 46,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 80,
+      "events_per_sec": 53,
+      "flagged_per_sec": 3
+    },
+    {
+      "t": 81,
+      "events_per_sec": 44,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 82,
+      "events_per_sec": 54,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 83,
+      "events_per_sec": 38,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 84,
+      "events_per_sec": 42,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 85,
+      "events_per_sec": 47,
+      "flagged_per_sec": 2
+    },
+    {
+      "t": 86,
+      "events_per_sec": 57,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 87,
+      "events_per_sec": 36,
+      "flagged_per_sec": 0
+    },
+    {
+      "t": 88,
+      "events_per_sec": 46,
+      "flagged_per_sec": 1
+    },
+    {
+      "t": 89,
+      "events_per_sec": 58,
+      "flagged_per_sec": 2
+    }
+  ]
+}

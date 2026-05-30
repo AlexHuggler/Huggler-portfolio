@@ -56,6 +56,11 @@ checkpoints/
 metastore_db/
 derby.log
 
+# ...but keep the portfolio site's committed sample + visualization datasets,
+# which live under portfolio-site/src/data/ (the `data/` rule above matches it).
+!portfolio-site/src/data/
+!portfolio-site/src/data/**
+
 # Airflow
 airflow.db
 logs/

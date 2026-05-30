@@ -157,7 +157,7 @@ const stack = [
           <GitHubBadge href={project.data.repoUrl} label="View repository" />
           <a
             class="btn"
-            href={`${project.data.repoUrl}/blob/main/docs/architecture.md`}
+            href={`${project.data.repoUrl.replace("/tree/main/", "/blob/main/")}/docs/architecture.md`}
             target="_blank"
             rel="noopener noreferrer"
           >
