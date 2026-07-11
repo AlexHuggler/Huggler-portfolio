@@ -1,0 +1,169 @@
+<!doctype html>
+<!--
+  OG image source. Rendered to public/og-image.png (1200x630) by
+  generate-og.mjs. Mirrors the site's design tokens and hero pipeline motif.
+-->
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --bg: #0a0a0c;
+        --surface: #111114;
+        --border: #232329;
+        --border-strong: #2e2e36;
+        --fg: #ededf0;
+        --muted: #a1a1aa;
+        --accent: #3b82f6;
+        --accent-2: #22d3ee;
+        --warn: #fbbf24;
+      }
+      * { margin: 0; box-sizing: border-box; }
+      body {
+        width: 1200px;
+        height: 630px;
+        background: var(--bg);
+        color: var(--fg);
+        font-family: "Inter Variable", "Inter", system-ui, sans-serif;
+        overflow: hidden;
+        position: relative;
+      }
+      .grid-bg {
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(to right, rgba(237, 237, 240, 0.045) 1px, transparent 1px),
+          linear-gradient(to bottom, rgba(237, 237, 240, 0.045) 1px, transparent 1px);
+        background-size: 56px 56px;
+        mask-image: radial-gradient(ellipse at 30% 30%, black 30%, transparent 75%);
+        -webkit-mask-image: radial-gradient(ellipse at 30% 30%, black 30%, transparent 75%);
+      }
+      .glow {
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(700px circle at 78% 30%, rgba(59, 130, 246, 0.16), transparent 45%);
+      }
+      .content {
+        position: relative;
+        padding: 84px 90px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+      }
+      .kicker {
+        font-family: "JetBrains Mono Variable", "JetBrains Mono", monospace;
+        font-size: 21px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--muted);
+      }
+      h1 {
+        margin-top: 22px;
+        font-family: "Space Grotesk Variable", "Space Grotesk", "Inter", sans-serif;
+        font-size: 96px;
+        font-weight: 650;
+        letter-spacing: -0.02em;
+        line-height: 1.02;
+      }
+      .value {
+        margin-top: 26px;
+        max-width: 720px;
+        font-size: 30px;
+        line-height: 1.45;
+        color: var(--muted);
+      }
+      .footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .url {
+        font-family: "JetBrains Mono Variable", "JetBrains Mono", monospace;
+        font-size: 24px;
+        color: var(--accent-2);
+      }
+      .rule {
+        position: absolute;
+        left: 90px;
+        right: 90px;
+        bottom: 176px;
+        height: 2px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2), transparent 85%);
+        border-radius: 1px;
+        opacity: 0.8;
+      }
+      svg.pipeline {
+        position: absolute;
+        right: 64px;
+        top: 96px;
+        width: 340px;
+        opacity: 0.95;
+      }
+      .hp-node { fill: rgba(17, 17, 20, 0.85); stroke: var(--border-strong); }
+      .hp-label { font-family: "JetBrains Mono", monospace; font-size: 11px; fill: var(--muted); }
+      .hp-bronze { fill: rgba(251, 191, 36, 0.14); stroke: rgba(251, 191, 36, 0.4); }
+      .hp-silver { fill: rgba(161, 161, 170, 0.14); stroke: rgba(161, 161, 170, 0.4); }
+      .hp-gold { fill: rgba(251, 191, 36, 0.26); stroke: rgba(251, 191, 36, 0.6); }
+      .hp-layer-label { font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.6px; }
+    </style>
+    <link rel="stylesheet" href="../node_modules/@fontsource-variable/inter/index.css" />
+    <link rel="stylesheet" href="../node_modules/@fontsource-variable/space-grotesk/index.css" />
+    <link rel="stylesheet" href="../node_modules/@fontsource-variable/jetbrains-mono/index.css" />
+  </head>
+  <body>
+    <div class="grid-bg"></div>
+    <div class="glow"></div>
+    <svg class="pipeline" viewBox="0 0 520 340" aria-hidden="true">
+      <defs>
+        <linearGradient id="edge" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="rgba(59,130,246,0.15)" />
+          <stop offset="50%" stop-color="rgba(59,130,246,0.6)" />
+          <stop offset="100%" stop-color="rgba(34,211,238,0.4)" />
+        </linearGradient>
+        <linearGradient id="spark" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#3b82f6" />
+          <stop offset="100%" stop-color="#22d3ee" />
+        </linearGradient>
+      </defs>
+      <path d="M 96 84 C 130 84, 138 74, 168 74" fill="none" stroke="url(#edge)" stroke-width="2" />
+      <path d="M 300 74 C 336 74, 340 52, 372 48" fill="none" stroke="url(#edge)" stroke-width="2" />
+      <path d="M 428 138 C 428 176, 400 190, 368 212" fill="none" stroke="url(#edge)" stroke-width="2" />
+      <circle cx="130" cy="80" r="4" fill="#3b82f6" />
+      <circle cx="340" cy="62" r="4" fill="#3b82f6" />
+      <circle cx="416" cy="180" r="4" fill="#22d3ee" />
+      <rect x="14" y="56" width="82" height="56" rx="10" class="hp-node" stroke-width="1.2" />
+      <text x="30" y="90" class="hp-label">events</text>
+      <rect x="168" y="40" width="132" height="68" rx="10" class="hp-node" stroke-width="1.2" />
+      <text x="184" y="70" class="hp-label" fill="#ededf0">stream compute</text>
+      <text x="184" y="90" class="hp-label" font-size="9">exactly-once</text>
+      <rect x="372" y="30" width="112" height="26" rx="6" class="hp-bronze" />
+      <text x="384" y="47" class="hp-layer-label" fill="rgba(251,191,36,0.9)">BRONZE</text>
+      <rect x="372" y="66" width="112" height="26" rx="6" class="hp-silver" />
+      <text x="384" y="83" class="hp-layer-label" fill="#a1a1aa">SILVER</text>
+      <rect x="372" y="102" width="112" height="26" rx="6" class="hp-gold" />
+      <text x="384" y="119" class="hp-layer-label" fill="#fbbf24">GOLD</text>
+      <rect x="212" y="212" width="156" height="104" rx="10" class="hp-node" stroke-width="1.2" />
+      <text x="228" y="240" class="hp-label" fill="#ededf0">analytics</text>
+      <rect x="228" y="284" width="10" height="18" rx="2" fill="rgba(59,130,246,0.6)" />
+      <rect x="243" y="276" width="10" height="26" rx="2" fill="rgba(59,130,246,0.75)" />
+      <rect x="258" y="290" width="10" height="12" rx="2" fill="rgba(59,130,246,0.5)" />
+      <path d="M 284 296 L 296 284 L 306 290 L 318 268 L 330 276 L 344 252" fill="none" stroke="url(#spark)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+      <circle cx="344" cy="252" r="4" fill="#22d3ee" />
+    </svg>
+    <div class="content">
+      <div>
+        <p class="kicker">Senior Data Engineer · Analytics Engineering</p>
+        <h1>Alex Huggler</h1>
+        <p class="value">
+          Production-grade data platforms: streaming pipelines, lakehouse
+          architecture, and analytics that hold up in review.
+        </p>
+      </div>
+      <div class="rule"></div>
+      <div class="footer">
+        <p class="url">www.alexhuggler.com</p>
+      </div>
+    </div>
+  </body>
+</html>

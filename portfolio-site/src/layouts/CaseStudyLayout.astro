@@ -1,0 +1,158 @@
+---
+/**
+ * CaseStudyLayout — shared chrome for the three interactive project pages.
+ * Owns the hero band (breadcrumb, eyebrow, title, tagline, CTAs), the
+ * measured-metrics band, the long-form engineering narrative (rendered from
+ * the project's MDX body), the stack section, and the next-project pager.
+ * Pages provide the interactive demo sections through the default slot and
+ * an optional hero visual through the "hero-visual" slot.
+ */
+import BaseLayout from "./BaseLayout.astro";
+import GitHubBadge from "../components/shared/GitHubBadge.astro";
+import SectionHeader from "../components/shared/SectionHeader.astro";
+import Stat from "../components/Stat.astro";
+import { getCollection, render } from "astro:content";
+import { measured, projectMetrics } from "../data/measured";
+
+interface HeroLink {
+  href: string;
+  label: string;
+}
+
+interface Props {
+  slug: string;
+  eyebrow: string;
+  heroDescription: string;
+  heroLinks?: HeroLink[];
+  stack: { label: string; rationale: string }[];
+}
+
+const { slug, eyebrow, heroDescription, heroLinks = [], stack } = Astro.props;
+
+const all = (await getCollection("projects")).sort(
+  (a, b) => a.data.order - b.data.order,
+);
+const index = all.findIndex((p) => p.slug === slug);
+const project = all[index];
+if (!project) throw new Error(`Unknown project slug: ${slug}`);
+const next = all[(index + 1) % all.length];
+const { Content } = await render(project);
+
+const metrics = projectMetrics(slug);
+const archDocUrl = `${project.data.repoUrl.replace("/tree/main/", "/blob/main/")}/docs/architecture.md`;
+---
+
+<BaseLayout title={project.data.title} description={project.data.tagline}>
+  <article>
+    <!-- Hero band -->
+    <section class="relative">
+      <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+      <div class="relative mx-auto max-w-page px-6 pt-12 pb-10 md:pt-16">
+        <nav aria-label="Breadcrumb" class="font-mono text-xs text-muted">
+          <a href="/projects" class="hover:text-fg rounded-sm">Projects</a>
+          <span aria-hidden="true"> / </span>
+          <span aria-current="page" class="text-fg/80">{project.data.title}</span>
+        </nav>
+        <p class="mt-6 demo-eyebrow">{eyebrow}</p>
+        <h1 class="mt-2 demo-headline">{project.data.title}</h1>
+        <p class="demo-tagline">{heroDescription}</p>
+        <div class="mt-6 flex flex-wrap gap-3">
+          <GitHubBadge href={project.data.repoUrl} />
+          {heroLinks.map((link) => (
+            <a class="btn" href={link.href}>{link.label}</a>
+          ))}
+        </div>
+
+        {metrics.length > 0 && (
+          <div class="mt-8">
+            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              {metrics.map((m) => (
+                <Stat value={m.value} label={m.label} sublabel={m.sublabel} />
+              ))}
+            </div>
+            <p class="mt-2 font-mono text-[11px] text-muted">
+              Measured {measured.measuredAt} on the local demo path (synthetic
+              data, seed 42) — reproduce via the repo's Results section.
+            </p>
+          </div>
+        )}
+
+        <slot name="hero-visual" />
+      </div>
+    </section>
+
+    <!-- Interactive sections from the page -->
+    <slot />
+
+    <!-- Engineering narrative from the MDX body -->
+    <section class="demo-section" id="narrative">
+      <SectionHeader
+        eyebrow="Engineering narrative"
+        title="Problem, judgment calls, and measured results"
+        description="The write-up a senior reviewer would ask for — why this architecture, what was traded away, and what the numbers actually say."
+      />
+      <div
+        class="prose dark:prose-invert max-w-none text-fg
+          prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-tight
+          prose-h2:text-xl prose-h2:mt-10
+          prose-p:text-muted prose-p:leading-relaxed
+          prose-li:text-muted
+          prose-strong:text-fg
+          prose-a:text-accent-fg
+          prose-code:font-mono prose-code:text-[0.85em]"
+      >
+        <Content />
+      </div>
+    </section>
+
+    <!-- Stack -->
+    <section class="demo-section">
+      <SectionHeader eyebrow="Stack" title="What this project uses, and why" />
+      <ul class="flex flex-wrap gap-2">
+        {stack.map((s) => (
+          <li>
+            <span class="pill" title={s.rationale} aria-label={`${s.label}: ${s.rationale}`}>
+              {s.label}
+            </span>
+          </li>
+        ))}
+      </ul>
+    </section>
+
+    <!-- Footer CTA + next-project pager -->
+    <section class="demo-section">
+      <div class="demo-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h3 class="text-lg font-semibold tracking-tight">See the full code</h3>
+          <p class="mt-1 text-sm text-muted">
+            The repo runs locally with no cloud account — architecture doc,
+            tests, and reproducible measurements included.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <GitHubBadge href={project.data.repoUrl} label="View repository" />
+          <a class="btn" href={archDocUrl} target="_blank" rel="noopener noreferrer">
+            Architecture doc
+          </a>
+        </div>
+      </div>
+      <div class="mt-6 flex items-center justify-between">
+        <a
+          href="/projects"
+          class="text-sm text-muted hover:text-fg rounded-sm"
+        >
+          <span aria-hidden="true">←</span> All projects
+        </a>
+        <a
+          href={`/projects/${next.slug}`}
+          class="group inline-flex items-center gap-2 text-sm text-muted hover:text-fg rounded-sm"
+        >
+          <span>
+            Next: <span class="text-fg/90 group-hover:text-fg">{next.data.title}</span>
+          </span>
+          <span aria-hidden="true">→</span>
+        </a>
+      </div>
+    </section>
+  </article>
+</BaseLayout>

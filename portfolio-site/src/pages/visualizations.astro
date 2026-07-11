@@ -27,7 +27,7 @@ const sections = [
     eyebrow: "Dashboard 03 · Query optimization benchmark",
     title: "AI-Assisted SQL Optimizer",
     description:
-      "Cost-reduction and analyzer-finding benchmarks across the 50-query optimization corpus.",
+      "Cost-reduction and analyzer-finding benchmarks over a simulated 50-query optimization workload.",
     repo: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer",
   },
 ];
@@ -81,7 +81,7 @@ const sections = [
           />
           <div class="mb-4">
             <a
-              class="text-sm text-accent hover:underline"
+              class="text-sm text-accent-fg hover:underline"
               href={s.repo}
               target="_blank"
               rel="noopener noreferrer"
@@ -89,12 +89,21 @@ const sections = [
               View the project repository ↗
             </a>
           </div>
-          {s.id === "telecom" && <TelecomDashboard client:only="react" />}
-          {s.id === "fraud" && <FraudDashboard client:only="react" />}
-          {s.id === "sqlopt" && <SqlOptDashboard client:only="react" />}
+          <div class="viz-shell">
+            {s.id === "telecom" && <TelecomDashboard client:only="react" />}
+            {s.id === "fraud" && <FraudDashboard client:only="react" />}
+            {s.id === "sqlopt" && <SqlOptDashboard client:only="react" />}
+          </div>
           <div class="demo-divider mt-12" />
         </section>
       ))
     }
   </article>
 </BaseLayout>
+
+<style>
+  /* Reserve dashboard height so client:only hydration causes no layout shift. */
+  .viz-shell {
+    min-height: 640px;
+  }
+</style>

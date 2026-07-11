@@ -2,59 +2,15 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import StackPill from "../components/StackPill.astro";
 import FeaturedProjectCard from "../components/FeaturedProjectCard.astro";
+import HeroPipeline from "../components/hero/HeroPipeline.astro";
+import Headshot from "../components/Headshot.astro";
+import Stat from "../components/Stat.astro";
 import { getCollection } from "astro:content";
 import { siteConfig } from "../site.config";
+import { measured, projectMetrics } from "../data/measured";
 
 const projects = (await getCollection("projects"))
   .sort((a, b) => a.data.order - b.data.order);
-
-/**
- * Project-level framing for the homepage cards. Kept here (not in the
- * MDX frontmatter) because these copy points are specifically tuned for
- * the homepage's skim-first reading order — the dedicated project pages
- * carry their own longer-form architecture write-ups.
- */
-const featuredFraming: Record<
-  string,
-  { problem: string; technical: string; demonstrates: string[] }
-> = {
-  "fraud-signals": {
-    problem:
-      "Simulates fraud-event detection across streaming telecom-style data, with rules + statistical anomalies surfaced in seconds.",
-    technical:
-      "Kafka → Spark Structured Streaming → Delta → dbt → Streamlit, with watermarked windows, exactly-once writes, and dbt tests on the marts.",
-    demonstrates: [
-      "Streaming ingestion + watermarks",
-      "Data quality / dbt tests",
-      "Fraud analytics architecture",
-      "Production-style local dev",
-    ],
-  },
-  "telecom-lakehouse": {
-    problem:
-      "Builds a single source of truth for revenue, ARPU, and churn signals over high-volume Call Detail Record data.",
-    technical:
-      "Airflow → MinIO/S3 → Iceberg Bronze/Silver/Gold → Great Expectations contracts → dbt marts, with Terraform for the AWS variant.",
-    demonstrates: [
-      "Medallion lakehouse design",
-      "Data contracts at the boundary",
-      "dbt modeling for BI",
-      "Orchestration + IaC",
-    ],
-  },
-  "ai-sql-optimizer": {
-    problem:
-      "Closes the gap between “a query that runs” and “a query a senior would ship” for Spark SQL and Snowflake workloads.",
-    technical:
-      "sqlglot AST + heuristic findings feed a structured Claude prompt; optional EXPLAIN runner scores rewrites against a 50-query corpus.",
-    demonstrates: [
-      "Applied LLM tooling",
-      "SQL parsing + heuristics",
-      "Benchmark methodology",
-      "Engineer-in-the-loop UX",
-    ],
-  },
-};
 
 const focus = [
   "Streaming + lakehouse architectures",
@@ -63,19 +19,23 @@ const focus = [
   "Applied AI for data engineering productivity",
 ];
 
-const stack = [
-  "PySpark",
-  "Databricks",
-  "Azure Data Factory",
-  "Delta Lake",
-  "Apache Iceberg",
-  "Snowflake",
-  "dbt",
-  "Apache Airflow",
-  "Apache Kafka",
-  "Python",
-  "SQL",
-  "Terraform",
+const stackGroups = [
+  {
+    label: "Streaming & processing",
+    items: ["Apache Kafka", "PySpark", "Delta Lake"],
+  },
+  {
+    label: "Lakehouse & warehousing",
+    items: ["Apache Iceberg", "Databricks", "Snowflake"],
+  },
+  {
+    label: "Orchestration & modeling",
+    items: ["Apache Airflow", "Azure Data Factory", "dbt"],
+  },
+  {
+    label: "Languages & IaC",
+    items: ["Python", "SQL", "Terraform"],
+  },
 ];
 
 const jsonLd = {
@@ -109,43 +69,61 @@ const jsonLd = {
   <section id="hero" class="relative">
     <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
     <div class="hero-glow" aria-hidden="true"></div>
-    <span class="hero-node" style="top: 22%; left: 12%; animation-delay: 0s;" aria-hidden="true"></span>
-    <span class="hero-node" style="top: 68%; left: 28%; animation-delay: 1.6s;" aria-hidden="true"></span>
-    <span class="hero-node" style="top: 38%; right: 14%; animation-delay: 3.0s;" aria-hidden="true"></span>
-    <span class="hero-node" style="top: 80%; right: 22%; animation-delay: 4.4s;" aria-hidden="true"></span>
-    <div class="relative mx-auto max-w-page px-6 pt-16 pb-16 md:pt-24 md:pb-20">
-      <p class="font-mono text-xs uppercase tracking-widest text-muted">
-        {siteConfig.tagline}
-      </p>
-      <h1 class="mt-4 text-4xl md:text-6xl font-semibold tracking-tight max-w-prose">
-        {siteConfig.name}
-      </h1>
-      <p class="mt-5 max-w-prose text-lg text-muted leading-relaxed">
-        {siteConfig.valueProp}
-      </p>
-      <div class="mt-8 flex flex-wrap gap-3">
-        <a class="btn btn-primary" href="/projects">View projects</a>
-        <a class="btn" href={siteConfig.resumePath}>Download resume</a>
-        <a class="btn" href="/contact">Contact me</a>
-        <a
-          class="btn"
-          href={siteConfig.github}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Alex's GitHub profile (opens in new tab)"
-        >
-          GitHub
-        </a>
-        <a
-          class="btn"
-          href={siteConfig.linkedin}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Alex's LinkedIn profile (opens in new tab)"
-        >
-          LinkedIn
-        </a>
+    <div
+      class="relative mx-auto grid max-w-page items-center gap-10 px-6 pt-16 pb-12 md:pt-20 md:pb-16 lg:grid-cols-[1.1fr_minmax(0,480px)] lg:gap-14"
+    >
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest text-muted">
+          {siteConfig.tagline}
+        </p>
+        <h1 class="mt-4 text-4xl md:text-6xl font-semibold tracking-tight max-w-prose">
+          {siteConfig.name}
+        </h1>
+        <p class="mt-5 max-w-prose text-lg text-muted leading-relaxed">
+          {siteConfig.valueProp}
+        </p>
+        <div class="mt-8 flex flex-wrap items-center gap-3">
+          <a class="btn btn-primary" href="/projects">View projects</a>
+          <a class="btn" href={siteConfig.resumePath}>Download resume</a>
+          <a class="btn" href="/contact">Contact me</a>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
+          <a
+            href={siteConfig.github}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-muted hover:text-fg rounded-sm"
+            aria-label="Alex's GitHub profile (opens in new tab)"
+          >
+            GitHub <span aria-hidden="true">↗</span>
+          </a>
+          <a
+            href={siteConfig.linkedin}
+            target="_blank"
+            rel="noopener noreferrer"
+            class="text-muted hover:text-fg rounded-sm"
+            aria-label="Alex's LinkedIn profile (opens in new tab)"
+          >
+            LinkedIn <span aria-hidden="true">↗</span>
+          </a>
+        </div>
       </div>
+      <div class="hidden md:block">
+        <HeroPipeline />
+      </div>
+    </div>
+
+    <!-- Measured metrics band -->
+    <div class="relative mx-auto max-w-page px-6 pb-16 md:pb-20">
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {measured.site.map((m) => (
+          <Stat value={m.value} label={m.label} sublabel={m.sublabel} />
+        ))}
+      </div>
+      <p class="mt-3 font-mono text-[11px] text-muted">
+        Measured on each project's local demo path, synthetic data, seed 42 —
+        methodology in every repo's Results section.
+      </p>
     </div>
   </section>
 
@@ -176,28 +154,25 @@ const jsonLd = {
       </a>
     </div>
     <div class="grid gap-5 md:grid-cols-3">
-      {projects.map((p, i) => {
-        const framing = featuredFraming[p.slug];
-        if (!framing) return null;
-        return (
-          <FeaturedProjectCard
-            slug={p.slug}
-            index={i + 1}
-            title={p.data.title}
-            problem={framing.problem}
-            technical={framing.technical}
-            demonstrates={framing.demonstrates}
-            stack={p.data.stack}
-            repoUrl={p.data.repoUrl}
-          />
-        );
-      })}
+      {projects.map((p, i) => (
+        <FeaturedProjectCard
+          slug={p.slug}
+          index={i + 1}
+          title={p.data.title}
+          problem={p.data.problem}
+          approach={p.data.approach}
+          demonstrates={p.data.demonstrates}
+          stack={p.data.stack}
+          repoUrl={p.data.repoUrl}
+          metric={projectMetrics(p.slug)[0]}
+        />
+      ))}
     </div>
     <p class="mt-6 text-sm text-muted">
       Prefer charts to code?
       <a
         href="/visualizations"
-        class="text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+        class="text-accent-fg underline decoration-accent/40 underline-offset-2 hover:decoration-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
       >
         Explore the interactive data visualizations
         <span aria-hidden="true">→</span>
@@ -211,44 +186,44 @@ const jsonLd = {
     class="mx-auto max-w-prose px-6 pb-20"
     aria-labelledby="about-heading"
   >
-    <p class="font-mono text-xs uppercase tracking-widest text-muted">About</p>
-    <h2
-      id="about-heading"
-      class="mt-2 text-xl md:text-2xl font-semibold tracking-tight"
-    >
-      Senior data &amp; analytics engineer
-    </h2>
-    <div class="mt-4 space-y-4 text-muted leading-relaxed">
-      <p>
-        I'm a senior data and analytics engineer with six years at AT&amp;T
-        building production data platforms on Azure and Databricks. My work
-        spans PySpark ingestion, dbt analytics models, BI delivery, streaming
-        systems, and data quality. I specialize in turning ambiguous fraud,
-        revenue, and operational problems into reliable pipelines and
-        decision-ready analytics.
-      </p>
-      <p>
-        Recent impact includes identifying or enabling
-        <span class="text-fg">$900K+/yr</span> in fraud-loss reduction and
-        supporting analytics for a
-        <span class="text-fg">$2.2B</span> portfolio of revenue and operational
-        data — work that spans streaming detection, lakehouse design, and BI
-        delivery on AT&amp;T's data platform.
-      </p>
-      <p>
-        I treat tests, observability, runbooks, and data contracts as part of
-        the deliverable, not as follow-ups. The projects above demonstrate that
-        approach end-to-end: streaming pipelines with watermarks and
-        exactly-once semantics, lakehouses with data quality at the boundary,
-        and AI tooling with corpus-tested behavior.
-      </p>
+    <div class="flex flex-col-reverse items-start gap-8 sm:flex-row sm:justify-between">
+      <div class="min-w-0">
+        <p class="font-mono text-xs uppercase tracking-widest text-muted">About</p>
+        <h2
+          id="about-heading"
+          class="mt-2 text-xl md:text-2xl font-semibold tracking-tight"
+        >
+          Senior data &amp; analytics engineer
+        </h2>
+        <div class="mt-4 space-y-4 text-muted leading-relaxed">
+          <p>
+            I'm a senior data and analytics engineer with six years at AT&amp;T
+            building production data platforms on Azure and Databricks — PySpark
+            ingestion, dbt analytics models, BI delivery, streaming systems, and
+            data quality. I treat tests, observability, runbooks, and data
+            contracts as part of the deliverable, not as follow-ups.
+          </p>
+          <p>
+            Recent impact includes identifying or enabling
+            <span class="text-fg">$900K+/yr</span> in fraud-loss reduction and
+            supporting analytics for a
+            <span class="text-fg">$2.2B</span> portfolio of revenue and
+            operational data — work that spans streaming detection, lakehouse
+            design, and BI delivery on AT&amp;T's data platform.
+          </p>
+        </div>
+        <p class="mt-4 font-mono text-xs text-muted">
+          {siteConfig.location} · open to senior data / analytics engineering roles
+        </p>
+      </div>
+      <Headshot size={144} class="shrink-0" />
     </div>
     <div class="mt-5 flex flex-wrap items-center gap-2">
       <span class="font-mono text-[11px] uppercase tracking-widest text-muted">
         Certified
       </span>
-      <span class="pill"><span class="text-accent">DP-203</span>&nbsp;Azure Data Engineering</span>
-      <span class="pill"><span class="text-accent">DP-100</span>&nbsp;Azure AI Engineering</span>
+      <span class="pill"><span class="text-accent-fg">DP-203</span>&nbsp;Azure Data Engineering</span>
+      <span class="pill"><span class="text-accent-fg">DP-100</span>&nbsp;Azure AI Engineering</span>
     </div>
 
     <h3 class="mt-10 text-sm font-mono uppercase tracking-widest text-muted">
@@ -263,9 +238,20 @@ const jsonLd = {
     <h3 class="mt-10 text-sm font-mono uppercase tracking-widest text-muted">
       Stack
     </h3>
-    <ul class="mt-3 flex flex-wrap gap-1.5">
-      {stack.map((s) => <li><StackPill label={s} /></li>)}
-    </ul>
+    <div class="mt-3 space-y-4">
+      {stackGroups.map((group) => (
+        <div>
+          <p class="font-mono text-[11px] text-muted">{group.label}</p>
+          <ul class="mt-1.5 flex flex-wrap gap-1.5">
+            {group.items.map((s) => (
+              <li>
+                <StackPill label={s} />
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
   </section>
 
   <!-- Contact CTA -->

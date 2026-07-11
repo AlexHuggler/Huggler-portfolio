@@ -1,28 +1,21 @@
 /*
  * Shared visual primitives for interactive project demos.
  * Loaded by every project page; uses Tailwind layers to stay composable.
+ * All colors come from the design tokens in global.css, so every class
+ * here flips between light and dark automatically.
  */
 
 @layer components {
   .demo-card {
-    @apply rounded-lg border border-border bg-bg/40 p-5;
-  }
-  html:not(.dark) .demo-card {
-    @apply border-border-light bg-white;
+    @apply rounded-lg border border-border bg-surface p-5;
   }
 
   .demo-surface {
-    @apply rounded-lg border border-border bg-bg/30 p-4;
-  }
-  html:not(.dark) .demo-surface {
-    @apply border-border-light bg-white;
+    @apply rounded-lg border border-border bg-surface-2 p-4;
   }
 
   .demo-tag {
     @apply inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-mono text-muted;
-  }
-  html:not(.dark) .demo-tag {
-    @apply border-border-light text-muted-light;
   }
 
   .demo-section {
@@ -30,7 +23,7 @@
   }
 
   .demo-headline {
-    @apply text-3xl md:text-5xl font-semibold tracking-tight;
+    @apply font-display text-3xl md:text-5xl font-semibold tracking-tight;
   }
 
   .demo-tagline {
@@ -43,27 +36,39 @@
 
   .demo-grid-bg {
     background-image:
-      linear-gradient(to right, rgba(37, 99, 235, 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(37, 99, 235, 0.06) 1px, transparent 1px);
+      linear-gradient(to right, rgb(var(--color-accent) / 0.06) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(var(--color-accent) / 0.06) 1px, transparent 1px);
     background-size: 32px 32px;
   }
 
   .demo-divider {
     @apply h-px w-full bg-border;
   }
-  html:not(.dark) .demo-divider {
-    @apply bg-border-light;
+
+  /*
+   * Provenance chip for synthetic/demo data. Reads as a deliberate part of
+   * the dashboard chrome rather than an apology. Pair with a title attr
+   * carrying the fuller disclaimer.
+   */
+  .data-chip {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-muted;
+  }
+  .data-chip::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 9999px;
+    background: rgb(var(--color-accent-2));
+    animation: data-chip-pulse 2.4s ease-in-out infinite;
   }
 
-  .placeholder-banner {
-    @apply rounded-md border border-dashed border-accent/40 bg-accent/5 px-3 py-2 text-xs text-muted;
+  @keyframes data-chip-pulse {
+    0%, 100% { opacity: 0.5; }
+    50%      { opacity: 1; }
   }
 
   .code-block {
-    @apply rounded-md border border-border bg-bg/60 p-3 font-mono text-[12px] leading-snug overflow-x-auto;
-  }
-  html:not(.dark) .code-block {
-    @apply border-border-light bg-zinc-50 text-fg-light;
+    @apply rounded-md border border-border bg-surface-2 p-3 font-mono text-[12px] leading-snug overflow-x-auto;
   }
 
   .demo-fade-in {
@@ -89,7 +94,8 @@
    */
   @media (prefers-reduced-motion: reduce) {
     .demo-fade-in,
-    .demo-dot-pulse {
+    .demo-dot-pulse,
+    .data-chip::before {
       animation: none !important;
     }
     .demo-fade-in { opacity: 1; transform: none; }

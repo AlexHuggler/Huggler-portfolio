@@ -3,7 +3,7 @@
 with per_caller as (
     select
         caller_msisdn,
-        max(start_time) as last_event,
+        max(ingest_date) as last_active_date,
         sum(voice_events + sms_events + data_events) as events_30d,
         sum(roaming_events) as roaming_events
     from {{ ref('sl_account_daily') }}
@@ -11,7 +11,7 @@ with per_caller as (
 )
 select
     caller_msisdn,
-    last_event,
+    last_active_date,
     events_30d,
     roaming_events,
     case

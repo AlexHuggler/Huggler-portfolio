@@ -1,10 +1,16 @@
 # AI-Assisted SQL Optimizer
 
+[![CI](https://img.shields.io/github/actions/workflow/status/AlexHuggler/Huggler-portfolio/ci-ai-sql-optimizer.yml?branch=main&label=CI)](https://github.com/AlexHuggler/Huggler-portfolio/actions/workflows/ci-ai-sql-optimizer.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-22c55e)
+![Ruff](https://img.shields.io/badge/linting-ruff-261230)
+![uv](https://img.shields.io/badge/deps-uv-6340ac)
+
 A small CLI that uses Claude (via the Anthropic SDK) to suggest Spark SQL and
 Snowflake query rewrites - partition pruning, broadcast joins, CTE
-flattening, and friends. The tool is benchmarked against a 50-query corpus
-with explicit ground truth, and runs in a heuristic-only `--dry-run` mode
-when no API key is configured.
+flattening, and friends. The tool is benchmarked against a seeded
+5-category corpus with explicit ground truth per query (designed to grow),
+and runs in a heuristic-only `--dry-run` mode when no API key is configured.
 
 ## Problem
 
@@ -39,7 +45,9 @@ sequenceDiagram
 ```
 
 Without `ANTHROPIC_API_KEY`, the CLI prints the heuristic findings only
-and skips the API call.
+and skips the API call:
+
+![sql-optimizer analyze --dry-run: color-coded analyzer findings table](docs/img/analyze-demo.png)
 
 ## Setup
 
@@ -66,10 +74,11 @@ sql-optimizer benchmark [--dry-run] [--limit 50]
 
 ## Methodology
 
-Fifty queries across five categories: join_optimization,
-aggregation_rewrite, cte_flattening, partition_pruning, broadcast_join.
-Five are fully written; the rest are placeholders the maintainer fills
-in over time.
+Five categories, one fully specified query per category:
+join_optimization, aggregation_rewrite, cte_flattening,
+partition_pruning, broadcast_join. Every query has an explicit
+ground-truth entry, and the corpus is designed to grow - adding a query
+is one `.sql` file plus one ground-truth entry.
 
 Each ground-truth entry lists expected keywords (substrings the
 suggestion should mention) and expected cost direction. The benchmark
@@ -80,15 +89,31 @@ the limitations of these proxies.
 
 ## Results
 
-Numbers below are placeholders - run `make benchmark` (with or without
-the API) and fill them in.
+Measured with `make benchmark` in heuristic-only `--dry-run` mode (no
+API key), seeded 5-category corpus, Linux container, 2026-07. Reproduce
+with one command.
 
-| Metric | Value |
+| Metric | Measured |
 | --- | --- |
-| % suggestions accepted by human reviewer | [TODO: pct on sampled 10%] |
-| Avg cost reduction (when EXPLAIN cost available) | [TODO: pct] |
-| Human-rated quality (5-point Likert) | [TODO: avg] |
-| Heuristic-only keyword overlap | [TODO: avg across corpus] |
+| Avg keyword overlap vs ground truth (heuristics only) | 0.67 across 5 queries |
+| Findings hit rate (>= 1 correct finding per query) | 4 of 5 queries (0.80) |
+| Benchmark wall clock | 0.34 s for the corpus (~68 ms per query) |
+| Unit tests | 18 passed |
+
+![sql-optimizer benchmark --dry-run: per-category keyword overlap and findings hit rate](docs/img/benchmark.png)
+
+The cte_flattening query scores 0.00 on keyword overlap in dry-run mode:
+its rewrite vocabulary ("single scan", "CASE") only appears once Claude
+proposes the rewrite - the heuristics alone flag the multi-scan pattern
+but do not name the fix. That gap is exactly what the LLM adds.
+
+### Planned evaluation (needs an engine and/or reviewers - not run here)
+
+| Metric | Status |
+| --- | --- |
+| % suggestions accepted by human reviewer | not measured (needs sampled human review) |
+| Avg cost reduction via EXPLAIN | not measured (needs a live Spark/Snowflake engine) |
+| Human-rated quality (5-point Likert) | not measured |
 
 ## Limitations
 

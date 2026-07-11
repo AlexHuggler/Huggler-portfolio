@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://REPLACE_WITH_YOUR_DOMAIN.com/sitemap-index.xml
+Sitemap: https://www.alexhuggler.com/sitemap-index.xml

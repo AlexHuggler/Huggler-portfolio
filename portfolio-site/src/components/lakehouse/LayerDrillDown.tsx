@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
@@ -439,8 +440,11 @@ export default function LayerDrillDown({
               >
                 {meta.label}
               </h3>
-              <span className="placeholder-banner inline-block">
-                {meta.rowCount} (illustrative)
+              <span
+                className="data-chip"
+                title="Row count is illustrative for the demo; the measured demo path processes 49,998 rows."
+              >
+                {meta.rowCount} · synthetic
               </span>
             </div>
             <p className="text-sm text-muted mb-4">{meta.description}</p>

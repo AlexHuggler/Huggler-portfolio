@@ -22,7 +22,7 @@ const isActive = (href: string) =>
 ---
 
 <header
-  class="border-b border-border sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-bg/70 dark:supports-[backdrop-filter]:bg-bg/70"
+  class="border-b border-border sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-bg/70"
 >
   <nav
     class="mx-auto flex max-w-page flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4"
@@ -30,9 +30,9 @@ const isActive = (href: string) =>
   >
     <a
       href="/"
-      class="font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-      aria-label="Home"
+      class="font-display font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
     >
+      <span class="text-gradient-accent" aria-hidden="true">AH·</span>
       {siteConfig.name}
     </a>
     <ul class="order-3 md:order-2 flex flex-wrap items-center gap-3 md:gap-6 text-xs md:text-sm w-full md:w-auto">
@@ -72,15 +72,31 @@ const isActive = (href: string) =>
 </header>
 
 <style>
-  .nav-link-active::after {
+  .nav-link::after {
     content: "";
     position: absolute;
     left: 0;
     right: 0;
     bottom: -4px;
     height: 1.5px;
-    background: theme("colors.accent");
+    background: linear-gradient(
+      90deg,
+      rgb(var(--color-accent)),
+      rgb(var(--color-accent-2))
+    );
     border-radius: 1px;
     opacity: 0.9;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms ease;
+  }
+  .nav-link:hover::after,
+  .nav-link-active::after {
+    transform: scaleX(1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link::after {
+      transition: none;
+    }
   }
 </style>

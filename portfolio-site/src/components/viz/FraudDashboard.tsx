@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import EChart from "./EChart";
 import KpiCard from "./KpiCard";
 import DataTable from "./DataTable";
@@ -194,9 +195,13 @@ export default function FraudDashboard(): JSX.Element {
   const k = fraud.kpis;
   return (
     <div>
-      <div className="placeholder-banner mb-4">
-        Synthetic, seeded data generated from the fraud-signals event producer
-        (24,000 transactions, ~2% fraud). Numbers are illustrative.
+      <div className="mb-4">
+        <span
+          className="data-chip"
+          title="Synthetic, seeded data generated from the fraud-signals event producer (24,000 transactions, ~2% fraud). Numbers are illustrative."
+        >
+          Synthetic demo data · seed 42
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

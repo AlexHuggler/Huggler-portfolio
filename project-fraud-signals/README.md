@@ -1,5 +1,11 @@
 # Real-Time Fraud Signals Pipeline
 
+[![CI](https://img.shields.io/github/actions/workflow/status/AlexHuggler/Huggler-portfolio/ci-fraud-signals.yml?branch=main&label=CI)](https://github.com/AlexHuggler/Huggler-portfolio/actions/workflows/ci-fraud-signals.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-22c55e)
+![Ruff](https://img.shields.io/badge/linting-ruff-261230)
+![uv](https://img.shields.io/badge/deps-uv-6340ac)
+
 Production-shaped streaming fraud-detection pipeline:
 **Kafka -> Spark Structured Streaming -> Delta -> dbt -> Streamlit**.
 A recruiter can clone, run `make demo`, and see meaningful output in under
@@ -60,6 +66,9 @@ make install
 
 # 2. Run the demo path - generates events + scores anomalies
 make demo
+
+# 3. Score the detectors against the embedded ground-truth labels
+make eval
 ```
 
 For the full streaming experience:
@@ -84,18 +93,41 @@ cp dbt_fraud/profiles.yml.example ~/.dbt/profiles.yml  # edit if needed
 cd dbt_fraud && dbt deps && dbt build
 ```
 
+## Dashboard
+
+The Streamlit ops dashboard reads the Delta table when the streaming
+stack is up, or the local JSONL written by `make demo`:
+
+![Fraud Signals Streamlit dashboard: KPI tiles, events-over-time, anomalies by kind, and top accounts by anomaly score](docs/img/dashboard.png)
+
 ## Results
 
-Numbers below are placeholders - run the pipeline locally or against a
-managed cluster to fill in your own measurements.
+Measured on the no-infra demo path with `make eval` (seed 42, ~16.6k
+labeled events over a simulated 5-minute window across 1,000 accounts,
+5% fraud injection). Reproduce with one command; every event carries a
+ground-truth `label`, and scoring is account-level (a pattern counts as
+caught when any event on a truly-affected account is flagged).
+Measured on a Linux container, single process, 2026-07.
 
-| Metric | Value |
+| Metric | Measured |
 | --- | --- |
-| Throughput sustained | [TODO: events/sec on 4-core local Spark] |
-| End-to-end latency p50 / p95 / p99 | [TODO: ms producer-write to Delta-visible] |
-| Anomaly precision (synthetic ground truth) | [TODO: precision] |
-| Anomaly recall (synthetic ground truth) | [TODO: recall] |
-| Restart-from-checkpoint loss | [TODO: events lost / duplicated across N restarts] |
+| Detector throughput (single process) | ~110k events/sec (16,664 events scored in 0.15 s) |
+| Impossible-travel precision / recall | 1.00 / 1.00 |
+| Amount Z-score precision / recall | 0.97 / 0.58 |
+| Velocity-burst precision / recall | 0.26 / 1.00 |
+| Unit tests | 18 passed, 1 skipped (Spark-only) |
+
+The velocity detector's fixed 5-events-per-60s threshold is deliberately
+recall-first: it never misses a burst but over-flags dense accounts. The
+honest fix is per-account baselining (see "What I would do differently").
+
+### Streaming path (requires `docker compose up`) - not measured here
+
+| Metric | Status |
+| --- | --- |
+| Sustained Spark throughput | not measured on this container (needs Kafka + Spark) |
+| End-to-end latency p50 / p95 / p99 | not measured (needs the full streaming stack) |
+| Restart-from-checkpoint loss | not measured (needs long-running streams) |
 
 ## Tradeoffs
 
@@ -120,6 +152,9 @@ managed cluster to fill in your own measurements.
 
 - Move anomaly detection to a feature store (Feast or a Databricks
   Feature Store) with versioned features and online lookup.
+- Replace the fixed velocity threshold (5 events / 60 s) with a
+  per-account baseline so precision holds up under dense activity - the
+  `make eval` numbers show exactly where the naive rule over-flags.
 - Replace the Z-score on each micro-batch with online algorithms
   (Welford's, t-digest) so per-account memory is bounded.
 - Add a schema registry (Confluent or AWS Glue) so producer/consumer

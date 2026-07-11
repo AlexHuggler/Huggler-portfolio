@@ -1,0 +1,15 @@
+# Streamlit theme matched to the portfolio site's design tokens so the
+# dashboard screenshot in docs/img/ reads as part of the same system.
+[theme]
+base = "dark"
+primaryColor = "#3b82f6"
+backgroundColor = "#0a0a0c"
+secondaryBackgroundColor = "#16161b"
+textColor = "#ededf0"
+font = "sans serif"
+
+[server]
+headless = true
+
+[browser]
+gatherUsageStats = false

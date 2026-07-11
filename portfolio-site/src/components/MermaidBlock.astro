@@ -6,23 +6,57 @@ const { code } = Astro.props;
 const id = `mermaid-${Math.random().toString(36).slice(2, 10)}`;
 ---
 
-<div class="mermaid-wrapper rounded-lg border border-border p-4 overflow-x-auto">
+<div class="mermaid-wrapper rounded-lg border border-border bg-surface p-4 overflow-x-auto">
   <pre class="mermaid" id={id}>{code}</pre>
 </div>
 
 <script>
   import mermaid from "mermaid";
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: document.documentElement.classList.contains("dark") ? "dark" : "default",
-    securityLevel: "loose",
-    themeVariables: {
-      fontFamily: "JetBrains Mono, ui-monospace, monospace",
-      primaryColor: "#1f1f23",
-      primaryTextColor: "#ededed",
-      primaryBorderColor: "#2563eb",
-      lineColor: "#52525b",
-      background: "#0a0a0a",
-    },
+
+  // Read design tokens off <html> so diagrams always match the site theme.
+  const token = (name: string, fallback: string): string => {
+    const raw = getComputedStyle(document.documentElement)
+      .getPropertyValue(name)
+      .trim();
+    if (!raw) return fallback;
+    return /^\d+ \d+ \d+$/.test(raw)
+      ? `rgb(${raw.split(/\s+/).join(", ")})`
+      : raw;
+  };
+
+  const render = async () => {
+    const dark = document.documentElement.classList.contains("dark");
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: dark ? "dark" : "default",
+      securityLevel: "loose",
+      themeVariables: {
+        fontFamily: "JetBrains Mono Variable, ui-monospace, monospace",
+        primaryColor: token("--color-surface-2", dark ? "#16161b" : "#f4f4f5"),
+        primaryTextColor: token("--color-fg", dark ? "#ededf0" : "#111113"),
+        primaryBorderColor: token("--color-accent", "#3b82f6"),
+        lineColor: token("--color-muted", "#a1a1aa"),
+        background: token("--color-surface", dark ? "#111114" : "#ffffff"),
+      },
+    });
+    const blocks = Array.from(
+      document.querySelectorAll<HTMLElement>("pre.mermaid"),
+    );
+    if (blocks.length === 0) return;
+    for (const el of blocks) {
+      // Stash the source on first render so theme changes can re-render.
+      if (!el.dataset.src) el.dataset.src = el.textContent ?? "";
+      el.removeAttribute("data-processed");
+      el.textContent = el.dataset.src;
+    }
+    await mermaid.run({ nodes: blocks });
+  };
+
+  render();
+  document.addEventListener("astro:after-swap", () => {
+    void render();
   });
+  new MutationObserver((mutations) => {
+    if (mutations.some((m) => m.attributeName === "class")) void render();
+  }).observe(document.documentElement, { attributes: true });
 </script>

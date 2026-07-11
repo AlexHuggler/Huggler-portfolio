@@ -10,7 +10,7 @@ with caller_first_seen as (
     group by caller_msisdn, plan_id, market
 )
 select
-    {{ dbt_utils.generate_surrogate_key(['caller_msisdn']) }} as account_key,
+    {{ generate_surrogate_key(['caller_msisdn']) }} as account_key,
     caller_msisdn,
     plan_id,
     market,

@@ -455,8 +455,8 @@ def generate_sqlopt() -> dict:
     return {
         "_meta": _meta(
             "project-ai-sql-optimizer/corpus",
-            "50-query corpus across 5 optimization categories; cost reductions and "
-            "analyzer findings are seeded illustrative values.",
+            "Simulated 50-query optimization workload across 5 categories; cost "
+            "reductions and analyzer findings are seeded illustrative values.",
         ),
         "kpis": {
             "corpus_size": corpus_size,
