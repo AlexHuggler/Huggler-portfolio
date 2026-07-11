@@ -10,12 +10,6 @@ function previewFor(slug: string): string {
   return slug;
 }
 
-const demonstratesBySlug: Record<string, string[]> = {
-  "fraud-signals": ["Streaming ingestion", "Data quality", "Fraud analytics"],
-  "telecom-lakehouse": ["Lakehouse design", "Data contracts", "Medallion architecture"],
-  "ai-sql-optimizer": ["LLM tooling", "SQL parsing", "Benchmark methodology"],
-};
-
 const pipelineNodes = [
   { x: 32,  label: "Kafka" },
   { x: 96,  label: "Spark" },
@@ -53,7 +47,7 @@ const pipelineNodes = [
           tagline={p.data.tagline}
           stack={p.data.stack}
           repoUrl={p.data.repoUrl}
-          demonstrates={demonstratesBySlug[p.slug]}
+          demonstrates={p.data.demonstrates.slice(0, 3)}
         >
           {previewFor(p.slug) === "fraud-signals" && (
             <svg

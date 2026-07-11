@@ -8,54 +8,6 @@ import { siteConfig } from "../site.config";
 const projects = (await getCollection("projects"))
   .sort((a, b) => a.data.order - b.data.order);
 
-/**
- * Project-level framing for the homepage cards. Kept here (not in the
- * MDX frontmatter) because these copy points are specifically tuned for
- * the homepage's skim-first reading order — the dedicated project pages
- * carry their own longer-form architecture write-ups.
- */
-const featuredFraming: Record<
-  string,
-  { problem: string; technical: string; demonstrates: string[] }
-> = {
-  "fraud-signals": {
-    problem:
-      "Simulates fraud-event detection across streaming telecom-style data, with rules + statistical anomalies surfaced in seconds.",
-    technical:
-      "Kafka → Spark Structured Streaming → Delta → dbt → Streamlit, with watermarked windows, exactly-once writes, and dbt tests on the marts.",
-    demonstrates: [
-      "Streaming ingestion + watermarks",
-      "Data quality / dbt tests",
-      "Fraud analytics architecture",
-      "Production-style local dev",
-    ],
-  },
-  "telecom-lakehouse": {
-    problem:
-      "Builds a single source of truth for revenue, ARPU, and churn signals over high-volume Call Detail Record data.",
-    technical:
-      "Airflow → MinIO/S3 → Iceberg Bronze/Silver/Gold → Great Expectations contracts → dbt marts, with Terraform for the AWS variant.",
-    demonstrates: [
-      "Medallion lakehouse design",
-      "Data contracts at the boundary",
-      "dbt modeling for BI",
-      "Orchestration + IaC",
-    ],
-  },
-  "ai-sql-optimizer": {
-    problem:
-      "Closes the gap between “a query that runs” and “a query a senior would ship” for Spark SQL and Snowflake workloads.",
-    technical:
-      "sqlglot AST + heuristic findings feed a structured Claude prompt; optional EXPLAIN runner scores rewrites against a seeded benchmark corpus.",
-    demonstrates: [
-      "Applied LLM tooling",
-      "SQL parsing + heuristics",
-      "Benchmark methodology",
-      "Engineer-in-the-loop UX",
-    ],
-  },
-};
-
 const focus = [
   "Streaming + lakehouse architectures",
   "Cloud data platforms on Azure and AWS",
@@ -176,22 +128,18 @@ const jsonLd = {
       </a>
     </div>
     <div class="grid gap-5 md:grid-cols-3">
-      {projects.map((p, i) => {
-        const framing = featuredFraming[p.slug];
-        if (!framing) return null;
-        return (
-          <FeaturedProjectCard
-            slug={p.slug}
-            index={i + 1}
-            title={p.data.title}
-            problem={framing.problem}
-            technical={framing.technical}
-            demonstrates={framing.demonstrates}
-            stack={p.data.stack}
-            repoUrl={p.data.repoUrl}
-          />
-        );
-      })}
+      {projects.map((p, i) => (
+        <FeaturedProjectCard
+          slug={p.slug}
+          index={i + 1}
+          title={p.data.title}
+          problem={p.data.problem}
+          approach={p.data.approach}
+          demonstrates={p.data.demonstrates}
+          stack={p.data.stack}
+          repoUrl={p.data.repoUrl}
+        />
+      ))}
     </div>
     <p class="mt-6 text-sm text-muted">
       Prefer charts to code?

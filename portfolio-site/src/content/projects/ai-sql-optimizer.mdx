@@ -9,6 +9,14 @@ stack:
   - "sqlglot"
   - "pytest"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer"
+problem: "Closes the gap between 'a query that runs' and 'a query a senior would ship' for Spark SQL and Snowflake workloads."
+approach: "sqlglot AST + heuristic findings feed a structured Claude prompt; optional EXPLAIN runner scores rewrites against a seeded benchmark corpus."
+demonstrates:
+  - "Applied LLM tooling"
+  - "SQL parsing + heuristics"
+  - "Benchmark methodology"
+  - "Engineer-in-the-loop UX"
+screenshot: "sqlopt-analyze.svg"
 results:
   - "0.67 avg keyword overlap vs ground truth in heuristic-only dry-run mode (measured via make benchmark)"
   - "Correct findings on 4 of 5 corpus queries at ~68ms analyzer latency per query"

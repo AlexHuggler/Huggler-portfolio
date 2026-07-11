@@ -10,6 +10,14 @@ stack:
   - "Streamlit"
   - "Python"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-fraud-signals"
+problem: "Simulates fraud-event detection across streaming telecom-style data, with rules + statistical anomalies surfaced in seconds."
+approach: "Kafka -> Spark Structured Streaming -> Delta -> dbt -> Streamlit, with watermarked windows, exactly-once writes, and dbt tests on the marts."
+demonstrates:
+  - "Streaming ingestion + watermarks"
+  - "Data quality / dbt tests"
+  - "Fraud analytics architecture"
+  - "Production-style local dev"
+screenshot: "fraud-dashboard.png"
 results:
   - "~110k events/sec detector throughput, measured single-process via make eval (seed 42)"
   - "Impossible-travel detector at 1.00 precision / 1.00 recall vs seeded ground truth (account-level)"

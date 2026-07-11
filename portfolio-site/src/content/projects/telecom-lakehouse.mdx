@@ -10,6 +10,14 @@ stack:
   - "dbt"
   - "Terraform"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-telecom-lakehouse"
+problem: "Builds a single source of truth for revenue, ARPU, and churn signals over high-volume Call Detail Record data."
+approach: "Airflow -> MinIO/S3 -> Iceberg Bronze/Silver/Gold -> Great Expectations contracts -> dbt marts, with Terraform for the AWS variant."
+demonstrates:
+  - "Medallion lakehouse design"
+  - "Data contracts at the boundary"
+  - "dbt modeling for BI"
+  - "Orchestration + IaC"
+screenshot: "telecom-pipeline-run.svg"
 results:
   - "49,998 CDRs raw to Gold in 0.53s (~94k rows/sec single process, measured via make demo)"
   - "41 of 41 dbt tests passing across 8 bronze/silver/gold models (measured via make dbt-test)"
