@@ -1,19 +1,14 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import Headshot from "../components/Headshot.astro";
 import { siteConfig } from "../site.config";
+import { skills } from "../data/skills";
 
-const stack = [
-  { area: "Compute", tools: "PySpark, Apache Spark Structured Streaming, Databricks", level: "Expert" },
-  { area: "Cloud", tools: "Azure (ADF, ADLS Gen2, Synapse), AWS (S3, Glue, Athena)", level: "Advanced" },
-  { area: "Lakehouse", tools: "Delta Lake, Apache Iceberg, Parquet", level: "Advanced" },
-  { area: "Warehouse", tools: "Snowflake, Synapse Dedicated SQL", level: "Advanced" },
-  { area: "Modeling", tools: "dbt, SQL, dimensional modeling", level: "Expert" },
-  { area: "Orchestration", tools: "Apache Airflow, ADF, Databricks Workflows", level: "Advanced" },
-  { area: "Streaming", tools: "Apache Kafka, Spark Structured Streaming", level: "Advanced" },
-  { area: "Languages", tools: "Python, SQL, Bash, a little Scala", level: "Expert" },
-  { area: "Infra", tools: "Terraform, Docker, GitHub Actions", level: "Working" },
-  { area: "ML / AI", tools: "Azure ML, Anthropic API, prompt engineering for data tooling", level: "Working" },
-];
+const levelStyle: Record<string, string> = {
+  Expert: "text-accent-fg border-accent/40",
+  Advanced: "text-fg border-border-strong",
+  Working: "text-muted border-border",
+};
 ---
 
 <BaseLayout
@@ -21,63 +16,82 @@ const stack = [
   description={`About ${siteConfig.name} - senior data and analytics engineer with six years at AT&T.`}
 >
   <section class="mx-auto max-w-prose px-6 pt-16 pb-24">
-    <p class="font-mono text-xs uppercase tracking-widest text-muted">About</p>
-    <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
-      {siteConfig.name}
-    </h1>
-    <p class="mt-3 font-mono text-xs uppercase tracking-widest text-muted">
-      Senior Data Engineer · Analytics Engineering · {siteConfig.location}
-    </p>
-
-    <div class="mt-8 space-y-5 text-muted leading-relaxed">
-      <p>
-        I'm a senior data and analytics engineer with six years at AT&amp;T
-        building production data platforms on Azure and Databricks. My work
-        spans PySpark ingestion, dbt analytics models, BI delivery, streaming
-        systems, and data quality. I specialize in turning ambiguous fraud,
-        revenue, and operational problems into reliable pipelines and
-        decision-ready analytics.
-      </p>
-      <p>
-        Recent impact: $900K+/yr fraud-loss reduction identified or enabled,
-        analytics ownership of a $2.2B portfolio. Currently focused on
-        streaming, lakehouse patterns, and applied AI for data engineering
-        productivity.
-      </p>
-      <p>
-        I treat tests, observability, runbooks, and data contracts as part of
-        the deliverable.
-      </p>
+    <div class="flex flex-col-reverse items-start gap-8 sm:flex-row sm:justify-between">
+      <div class="min-w-0">
+        <p class="font-mono text-xs uppercase tracking-widest text-muted">About</p>
+        <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
+          {siteConfig.name}
+        </h1>
+        <p class="mt-3 font-mono text-xs uppercase tracking-widest text-muted">
+          Senior Data Engineer · Analytics Engineering · {siteConfig.location}
+        </p>
+        <div class="mt-6 space-y-5 text-muted leading-relaxed">
+          <p>
+            I'm a senior data and analytics engineer with six years at AT&amp;T
+            building production data platforms on Azure and Databricks. My work
+            spans PySpark ingestion, dbt analytics models, BI delivery, streaming
+            systems, and data quality. I specialize in turning ambiguous fraud,
+            revenue, and operational problems into reliable pipelines and
+            decision-ready analytics.
+          </p>
+          <p>
+            Recent impact: <span class="text-fg">$900K+/yr</span> fraud-loss
+            reduction identified or enabled, analytics ownership of a
+            <span class="text-fg">$2.2B</span> portfolio. Currently focused on
+            streaming, lakehouse patterns, and applied AI for data engineering
+            productivity. I treat tests, observability, runbooks, and data
+            contracts as part of the deliverable.
+          </p>
+        </div>
+      </div>
+      <div class="flex shrink-0 flex-col items-center gap-4">
+        <Headshot size={160} />
+        <div class="w-full rounded-lg border border-border bg-surface p-4 text-sm">
+          <p class="font-mono text-[10px] uppercase tracking-widest text-muted">
+            Quick facts
+          </p>
+          <ul class="mt-2 space-y-1.5 text-muted">
+            <li>{siteConfig.location}</li>
+            <li>Open to senior DE / AE roles</li>
+            <li>
+              <a
+                href={`mailto:${siteConfig.email}`}
+                class="text-accent-fg hover:opacity-80 rounded-sm"
+              >
+                {siteConfig.email}
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
     </div>
 
     <div class="mt-8 flex flex-wrap items-center gap-2">
       <span class="font-mono text-[11px] uppercase tracking-widest text-muted">
         Certified
       </span>
-      <span class="pill"><span class="text-accent">DP-203</span>&nbsp;Azure Data Engineering</span>
-      <span class="pill"><span class="text-accent">DP-100</span>&nbsp;Azure AI Engineering</span>
+      <span class="pill"><span class="text-accent-fg">DP-203</span>&nbsp;Azure Data Engineering</span>
+      <span class="pill"><span class="text-accent-fg">DP-100</span>&nbsp;Azure AI Engineering</span>
     </div>
 
-    <h2 class="mt-12 text-xl font-semibold tracking-tight">Stack proficiency</h2>
-    <div class="mt-4 overflow-x-auto rounded-lg border border-border">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-border text-left text-muted font-mono uppercase text-xs">
-            <th class="px-4 py-2 font-normal">Area</th>
-            <th class="px-4 py-2 font-normal">Tools</th>
-            <th class="px-4 py-2 font-normal">Level</th>
-          </tr>
-        </thead>
-        <tbody>
-          {stack.map((row) => (
-            <tr class="border-b border-border last:border-0">
-              <td class="px-4 py-2 font-medium">{row.area}</td>
-              <td class="px-4 py-2 text-muted">{row.tools}</td>
-              <td class="px-4 py-2 font-mono text-xs">{row.level}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+    <h2 class="mt-12 text-xl font-semibold tracking-tight">Skills matrix</h2>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      {skills.map((row) => (
+        <div class="rounded-lg border border-border bg-surface p-4">
+          <div class="flex items-baseline justify-between gap-2">
+            <h3 class="text-sm font-semibold tracking-tight">{row.area}</h3>
+            <span
+              class:list={[
+                "rounded-full border px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider",
+                levelStyle[row.level],
+              ]}
+            >
+              {row.level}
+            </span>
+          </div>
+          <p class="mt-1.5 text-sm text-muted leading-relaxed">{row.tools}</p>
+        </div>
+      ))}
     </div>
 
     <h2 class="mt-12 text-xl font-semibold tracking-tight">Contact</h2>
@@ -85,7 +99,7 @@ const stack = [
       <li>
         <span class="text-muted">GitHub:</span>{" "}
         <a
-          class="text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+          class="text-accent-fg hover:opacity-80 rounded-sm"
           href={siteConfig.github}
           target="_blank"
           rel="noopener noreferrer"
@@ -97,7 +111,7 @@ const stack = [
       <li>
         <span class="text-muted">LinkedIn:</span>{" "}
         <a
-          class="text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+          class="text-accent-fg hover:opacity-80 rounded-sm"
           href={siteConfig.linkedin}
           target="_blank"
           rel="noopener noreferrer"
@@ -109,7 +123,7 @@ const stack = [
       <li>
         <span class="text-muted">Resume:</span>{" "}
         <a
-          class="text-accent hover:opacity-80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+          class="text-accent-fg hover:opacity-80 rounded-sm"
           href={siteConfig.resumePath}
           aria-label="Download resume PDF"
         >

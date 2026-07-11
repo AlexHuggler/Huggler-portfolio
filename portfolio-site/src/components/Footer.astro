@@ -1,55 +1,106 @@
 ---
 import { siteConfig } from "../site.config";
+
+const siteLinks = [
+  { href: "/projects", label: "Projects" },
+  { href: "/visualizations", label: "Data Visualizations" },
+  { href: "/about", label: "About" },
+  { href: "/resume", label: "Resume" },
+  { href: "/contact", label: "Contact" },
+];
 ---
 
-<footer class="border-t border-border mt-24">
-  <div class="mx-auto max-w-page px-6 py-8 flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-muted">
-    <div class="flex flex-col gap-1 text-center md:text-left">
-      <p>Built by {siteConfig.name}.</p>
-      <p class="text-xs">
-        <a
-          href={siteConfig.githubRepo}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Portfolio source on GitHub (opens in new tab)"
-          class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-        >
-          Source available on GitHub
-        </a>
-      </p>
+<footer class="relative mt-24">
+  <div class="footer-hairline" aria-hidden="true"></div>
+  <div class="mx-auto max-w-page px-6 py-10">
+    <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+      <div>
+        <p class="font-display text-base font-semibold tracking-tight">
+          <span class="text-gradient-accent">AH·</span>
+          {siteConfig.name}
+        </p>
+        <p class="mt-2 max-w-xs text-sm text-muted leading-relaxed">
+          {siteConfig.title} — {siteConfig.location}. Production data
+          platforms, analytics engineering, and applied AI.
+        </p>
+      </div>
+      <nav aria-label="Footer">
+        <p class="font-mono text-[11px] uppercase tracking-widest text-muted">
+          Site
+        </p>
+        <ul class="mt-3 space-y-2 text-sm">
+          {siteLinks.map((link) => (
+            <li>
+              <a href={link.href} class="text-muted hover:text-fg rounded-sm">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
+      <div>
+        <p class="font-mono text-[11px] uppercase tracking-widest text-muted">
+          Elsewhere
+        </p>
+        <ul class="mt-3 space-y-2 text-sm">
+          <li>
+            <a
+              href={siteConfig.github}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Alex's GitHub profile (opens in new tab)"
+              class="text-muted hover:text-fg rounded-sm"
+            >
+              GitHub <span aria-hidden="true">↗</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href={siteConfig.linkedin}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Alex's LinkedIn profile (opens in new tab)"
+              class="text-muted hover:text-fg rounded-sm"
+            >
+              LinkedIn <span aria-hidden="true">↗</span>
+            </a>
+          </li>
+          <li>
+            <a
+              href={`mailto:${siteConfig.email}`}
+              class="text-muted hover:text-fg rounded-sm"
+            >
+              {siteConfig.email}
+            </a>
+          </li>
+        </ul>
+      </div>
     </div>
-    <div class="flex flex-wrap items-center justify-center gap-4">
+    <p class="mt-10 border-t border-border pt-5 text-xs text-muted">
+      Built with Astro —
       <a
-        href="/contact"
-        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-      >
-        Contact
-      </a>
-      <a
-        href={siteConfig.github}
+        href={siteConfig.githubRepo}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Alex's GitHub profile (opens in new tab)"
-        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
+        aria-label="Portfolio source on GitHub (opens in new tab)"
+        class="hover:text-fg rounded-sm"
       >
-        GitHub
-      </a>
-      <a
-        href={siteConfig.linkedin}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Alex's LinkedIn profile (opens in new tab)"
-        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-      >
-        LinkedIn
-      </a>
-      <a
-        href={siteConfig.resumePath}
-        aria-label="Download resume PDF"
-        class="hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-      >
-        Resume
-      </a>
-    </div>
+        source on GitHub
+      </a>. All demo metrics are measured on synthetic data with published
+      methodology.
+    </p>
   </div>
 </footer>
+
+<style>
+  .footer-hairline {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgb(var(--color-accent) / 0.5) 30%,
+      rgb(var(--color-accent-2) / 0.5) 70%,
+      transparent
+    );
+  }
+</style>

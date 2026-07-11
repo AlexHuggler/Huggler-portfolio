@@ -24,8 +24,6 @@ results:
   - "10-expectation Great Expectations data contract specified at the Bronze boundary"
 ---
 
-import MermaidBlock from "../../components/MermaidBlock.astro";
-
 ## Problem
 
 Telecom billing teams sit on enormous CDR (Call Detail Record) volumes and
@@ -35,44 +33,48 @@ late-arriving data and corrections tractable while exposing clean marts to
 BI. This project is an end-to-end implementation: synthetic CDR generation,
 Airflow orchestration, Iceberg storage on S3-compatible object storage, data
 contracts via Great Expectations, and dbt for the analytics layer - all
-runnable locally on docker-compose with no AWS account.
+runnable locally with no AWS account.
 
-## Architecture
+## Judgment calls
 
-<MermaidBlock code={`flowchart LR
-  G[Synthetic CDR generator] -->|parquet| R[(MinIO/S3 raw zone)]
-  R -->|Airflow ingest DAG| BR[(Iceberg Bronze)]
-  BR -->|Airflow transform DAG\\nGE checks| SI[(Iceberg Silver)]
-  SI -->|dbt run| GO[(Gold marts\\nrevenue_by_market, arpu_monthly, churn_signals)]
-  GO --> BI[BI / consumers]
-`} />
+**Why medallion over a single table?** Telecom CDR volumes are huge and
+lossy. Keeping a Bronze append-only layer means a schema change, a parsing
+bug, or a vendor-side correction can be replayed without re-ingesting from
+upstream. Silver is where validation happens but rows are never dropped -
+bad rows are flagged so analysts can audit them. Gold is the only layer BI
+tools see.
 
-## Stack
+**Iceberg vs Delta.** Both work. Iceberg's hidden partitioning and partition
+evolution make schema migrations far less painful than rewrite-on-write
+tables, and it gives engine portability if a downstream consumer wants Trino
+or Athena instead of Spark. Delta would be a fine choice in a Spark-mostly
+shop; for a batch-first billing workload, Iceberg is the cleaner fit.
 
-- **Apache Airflow (LocalExecutor)** orchestrates ingest, transform, and dbt runs with retries and SLAs.
-- **Apache Iceberg** chosen for partition evolution, hidden partitioning, and engine portability (Spark, Trino, Athena).
-- **MinIO** locally, S3 in production - identical API.
-- **Great Expectations** for column-level data contracts at Bronze (the layer where things break).
-- **dbt** for Silver-to-Gold transforms with `unique`, `not_null`, `accepted_values`, and `relationships` tests.
-- **Terraform** to provision the AWS variant (S3 + Glue + Athena) when you want to deploy for real.
+**Great Expectations at Bronze, dbt tests at Silver/Gold.** GE specifies the
+contract before bad data enters the lake - schema, null rates, ranges, the
+`+1NNNNNNNNNN` MSISDN regex; dbt tests catch the bad relationships
+afterward - uniqueness, referential integrity, accepted values. The two
+cover complementary failure modes. Honest caveat: the bundled demo DAG wires
+the GE checkpoint as a demonstrative stub, so blocking enforcement requires
+the full Airflow + GE stack; the 10-expectation contract itself lives in
+version control either way.
 
-## Data quality strategy
+## Measured results
 
-Bronze: Great Expectations suite enforces column types, nulls, and ranges before
-data enters the lake.
+The no-infra demo path is fully measured and reproducible with three
+commands. `make demo` takes 49,998 synthetic CDRs from raw parquet through
+Bronze, Silver, and three Gold marts in 0.53 s (~94k rows/sec, single
+process). `make dbt-run && make dbt-test` builds all 8 models and passes
+41 of 41 tests - `unique`, `not_null`, `accepted_values`, `relationships`,
+and expression checks across every layer. The dbt project vendors local
+replacements for its two dbt_utils macros, so it runs completely offline
+with no package downloads.
 
-Silver: dbt tests on every model. Failed tests block downstream Gold builds.
+## What I would do differently in production
 
-Gold: snapshot-style metrics with row count and freshness alerts.
-
-## Results
-
-A default run generates 50,000 synthetic CDRs partitioned by `ingest_date` across three
-days, which the Airflow ingest DAG lands in Iceberg Bronze. Great Expectations contracts
-gate the Bronze-to-Silver step on column types, nulls, and ranges, and the Silver-to-Gold
-dbt models (`revenue_by_market`, `arpu_monthly`, `churn_signals`) rebuild with their
-`unique` / `not_null` / `accepted_values` tests on every run. The whole stack runs locally
-on docker-compose with no AWS account; the Terraform variant provisions the S3 + Glue +
-Athena equivalent when you want to deploy for real.
-
-See the repo for full setup, optional Terraform deployment, and limitations.
+- Replace the GE 0.18 API with Great Expectations 1.x (or `pandera`) once a
+  stable migration path lands - and wire the checkpoint for real enforcement.
+- Add lineage via OpenLineage emitters on every Airflow task and dbt run.
+- Add cross-column contracts (e.g. roaming flag must match a roaming-eligible plan).
+- Replace LocalExecutor with KubernetesExecutor for scale-out.
+- Add an Iceberg compaction DAG to keep Bronze partition file counts bounded.

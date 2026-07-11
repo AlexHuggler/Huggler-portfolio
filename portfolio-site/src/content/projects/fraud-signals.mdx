@@ -24,8 +24,6 @@ results:
   - "Exactly-once Delta writes with a 2-minute watermark for late-arriving events"
 ---
 
-import MermaidBlock from "../../components/MermaidBlock.astro";
-
 ## Problem
 
 Fraud teams in telecom and fintech need to react in seconds, not hours. Batch
@@ -36,41 +34,46 @@ slice further with dbt. This project demonstrates the production patterns that
 matter: exactly-once semantics, watermark-based late-event handling, dbt tests
 on the resulting marts, and a lightweight dashboard for operators.
 
-## Architecture
+## Judgment calls
 
-<MermaidBlock code={`flowchart LR
-  P[Synthetic event producer] -->|JSON events| K[(Kafka topic: tx-events)]
-  K -->|Structured Streaming| S[Spark consumer\\nwatermark + checkpoint]
-  S -->|exactly-once| D[(Delta lakehouse\\nbronze + silver)]
-  D --> M[dbt models\\nfct_transactions, dim_account]
-  M --> B[Streamlit dashboard]
-  S -.scored events.-> A[Anomaly detector\\nvelocity, geo, z-score]
-  A --> D
-`} />
+**Why streaming over batch?** Fraud ages out fast. A batch ETL that lands an
+anomaly two hours late is informational, not operational. The producer
+publishes JSON events to a Kafka topic partitioned by `account_id`, which
+preserves per-account ordering even when consumers scale horizontally.
 
-## Stack
+**Why Spark Structured Streaming over Flink?** Both are mature; Flink has
+lower latency at the tail and richer stateful semantics. I picked Spark
+because (a) the downstream lakehouse is already Spark-native via Delta, so the
+interop story is one engine instead of two, and (b) Structured Streaming's
+batch-equivalence model matches how analytics teams already reason about SQL.
+For sub-100ms detection, Flink would be the right call.
 
-- **Kafka** for the event bus (replayable, ordered per partition, decouples producer from consumer).
-- **Spark Structured Streaming** for the consumer (mature exactly-once with checkpoints, broad ecosystem support).
-- **Delta Lake** for ACID lakehouse storage (cheap object store, fast incremental reads, built-in MERGE).
-- **dbt** for the analytics layer (testable, reviewable SQL with explicit lineage).
-- **Streamlit** for the operator UI (fast to ship, runs from a single file, no JS build step).
+**Exactly-once trade-offs.** Spark's exactly-once guarantee is "exactly-once
+across the checkpoint boundary," which assumes the sink is idempotent. Delta
+MERGE on a deterministic key is idempotent; raw Kafka-to-Kafka is not. The
+failure modes (e.g. committing the offset before the Delta write) are
+documented in the repo's `docs/architecture.md`, alongside the watermark
+policy that bounds late-event memory.
 
-## Results
+## Measured results
 
-Running locally against the synthetic producer (50 events/sec, 5% seeded fraud rate
-across 200 accounts), the pipeline sustains ingest on a single Spark executor and
-writes exactly-once to Delta with a 2-minute watermark for late events. The three
-injected patterns - velocity bursts, impossible travel, and amount outliers - are
-recovered by the velocity (5 events / 60s), geo, and Z-score (>3) detectors, and the
-dbt marts (`fct_transactions`, `dim_account`) pass their `unique` / `not_null` tests on
-every run. Numbers are from synthetic local runs and are reproducible from the seed.
+Every event the producer writes carries a ground-truth label, so detector
+quality is measured, not asserted: `make eval` generates ~16.6k labeled
+events (seed 42) and scores each detector account-level. Impossible-travel
+detection lands at 1.00 precision / 1.00 recall, the amount Z-score detector
+at 0.97 precision / 0.58 recall, and the recall-first velocity rule catches
+every seeded burst while over-flagging dense accounts (0.26 precision) - a
+deliberate trade-off the repo documents along with the fix (per-account
+baselining). The single-process detector scores ~110k events/sec.
 
 ## What I would do differently in production
 
 - Move anomaly detection to a dedicated feature store with versioned features.
+- Replace the fixed velocity threshold with a per-account baseline so precision
+  holds up under dense activity - `make eval` shows exactly where the naive
+  rule over-flags.
 - Replace per-event Z-score with online algorithms (Welford or t-digest) to bound memory.
-- Add a schema registry (Confluent or AWS Glue) so producer/consumer compatibility is enforced at deploy time.
-- Push the dashboard onto a lightweight web framework with role-based access (Streamlit is fine for ops, not for customer-facing).
-
-See the repo for full setup, tradeoffs, and limitations.
+- Add a schema registry (Confluent or AWS Glue) so producer/consumer
+  compatibility is enforced at deploy time.
+- Push the dashboard onto a role-aware web framework (Streamlit is fine for
+  ops, not for customer-facing).

@@ -23,8 +23,6 @@ results:
   - "Heuristic analyzer flags select-*, cross joins, missing partition predicates, and broadcast opportunities"
 ---
 
-import MermaidBlock from "../../components/MermaidBlock.astro";
-
 ## Problem
 
 There is a real gap between "junior writes a working query" and "senior knows
@@ -34,43 +32,43 @@ heuristic findings to Claude with a structured optimizer prompt, then
 optionally verifying the rewrite against a real EXPLAIN plan. It targets
 Spark SQL and Snowflake, the two dialects I work with most.
 
-## How it works
+## Judgment calls
 
-<MermaidBlock code={`sequenceDiagram
-  participant U as User
-  participant CLI as sql-optimizer CLI
-  participant A as Analyzer (sqlglot + heuristics)
-  participant C as Claude API
-  participant E as EXPLAIN runner (optional)
+**Heuristics + LLM, not LLM only.** Sending raw SQL to Claude works, but
+the model spends most of its budget re-deriving facts a parser already
+knows: which columns appear in the projection, where the partition column
+lives, whether the predicate is wrapped in a function. A small sqlglot pass
+extracts those cheaply and ships them as structured findings, leaving the
+model to decide what to do with them - and keeping the offline `--dry-run`
+mode honest.
 
-  U->>CLI: analyze query.sql
-  CLI->>A: parse + collect findings
-  A-->>CLI: AST + findings
-  CLI->>C: optimizer_prompt + sql + findings
-  C-->>CLI: rewrite + reasoning
-  CLI->>E: EXPLAIN original / EXPLAIN rewrite
-  E-->>CLI: cost deltas
-  CLI-->>U: markdown diff + cost report
-`} />
+**Why EXPLAIN is optional.** EXPLAIN cost numbers are informative, not
+ground truth - they reflect the planner's stale statistics and its own
+broadcast threshold. The CLI treats them as a tiebreaker between candidate
+rewrites, never as the deciding signal.
 
-## Methodology
+**Prompt sensitivity is a real risk.** Small changes to the optimizer prompt
+materially change suggestion quality. The prompt template is versioned in
+the repo, and corpus tests pin a known prompt version so regressions surface
+in CI rather than in production.
 
-Fifty queries across five categories: join optimization, aggregation rewrites,
-CTE flattening, partition pruning, broadcast-join opportunities. Each is
-labeled with expected suggestion keywords and expected cost direction in
-`corpus/ground_truth.yaml`. Suggestions are scored on three axes: keyword
-overlap with ground truth, EXPLAIN cost delta (when the engine is available),
-and human review.
+**A corpus designed to grow.** Five optimization categories, one fully
+specified query per category, each with explicit ground truth in
+`corpus/ground_truth.yaml`. Adding a query is one `.sql` file plus one
+ground-truth entry - the benchmark discovers both automatically. A small
+corpus that matches its documentation beats a padded one.
 
-## Results
+## Measured results
 
-The benchmark runs the CLI over the seeded corpus and scores each suggestion on three
-axes: keyword overlap with the labeled ground truth in `corpus/ground_truth.yaml`, EXPLAIN
-cost delta when an engine is available, and human review. The heuristic analyzer alone
-(no API key required) flags `SELECT *`, cross joins, missing partition predicates, broadcast
-opportunities, and CTE depth, which is enough to drive the dry-run mode. With
-`ANTHROPIC_API_KEY` set, Claude proposes rewrites that the EXPLAIN runner verifies for a
-lower cost direction on the five labeled categories.
+`make benchmark` in heuristic-only dry-run mode scores 0.67 average keyword
+overlap against ground truth, with correct findings on 4 of 5 queries at
+~68 ms analyzer latency per query. The one miss is instructive: the
+cte_flattening query's rewrite vocabulary ("single scan", "CASE") only
+appears once Claude proposes the rewrite - the heuristics flag the multi-scan
+pattern but do not name the fix. That gap is exactly what the LLM adds.
+Human review and EXPLAIN cost deltas are specified in the methodology but not
+yet run - the README keeps them under "Planned evaluation" rather than
+pretending.
 
 ## Honest limitations
 
@@ -78,6 +76,4 @@ lower cost direction on the five labeled categories.
 - EXPLAIN-based scoring is only as good as the optimizer's cost estimates - a "cheaper" plan can still be slower in practice.
 - Dialect drift between Spark SQL and Snowflake catches edge cases (e.g. `QUALIFY`, lateral views).
 - Prompt sensitivity: small changes to the prompt template materially change suggestion quality.
-- The CLI runs against `ANTHROPIC_API_KEY`; without it, only heuristic dry-run mode is available.
-
-See the repo for the full corpus, prompt template, and CLI usage.
+- Without `ANTHROPIC_API_KEY`, only heuristic dry-run mode is available.

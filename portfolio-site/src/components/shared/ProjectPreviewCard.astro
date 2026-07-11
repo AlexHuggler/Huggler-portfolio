@@ -2,10 +2,10 @@
 /**
  * ProjectPreviewCard
  *
- * Rich preview card for the /projects landing page. Hosts a small visual
- * preview slot, project copy, stack pills, and a CTA to the full
- * interactive demo. The preview renders as a static SVG / code snippet —
- * no React island here so the landing page stays zero-JS.
+ * Rich preview card for the /projects landing page. Hosts a visual preview
+ * slot (a real artifact from the project's demo path), project copy, a
+ * headline measured metric, stack pills, and a CTA to the full interactive
+ * demo. No React island here so the landing page stays zero-JS.
  */
 import StackPill from "../StackPill.astro";
 
@@ -17,12 +17,15 @@ interface Props {
   stack: string[];
   repoUrl: string;
   demonstrates?: string[];
+  /** Headline measured metric from src/data/measured.json. */
+  metric?: { value: string; label: string; method: string };
 }
-const { slug, number, title, tagline, stack, repoUrl, demonstrates } = Astro.props;
+const { slug, number, title, tagline, stack, repoUrl, demonstrates, metric } =
+  Astro.props;
 ---
 
-<article class="group flex flex-col rounded-lg border border-border overflow-hidden hover:border-accent hover:shadow-[0_0_0_1px_rgba(37,99,235,0.15),0_14px_40px_-16px_rgba(37,99,235,0.30)] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 transition-[border-color,box-shadow,transform] duration-200">
-  <div class="relative aspect-[5/3] border-b border-border bg-bg/30 grid place-items-center overflow-hidden">
+<article class="group flex flex-col rounded-lg border border-border bg-surface overflow-hidden hover:border-accent/50 hover:shadow-[0_0_0_1px_rgb(var(--color-accent)/0.15),0_14px_40px_-16px_rgb(var(--color-accent)/0.30)] hover:-translate-y-0.5 motion-reduce:hover:translate-y-0 transition-[border-color,box-shadow,transform] duration-200">
+  <div class="relative aspect-[5/3] border-b border-border bg-surface-2 grid place-items-center overflow-hidden">
     <slot name="preview" />
   </div>
   <div class="flex flex-1 flex-col p-5">
@@ -36,6 +39,15 @@ const { slug, number, title, tagline, stack, repoUrl, demonstrates } = Astro.pro
     {demonstrates && demonstrates.length > 0 && (
       <p class="mt-2 text-[11px] font-mono uppercase tracking-wider text-muted">
         {demonstrates.join(" · ")}
+      </p>
+    )}
+    {metric && (
+      <p
+        class="mt-3 inline-flex items-baseline gap-1.5 self-start rounded-md border border-border bg-surface-2 px-2.5 py-1"
+        title={`Measured via ${metric.method} — methodology in the repo`}
+      >
+        <span class="font-mono text-sm font-semibold text-accent-fg">{metric.value}</span>
+        <span class="font-mono text-[10px] uppercase tracking-wider text-muted">{metric.label}</span>
       </p>
     )}
     <ul class="mt-3 flex flex-wrap gap-1.5">
