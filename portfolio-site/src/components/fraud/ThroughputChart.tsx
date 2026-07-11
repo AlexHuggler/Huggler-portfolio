@@ -1,21 +1,21 @@
-import { useEffect, useRef, useState } from "react";
+import type { JSX } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import EChart from "../viz/EChart";
 import {
-  Area,
-  AreaChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-} from "recharts";
+  axisLabel,
+  splitLine,
+  tooltip,
+  type VizMode,
+  type VizTokens,
+} from "../viz/theme";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 
 /**
  * ThroughputChart
  *
- * Rolling 60-second area chart of synthetic events/sec. Updates every
- * second when active. Shows clearly-labeled placeholder latency p50/p95/p99
- * values so recruiters see where the project's measured numbers will land.
+ * Rolling 60-second area chart of synthetic events/sec, rendered with the
+ * shared ECharts wrapper so it follows the design tokens and restyles live
+ * on theme toggle. Updates every second when active.
  */
 
 interface Point {
@@ -27,10 +27,18 @@ const WINDOW_SEC = 60;
 const baseline = 18;
 const variance = 9;
 
-export default function ThroughputChart() {
+/** Apply alpha to a token color that may be `rgb(...)` or `#hex`. */
+function withAlpha(color: string, alpha: number): string {
+  if (color.startsWith("rgb(")) {
+    return color.replace("rgb(", "rgba(").replace(")", `, ${alpha})`);
+  }
+  return `${color}${Math.round(alpha * 255)
+    .toString(16)
+    .padStart(2, "0")}`;
+}
+
+export default function ThroughputChart(): JSX.Element {
   const reduced = useReducedMotion();
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
   const [points, setPoints] = useState<Point[]>(() => {
     const out: Point[] = [];
     for (let i = WINDOW_SEC - 1; i >= 0; i--) {
@@ -51,13 +59,59 @@ export default function ThroughputChart() {
       const next = baseline +
         Math.sin(t / 6) * variance * 0.6 +
         (Math.random() - 0.5) * variance;
-      setPoints((prev) => {
-        const updated = [...prev.slice(1), { t, eventsPerSec: Math.max(0, next) }];
-        return updated;
-      });
+      setPoints((prev) => [...prev.slice(1), { t, eventsPerSec: Math.max(0, next) }]);
     }, 1000);
     return () => window.clearInterval(id);
   }, [reduced]);
+
+  const buildOption = useCallback(
+    (t: VizTokens, _mode: VizMode, reducedMotion: boolean) => ({
+      animation: !reducedMotion,
+      animationDuration: 300,
+      grid: { left: 8, right: 8, top: 10, bottom: 4, containLabel: true },
+      tooltip: tooltip(t, {
+        trigger: "axis",
+        valueFormatter: (v: unknown) => `${Number(v).toFixed(1)} ev/s`,
+      }),
+      xAxis: {
+        type: "category",
+        boundaryGap: false,
+        data: points.map((p) => `${p.t}s`),
+        axisLabel: { ...axisLabel(t), interval: 14 },
+        axisLine: { show: false },
+        axisTick: { show: false },
+      },
+      yAxis: {
+        type: "value",
+        axisLabel: axisLabel(t),
+        splitLine: splitLine(t),
+      },
+      series: [
+        {
+          name: "Throughput",
+          type: "line",
+          smooth: true,
+          symbol: "none",
+          data: points.map((p) => Number(p.eventsPerSec.toFixed(1))),
+          lineStyle: { color: t.accent, width: 2 },
+          areaStyle: {
+            color: {
+              type: "linear",
+              x: 0,
+              y: 0,
+              x2: 0,
+              y2: 1,
+              colorStops: [
+                { offset: 0, color: withAlpha(t.accent, 0.4) },
+                { offset: 1, color: withAlpha(t.accent, 0) },
+              ],
+            },
+          },
+        },
+      ],
+    }),
+    [points],
+  );
 
   return (
     <div className="demo-card">
@@ -82,53 +136,11 @@ export default function ThroughputChart() {
           </p>
         </div>
       </div>
-      <div className="h-44 w-full">
-        {mounted && (
-        <ResponsiveContainer width="100%" height="100%" minWidth={120} minHeight={120}>
-          <AreaChart data={points} margin={{ top: 4, right: 4, left: -16, bottom: 0 }}>
-            <defs>
-              <linearGradient id="thrFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#2563eb" stopOpacity={0.5} />
-                <stop offset="100%" stopColor="#2563eb" stopOpacity={0} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid stroke="rgba(148,163,184,0.1)" vertical={false} />
-            <XAxis
-              dataKey="t"
-              tickLine={false}
-              axisLine={false}
-              tick={{ fill: "#64748b", fontSize: 10 }}
-              tickFormatter={(v: number) => `${v}s`}
-            />
-            <YAxis
-              tickLine={false}
-              axisLine={false}
-              tick={{ fill: "#64748b", fontSize: 10 }}
-              width={32}
-            />
-            <Tooltip
-              contentStyle={{
-                background: "rgba(10,10,10,0.95)",
-                border: "1px solid #1f1f23",
-                borderRadius: 6,
-                fontSize: 12,
-              }}
-              labelFormatter={(v) => `t=${v}s`}
-              formatter={(v) => [`${Number(v).toFixed(1)} ev/s`, "Throughput"]}
-            />
-            <Area
-              type="monotone"
-              dataKey="eventsPerSec"
-              stroke="#2563eb"
-              strokeWidth={1.5}
-              fill="url(#thrFill)"
-              isAnimationActive={!reduced}
-              animationDuration={reduced ? 0 : 600}
-            />
-          </AreaChart>
-        </ResponsiveContainer>
-        )}
-      </div>
+      <EChart
+        buildOption={buildOption}
+        height={176}
+        ariaLabel="Area chart of synthetic stream throughput over the last 60 seconds"
+      />
       <div className="mt-3 grid grid-cols-3 gap-2 text-center">
         {[
           { label: "p50", value: "~120ms" },
@@ -147,8 +159,8 @@ export default function ThroughputChart() {
         ))}
       </div>
       <p className="mt-2 text-[11px] text-muted">
-        Latency values shown as placeholders. Real numbers come from local Spark
-        runs in the project repo.
+        Latency values shown as placeholders. Measured detector throughput and
+        precision/recall live in the repo README (make eval).
       </p>
       <table className="visually-hidden">
         <caption>Throughput data points, last {WINDOW_SEC} seconds</caption>

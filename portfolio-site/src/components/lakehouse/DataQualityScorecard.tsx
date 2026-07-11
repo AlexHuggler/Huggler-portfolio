@@ -1,20 +1,16 @@
 import type { JSX } from "react";
-import { useEffect, useState } from "react";
-import {
-  RadialBar,
-  RadialBarChart,
-  ResponsiveContainer,
-  PolarAngleAxis,
-} from "recharts";
+import { useMemo } from "react";
 import { CheckCircle2, ShieldCheck, Fingerprint, Clock } from "lucide-react";
+import EChart from "../viz/EChart";
+import { cssToken, type VizTokens } from "../viz/theme";
 
 /**
  * DataQualityScorecard
  *
- * Four-card grid of placeholder DQ metrics rendered as radial gauges via
- * Recharts. Numbers are explicitly illustrative. Includes a visually-hidden
- * table fallback for screen-reader users and gates the chart on a mounted
- * state so SSR does not warn about ResponsiveContainer dimensions.
+ * Four-card grid of placeholder DQ metrics rendered as ring gauges via the
+ * shared ECharts wrapper, colored from the design tokens so they follow the
+ * theme. Numbers are explicitly illustrative. Includes a visually-hidden
+ * table fallback for screen-reader users.
  */
 
 interface Metric {
@@ -22,7 +18,10 @@ interface Metric {
   label: string;
   description: string;
   value: number;
-  color: string;
+  /** CSS custom property carrying the metric color. */
+  tokenVar: string;
+  /** Fallback hex mirroring global.css (non-DOM contexts). */
+  fallback: string;
   icon: typeof CheckCircle2;
 }
 
@@ -32,7 +31,8 @@ const METRICS: Metric[] = [
     label: "Completeness",
     description: "% of records with all required fields populated.",
     value: 99.4,
-    color: "#10b981",
+    tokenVar: "--color-success",
+    fallback: "#34d399",
     icon: CheckCircle2,
   },
   {
@@ -40,7 +40,8 @@ const METRICS: Metric[] = [
     label: "Validity",
     description: "% of records that pass type, range, and regex checks.",
     value: 98.7,
-    color: "#2563eb",
+    tokenVar: "--color-accent",
+    fallback: "#3b82f6",
     icon: ShieldCheck,
   },
   {
@@ -48,7 +49,8 @@ const METRICS: Metric[] = [
     label: "Uniqueness",
     description: "% of records with no duplicate primary key.",
     value: 100,
-    color: "#a855f7",
+    tokenVar: "--viz-series-3",
+    fallback: "#a855f7",
     icon: Fingerprint,
   },
   {
@@ -56,62 +58,65 @@ const METRICS: Metric[] = [
     label: "Freshness",
     description: "% of partitions arriving within their SLA window.",
     value: 99.9,
-    color: "#f59e0b",
+    tokenVar: "--color-warn",
+    fallback: "#fbbf24",
     icon: Clock,
   },
 ];
 
 interface GaugeProps {
-  value: number;
-  color: string;
-  mounted: boolean;
+  metric: Metric;
 }
 
-function Gauge({ value, color, mounted }: GaugeProps): JSX.Element {
-  const data = [{ name: "score", value, fill: color }];
+function Gauge({ metric }: GaugeProps): JSX.Element {
+  const buildOption = useMemo(() => {
+    return (t: VizTokens, _mode: string, reduced: boolean) => {
+      const color = cssToken(metric.tokenVar, metric.fallback);
+      return {
+        animation: !reduced,
+        animationDuration: 500,
+        series: [
+          {
+            type: "pie",
+            radius: ["74%", "96%"],
+            startAngle: 90,
+            silent: true,
+            label: { show: false },
+            data: [
+              {
+                value: metric.value,
+                itemStyle: { color, borderRadius: 6 },
+              },
+              {
+                value: 100 - metric.value,
+                itemStyle: { color: `${t.border}` },
+              },
+            ],
+          },
+        ],
+      };
+    };
+  }, [metric]);
+
   return (
     <div
       className="relative"
-      style={{ width: "100%", aspectRatio: "1 / 1", maxWidth: 140 }}
+      style={{ width: "100%", maxWidth: 140 }}
     >
-      {mounted && (
-        <ResponsiveContainer
-          width="100%"
-          height="100%"
-          minWidth={80}
-          minHeight={80}
-        >
-          <RadialBarChart
-            cx="50%"
-            cy="50%"
-            innerRadius="72%"
-            outerRadius="100%"
-            barSize={10}
-            data={data}
-            startAngle={90}
-            endAngle={-270}
-          >
-            <PolarAngleAxis
-              type="number"
-              domain={[0, 100]}
-              angleAxisId={0}
-              tick={false}
-            />
-            <RadialBar
-              background={{ fill: "rgba(148,163,184,0.12)" }}
-              dataKey="value"
-              cornerRadius={6}
-              isAnimationActive={false}
-            />
-          </RadialBarChart>
-        </ResponsiveContainer>
-      )}
+      <EChart
+        buildOption={buildOption}
+        height={140}
+        ariaLabel={`${metric.label} gauge at ${metric.value.toFixed(1)} percent (illustrative)`}
+      />
       <div
         className="absolute inset-0 flex items-center justify-center pointer-events-none"
         aria-hidden="true"
       >
-        <span className="font-mono text-lg font-semibold" style={{ color }}>
-          {value.toFixed(1)}%
+        <span
+          className="font-mono text-lg font-semibold"
+          style={{ color: `rgb(var(${metric.tokenVar}, ${metric.fallback}))` }}
+        >
+          {metric.value.toFixed(1)}%
         </span>
       </div>
     </div>
@@ -123,9 +128,6 @@ interface Props {
 }
 
 export default function DataQualityScorecard({ id }: Props): JSX.Element {
-  const [mounted, setMounted] = useState<boolean>(false);
-  useEffect(() => setMounted(true), []);
-
   return (
     <div id={id}>
       <div className="mb-3">
@@ -149,7 +151,7 @@ export default function DataQualityScorecard({ id }: Props): JSX.Element {
                 <span className="rounded-md border border-border p-1.5">
                   <Icon
                     className="h-4 w-4"
-                    style={{ color: m.color }}
+                    style={{ color: `rgb(var(${m.tokenVar}, ${m.fallback}))` }}
                     aria-hidden="true"
                   />
                 </span>
@@ -161,7 +163,7 @@ export default function DataQualityScorecard({ id }: Props): JSX.Element {
                 </h3>
               </div>
               <div className="my-3 w-full flex items-center justify-center">
-                <Gauge value={m.value} color={m.color} mounted={mounted} />
+                <Gauge metric={m} />
               </div>
               <p className="text-xs text-muted">{m.description}</p>
             </article>
