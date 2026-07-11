@@ -1,0 +1,251 @@
+---
+/**
+ * HeroPipeline — the site's signature visual. A server-rendered SVG of the
+ * domain this portfolio is about: events flowing through stream compute into
+ * a bronze/silver/gold lakehouse and out to analytics. Zero JS, zero CLS
+ * (fixed viewBox), all colors from the design tokens, and every animation is
+ * SMIL/CSS gated behind prefers-reduced-motion — the static diagram is the
+ * reduced-motion experience, not a degraded one.
+ */
+---
+
+<div class="hero-pipeline w-full select-none" aria-hidden="false">
+  <svg
+    viewBox="0 0 520 340"
+    role="img"
+    aria-label="Animated data pipeline: events flow through stream compute into bronze, silver, and gold lakehouse layers, then out to an analytics dashboard"
+    class="w-full h-auto"
+  >
+    <defs>
+      <linearGradient id="hp-accent" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="rgb(var(--color-accent))" />
+        <stop offset="100%" stop-color="rgb(var(--color-accent-2))" />
+      </linearGradient>
+      <linearGradient id="hp-edge" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="rgb(var(--color-accent) / 0.1)" />
+        <stop offset="50%" stop-color="rgb(var(--color-accent) / 0.55)" />
+        <stop offset="100%" stop-color="rgb(var(--color-accent-2) / 0.35)" />
+      </linearGradient>
+    </defs>
+
+    <!-- Edges -->
+    <path
+      id="hp-e1"
+      d="M 96 84 C 130 84, 138 74, 168 74"
+      fill="none"
+      stroke="url(#hp-edge)"
+      stroke-width="1.5"
+    />
+    <path
+      id="hp-e2"
+      d="M 300 74 C 336 74, 340 52, 372 48"
+      fill="none"
+      stroke="url(#hp-edge)"
+      stroke-width="1.5"
+    />
+    <path
+      id="hp-e3"
+      d="M 428 138 C 428 176, 400 190, 368 212"
+      fill="none"
+      stroke="url(#hp-edge)"
+      stroke-width="1.5"
+    />
+
+    <!-- Source node -->
+    <g>
+      <rect x="14" y="56" width="82" height="56" rx="10" class="hp-node" />
+      <circle cx="38" cy="78" r="3" class="hp-src-dot" />
+      <circle cx="52" cy="78" r="3" class="hp-src-dot" style="animation-delay: 0.5s" />
+      <circle cx="66" cy="78" r="3" class="hp-src-dot" style="animation-delay: 1s" />
+      <text x="30" y="100" class="hp-label">events</text>
+    </g>
+
+    <!-- Stream compute node -->
+    <g>
+      <rect x="168" y="40" width="132" height="68" rx="10" class="hp-node" />
+      <text x="184" y="64" class="hp-label hp-label-strong">stream compute</text>
+      <text x="184" y="82" class="hp-sublabel">watermark 2m</text>
+      <text x="184" y="96" class="hp-sublabel">exactly-once</text>
+    </g>
+
+    <!-- Medallion stack -->
+    <g>
+      <rect x="372" y="30" width="112" height="26" rx="6" class="hp-layer hp-bronze" />
+      <text x="384" y="47" class="hp-layer-label" fill="rgb(var(--color-warn) / 0.9)">BRONZE</text>
+      <line x1="428" y1="56" x2="428" y2="66" class="hp-connector" />
+      <rect x="372" y="66" width="112" height="26" rx="6" class="hp-layer hp-silver" />
+      <text x="384" y="83" class="hp-layer-label" fill="rgb(var(--color-muted))">SILVER</text>
+      <line x1="428" y1="92" x2="428" y2="102" class="hp-connector" />
+      <rect x="372" y="102" width="112" height="26" rx="6" class="hp-layer hp-gold" />
+      <text x="384" y="119" class="hp-layer-label" fill="rgb(var(--color-warn))">GOLD</text>
+    </g>
+
+    <!-- Analytics node with self-drawing sparkline -->
+    <g>
+      <rect x="212" y="212" width="156" height="104" rx="10" class="hp-node" />
+      <text x="228" y="236" class="hp-label hp-label-strong">analytics</text>
+      <!-- mini bars -->
+      <rect x="228" y="284" width="10" height="18" rx="2" class="hp-bar" />
+      <rect x="243" y="276" width="10" height="26" rx="2" class="hp-bar" style="animation-delay: 0.15s" />
+      <rect x="258" y="290" width="10" height="12" rx="2" class="hp-bar" style="animation-delay: 0.3s" />
+      <!-- sparkline -->
+      <path
+        class="hp-sparkline"
+        d="M 284 296 L 296 284 L 306 290 L 318 268 L 330 276 L 344 252"
+        pathLength="1"
+        fill="none"
+        stroke="url(#hp-accent)"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <circle cx="344" cy="252" r="3.5" class="hp-spark-end" />
+    </g>
+
+    <!-- Traveling event dots (hidden under reduced motion) -->
+    <g class="hp-dots">
+      <circle r="3" class="hp-dot hp-dot-accent">
+        <animateMotion dur="2.8s" repeatCount="indefinite" begin="0s">
+          <mpath href="#hp-e1" />
+        </animateMotion>
+      </circle>
+      <circle r="3" class="hp-dot hp-dot-accent">
+        <animateMotion dur="2.8s" repeatCount="indefinite" begin="-1.4s">
+          <mpath href="#hp-e1" />
+        </animateMotion>
+      </circle>
+      <circle r="3" class="hp-dot hp-dot-accent">
+        <animateMotion dur="3.1s" repeatCount="indefinite" begin="-0.6s">
+          <mpath href="#hp-e2" />
+        </animateMotion>
+      </circle>
+      <circle r="3" class="hp-dot hp-dot-accent">
+        <animateMotion dur="3.1s" repeatCount="indefinite" begin="-2.1s">
+          <mpath href="#hp-e2" />
+        </animateMotion>
+      </circle>
+      <circle r="3" class="hp-dot hp-dot-cyan">
+        <animateMotion dur="3.4s" repeatCount="indefinite" begin="-0.9s">
+          <mpath href="#hp-e3" />
+        </animateMotion>
+      </circle>
+      <circle r="3" class="hp-dot hp-dot-cyan">
+        <animateMotion dur="3.4s" repeatCount="indefinite" begin="-2.4s">
+          <mpath href="#hp-e3" />
+        </animateMotion>
+      </circle>
+    </g>
+  </svg>
+</div>
+
+<style>
+  .hp-node {
+    fill: rgb(var(--color-surface) / 0.85);
+    stroke: rgb(var(--color-border-strong));
+    stroke-width: 1;
+  }
+  .hp-layer {
+    stroke-width: 0.75;
+  }
+  .hp-bronze {
+    fill: rgb(var(--color-warn) / 0.14);
+    stroke: rgb(var(--color-warn) / 0.35);
+  }
+  .hp-silver {
+    fill: rgb(var(--color-muted) / 0.14);
+    stroke: rgb(var(--color-muted) / 0.4);
+  }
+  .hp-gold {
+    fill: rgb(var(--color-warn) / 0.24);
+    stroke: rgb(var(--color-warn) / 0.55);
+  }
+  .hp-connector {
+    stroke: rgb(var(--color-muted) / 0.5);
+    stroke-width: 1;
+  }
+  .hp-label,
+  .hp-sublabel,
+  .hp-layer-label {
+    font-family: theme("fontFamily.mono");
+  }
+  .hp-label {
+    font-size: 11px;
+    fill: rgb(var(--color-muted));
+  }
+  .hp-label-strong {
+    fill: rgb(var(--color-fg));
+    font-weight: 600;
+  }
+  .hp-sublabel {
+    font-size: 9px;
+    fill: rgb(var(--color-muted) / 0.8);
+  }
+  .hp-layer-label {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.6px;
+  }
+  .hp-src-dot {
+    fill: rgb(var(--color-accent) / 0.8);
+    animation: hp-src-pulse 1.6s ease-in-out infinite;
+  }
+  .hp-bar {
+    fill: rgb(var(--color-accent) / 0.55);
+    transform-origin: bottom;
+    animation: hp-bar-pulse 3.2s ease-in-out infinite;
+  }
+  .hp-dot-accent {
+    fill: rgb(var(--color-accent));
+    filter: drop-shadow(0 0 4px rgb(var(--color-accent) / 0.7));
+  }
+  .hp-dot-cyan {
+    fill: rgb(var(--color-accent-2));
+    filter: drop-shadow(0 0 4px rgb(var(--color-accent-2) / 0.7));
+  }
+  .hp-sparkline {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: hp-draw 2.4s ease-out 0.4s forwards;
+  }
+  .hp-spark-end {
+    fill: rgb(var(--color-accent-2));
+    opacity: 0;
+    animation: hp-spark-end 2.4s ease-out 0.4s forwards,
+      hp-src-pulse 2s ease-in-out 2.8s infinite;
+  }
+
+  @keyframes hp-draw {
+    to { stroke-dashoffset: 0; }
+  }
+  @keyframes hp-spark-end {
+    0%, 90% { opacity: 0; }
+    100% { opacity: 1; }
+  }
+  @keyframes hp-src-pulse {
+    0%, 100% { opacity: 0.35; }
+    50% { opacity: 1; }
+  }
+  @keyframes hp-bar-pulse {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.9; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hp-dots {
+      display: none;
+    }
+    .hp-src-dot,
+    .hp-bar {
+      animation: none;
+      opacity: 0.8;
+    }
+    .hp-sparkline {
+      animation: none;
+      stroke-dashoffset: 0;
+    }
+    .hp-spark-end {
+      animation: none;
+      opacity: 1;
+    }
+  }
+</style>
