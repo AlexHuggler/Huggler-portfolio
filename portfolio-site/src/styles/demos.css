@@ -67,11 +67,6 @@
     50%      { opacity: 1; }
   }
 
-  /* Legacy alias kept during the redesign; same visual as .data-chip. */
-  .placeholder-banner {
-    @apply rounded-md border border-dashed border-accent/40 bg-accent/5 px-3 py-2 text-xs text-muted;
-  }
-
   .code-block {
     @apply rounded-md border border-border bg-surface-2 p-3 font-mono text-[12px] leading-snug overflow-x-auto;
   }

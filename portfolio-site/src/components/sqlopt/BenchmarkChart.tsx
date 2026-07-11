@@ -52,8 +52,11 @@ export default function BenchmarkChart() {
             Illustrative cost-reduction estimates &mdash; see methodology below
           </p>
         </div>
-        <span className="placeholder-banner inline-block">
-          illustrative
+        <span
+          className="data-chip"
+          title="Cost reductions are illustrative estimates from the seeded demo fixture, not production measurements."
+        >
+          Synthetic demo data
         </span>
       </header>
       <div className="h-72 w-full">

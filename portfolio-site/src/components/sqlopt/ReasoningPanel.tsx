@@ -67,8 +67,11 @@ export default function ReasoningPanel({ query }: Props) {
             Claude&rsquo;s reasoning
           </h3>
         </div>
-        <span className="placeholder-banner inline-block">
-          Illustrative · est. {query.estimated_cost_reduction_pct}% cost reduction
+        <span
+          className="data-chip"
+          title="Illustrative estimate from the seeded demo fixture, not a production measurement."
+        >
+          est. {query.estimated_cost_reduction_pct}% cost reduction · synthetic
         </span>
       </header>
 

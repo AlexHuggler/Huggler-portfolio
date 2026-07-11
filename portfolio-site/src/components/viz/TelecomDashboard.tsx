@@ -234,9 +234,13 @@ export default function TelecomDashboard(): JSX.Element {
   const k = telecom.kpis;
   return (
     <div>
-      <div className="placeholder-banner mb-4">
-        Synthetic, seeded data generated from the telecom CDR generator (50,000
-        rated call records across 12 months). Numbers are illustrative.
+      <div className="mb-4">
+        <span
+          className="data-chip"
+          title="Synthetic, seeded data generated from the telecom CDR generator (50,000 rated call records across 12 months). Numbers are illustrative."
+        >
+          Synthetic demo data · seed 42
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

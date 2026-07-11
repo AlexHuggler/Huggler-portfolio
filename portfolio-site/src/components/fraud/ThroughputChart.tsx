@@ -73,8 +73,11 @@ export default function ThroughputChart() {
         <div className="text-right text-[11px] text-muted leading-tight">
           <p className="font-mono">latency p50/p95/p99</p>
           <p>
-            <span className="placeholder-banner inline-block px-1.5 py-0">
-              illustrative placeholders
+            <span
+              className="data-chip"
+              title="Latency percentiles are illustrative placeholders; the measured detector numbers live in the repo README."
+            >
+              Synthetic demo data
             </span>
           </p>
         </div>

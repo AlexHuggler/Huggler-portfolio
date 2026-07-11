@@ -250,9 +250,13 @@ export default function SqlOptDashboard(): JSX.Element {
   const k = sqlopt.kpis;
   return (
     <div>
-      <div className="placeholder-banner mb-4">
-        Simulated 50-query optimization workload across 5 categories. Cost
-        reductions and analyzer findings are illustrative.
+      <div className="mb-4">
+        <span
+          className="data-chip"
+          title="Simulated 50-query optimization workload across 5 categories. Cost reductions and analyzer findings are illustrative."
+        >
+          Synthetic demo data · seed 42
+        </span>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

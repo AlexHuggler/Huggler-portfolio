@@ -128,9 +128,13 @@ export default function DataQualityScorecard({ id }: Props): JSX.Element {
 
   return (
     <div id={id}>
-      <div className="placeholder-banner mb-3">
-        Values are illustrative placeholders for the demo - real numbers come
-        from the project's Great Expectations + dbt test runs.
+      <div className="mb-3">
+        <span
+          className="data-chip"
+          title="Values are illustrative placeholders for the demo - the measured numbers come from the project's dbt test runs (41/41 passing)."
+        >
+          Synthetic demo data
+        </span>
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {METRICS.map((m) => {

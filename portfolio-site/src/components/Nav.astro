@@ -73,15 +73,31 @@ const isActive = (href: string) =>
 </header>
 
 <style>
-  .nav-link-active::after {
+  .nav-link::after {
     content: "";
     position: absolute;
     left: 0;
     right: 0;
     bottom: -4px;
     height: 1.5px;
-    background: theme("colors.accent");
+    background: linear-gradient(
+      90deg,
+      rgb(var(--color-accent)),
+      rgb(var(--color-accent-2))
+    );
     border-radius: 1px;
     opacity: 0.9;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 200ms ease;
+  }
+  .nav-link:hover::after,
+  .nav-link-active::after {
+    transform: scaleX(1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-link::after {
+      transition: none;
+    }
   }
 </style>
