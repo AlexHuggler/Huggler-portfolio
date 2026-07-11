@@ -1,9 +1,6 @@
-@import "@fontsource/inter/400.css";
-@import "@fontsource/inter/500.css";
-@import "@fontsource/inter/600.css";
-@import "@fontsource/inter/700.css";
-@import "@fontsource/jetbrains-mono/400.css";
-@import "@fontsource/jetbrains-mono/500.css";
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
 
 @import "./demos.css";
 
@@ -12,12 +9,66 @@
 @tailwind utilities;
 
 @layer base {
+  /*
+   * Design tokens — the single source of truth for every color on the site.
+   * Stored as space-separated RGB triplets so Tailwind can compose alpha
+   * (rgb(var(--x) / 0.4)). Light values on :root, dark overrides on
+   * :root.dark. Chart/diagram code (viz/theme.ts, MermaidBlock) reads these
+   * same custom properties at runtime — change them here, everything follows.
+   * Chart series colors are CVD-validated against both surfaces; keep order.
+   */
   :root {
     color-scheme: light;
+    --color-bg: 250 250 250; /* #fafafa */
+    --color-surface: 255 255 255; /* #ffffff */
+    --color-surface-2: 244 244 245; /* #f4f4f5 */
+    --color-border: 228 228 231; /* #e4e4e7 */
+    --color-border-strong: 212 212 216; /* #d4d4d8 */
+    --color-fg: 17 17 19; /* #111113 */
+    --color-muted: 82 82 91; /* #52525b */
+    --color-accent: 37 99 235; /* #2563eb */
+    --color-accent-fg: 29 78 216; /* #1d4ed8 — text/links on bg */
+    --color-accent-2: 8 145 178; /* #0891b2 — signature cyan */
+    --color-success: 5 150 105; /* #059669 */
+    --color-warn: 180 83 9; /* #b45309 */
+    --color-danger: 220 38 38; /* #dc2626 */
+    --gradient-accent: linear-gradient(
+      135deg,
+      rgb(var(--color-accent)),
+      rgb(var(--color-accent-2))
+    );
+    /* Categorical chart series — validated (dataviz six checks) on #ffffff */
+    --viz-series-1: #2563eb;
+    --viz-series-2: #b45309;
+    --viz-series-3: #7c3aed;
+    --viz-series-4: #059669;
+    --viz-series-5: #dc2626;
+    --viz-series-6: #0891b2;
   }
   :root.dark {
     color-scheme: dark;
+    --color-bg: 10 10 12; /* #0a0a0c */
+    --color-surface: 17 17 20; /* #111114 */
+    --color-surface-2: 22 22 27; /* #16161b */
+    --color-border: 35 35 41; /* #232329 */
+    --color-border-strong: 46 46 54; /* #2e2e36 */
+    --color-fg: 237 237 240; /* #ededf0 */
+    --color-muted: 161 161 170; /* #a1a1aa */
+    --color-accent: 59 130 246; /* #3b82f6 */
+    --color-accent-fg: 96 165 250; /* #60a5fa */
+    --color-accent-2: 34 211 238; /* #22d3ee */
+    --color-success: 52 211 153; /* #34d399 */
+    --color-warn: 251 191 36; /* #fbbf24 */
+    --color-danger: 248 113 113; /* #f87171 */
+    /* Categorical chart series — validated (dataviz six checks) on #111114 */
+    --viz-series-1: #3b82f6;
+    --viz-series-2: #d97706;
+    --viz-series-3: #a855f7;
+    --viz-series-4: #059669;
+    --viz-series-5: #ef4444;
+    --viz-series-6: #0891b2;
   }
+
   html {
     font-family: theme("fontFamily.sans");
     -webkit-font-smoothing: antialiased;
@@ -27,53 +78,53 @@
   @media (prefers-reduced-motion: reduce) {
     html { scroll-behavior: auto; }
   }
-  html.dark body {
-    background-color: theme("colors.bg");
-    color: theme("colors.fg");
-  }
-  html:not(.dark) body {
-    background-color: theme("colors.bg-light");
-    color: theme("colors.fg-light");
-  }
   body {
+    @apply bg-bg text-fg;
     transition: background-color 150ms ease, color 150ms ease;
   }
+  h1, h2, h3 {
+    font-family: theme("fontFamily.display");
+  }
   ::selection {
-    background-color: theme("colors.accent");
+    background-color: rgb(var(--color-accent));
     color: white;
   }
   a {
     transition: color 150ms ease, opacity 150ms ease;
+  }
+  :focus-visible {
+    outline: 2px solid rgb(var(--color-accent-fg));
+    outline-offset: 2px;
   }
 }
 
 @layer components {
   .grid-bg {
     background-image:
-      linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+      linear-gradient(to right, rgb(var(--color-fg) / 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgb(var(--color-fg) / 0.04) 1px, transparent 1px);
     background-size: 48px 48px;
     mask-image: radial-gradient(ellipse at top, black 30%, transparent 70%);
   }
-  html:not(.dark) .grid-bg {
-    background-image:
-      linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-  }
   .pill {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-border px-2.5 py-0.5 text-xs font-mono;
-  }
-  html:not(.dark) .pill {
-    @apply border-border-light;
+    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-2.5 py-0.5 text-xs font-mono;
   }
   .btn {
-    @apply inline-flex items-center gap-2 rounded-md border border-border px-3.5 py-2 text-sm font-medium hover:opacity-80;
+    @apply inline-flex items-center gap-2 rounded-md border border-border bg-surface px-3.5 py-2 text-sm font-medium;
+    transition: border-color 150ms ease, background-color 150ms ease,
+      transform 100ms ease;
   }
-  html:not(.dark) .btn {
-    @apply border-border-light;
+  .btn:hover {
+    @apply border-border-strong;
+  }
+  .btn:active {
+    transform: scale(0.98);
   }
   .btn-primary {
-    @apply border-accent bg-accent text-white hover:opacity-90;
+    @apply border-accent bg-accent text-white;
+  }
+  .btn-primary:hover {
+    @apply border-accent bg-accent/90;
   }
   .prose-callout {
     @apply rounded-md border border-border p-4 text-sm text-muted;
@@ -83,8 +134,8 @@
     inset: 0;
     pointer-events: none;
     background: radial-gradient(
-      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(37, 99, 235, 0.12),
+      600px circle at var(--mouse-x, 70%) var(--mouse-y, 30%),
+      rgb(var(--color-accent) / 0.12),
       transparent 40%
     );
     transition: opacity 300ms ease;
@@ -93,15 +144,15 @@
     transition: border-color 200ms ease, box-shadow 200ms ease, transform 200ms ease;
   }
   .card-glow:hover {
-    border-color: rgba(37, 99, 235, 0.4);
+    border-color: rgb(var(--color-accent) / 0.4);
     box-shadow:
-      0 0 0 1px rgba(37, 99, 235, 0.15),
-      0 8px 30px -8px rgba(37, 99, 235, 0.20);
+      0 0 0 1px rgb(var(--color-accent) / 0.15),
+      0 8px 30px -8px rgb(var(--color-accent) / 0.2);
   }
 
   /* Metric card — subtle hover and monospace polish without becoming flashy. */
   .metric-card {
-    @apply relative overflow-hidden rounded-lg border border-border bg-bg/40 p-5;
+    @apply relative overflow-hidden rounded-lg border border-border bg-surface p-5;
     transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
   }
   .metric-card::before {
@@ -112,35 +163,33 @@
     background: linear-gradient(
       120deg,
       transparent 0%,
-      rgba(37, 99, 235, 0.06) 50%,
+      rgb(var(--color-accent) / 0.06) 50%,
       transparent 100%
     );
     opacity: 0;
     transition: opacity 220ms ease;
   }
   .metric-card:hover {
-    border-color: rgba(37, 99, 235, 0.4);
+    border-color: rgb(var(--color-accent) / 0.4);
     box-shadow:
-      0 0 0 1px rgba(37, 99, 235, 0.12),
-      0 8px 28px -10px rgba(37, 99, 235, 0.22);
+      0 0 0 1px rgb(var(--color-accent) / 0.12),
+      0 8px 28px -10px rgb(var(--color-accent) / 0.22);
     transform: translateY(-1px);
   }
   .metric-card:hover::before {
     opacity: 1;
   }
-  html:not(.dark) .metric-card {
-    @apply border-border-light bg-white;
-  }
 
   /* Featured project card — homepage projects. */
   .featured-card {
+    @apply bg-surface;
     transition: border-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
   }
   .featured-card:hover {
-    border-color: rgba(37, 99, 235, 0.5);
+    border-color: rgb(var(--color-accent) / 0.5);
     box-shadow:
-      0 0 0 1px rgba(37, 99, 235, 0.12),
-      0 14px 40px -16px rgba(37, 99, 235, 0.30);
+      0 0 0 1px rgb(var(--color-accent) / 0.12),
+      0 14px 40px -16px rgb(var(--color-accent) / 0.3);
     transform: translateY(-2px);
   }
   .featured-card-edge {
@@ -154,7 +203,8 @@
     background: linear-gradient(
       180deg,
       transparent 0%,
-      rgba(37, 99, 235, 0.55) 50%,
+      rgb(var(--color-accent)) 35%,
+      rgb(var(--color-accent-2)) 65%,
       transparent 100%
     );
     opacity: 0;
@@ -162,10 +212,7 @@
   }
   .featured-card:hover .featured-card-edge,
   .featured-card:focus-within .featured-card-edge {
-    opacity: 1;
-  }
-  html:not(.dark) .featured-card {
-    @apply border-border-light bg-white;
+    opacity: 0.7;
   }
 
   /* Focus list — small accent bullets with subtle hover sweep. */
@@ -179,7 +226,7 @@
     top: 0.55rem;
     width: 0.55rem;
     height: 1px;
-    background: linear-gradient(90deg, rgba(37, 99, 235, 0.85), transparent);
+    background: linear-gradient(90deg, rgb(var(--color-accent) / 0.85), transparent);
   }
 
   /* Hero data-node decoration — tasteful, non-distracting. */
@@ -188,8 +235,8 @@
     width: 6px;
     height: 6px;
     border-radius: 9999px;
-    background: rgba(37, 99, 235, 0.45);
-    box-shadow: 0 0 12px rgba(37, 99, 235, 0.35);
+    background: rgb(var(--color-accent) / 0.45);
+    box-shadow: 0 0 12px rgb(var(--color-accent) / 0.35);
     opacity: 0;
     animation: hero-node-pulse 6.5s ease-in-out infinite;
   }
@@ -199,10 +246,19 @@
     60%      { opacity: 0.55; transform: scale(1); }
   }
 
+  /* Gradient text for the signature accent — used sparingly (one per page). */
+  .text-gradient-accent {
+    background: var(--gradient-accent);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .hero-glow {
       transition: none;
     }
+    .btn,
     .card-glow,
     .metric-card,
     .featured-card {

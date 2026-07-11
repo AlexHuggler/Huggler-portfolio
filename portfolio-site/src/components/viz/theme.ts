@@ -1,10 +1,11 @@
 /**
  * Theme tokens + small option helpers shared by the ECharts dashboards.
  *
- * The site toggles dark/light by adding/removing the `dark` class on
- * <html> (see ThemeToggle.astro). Charts read the current mode and rebuild
- * their option with the matching tokens, so they restyle live on toggle.
- * Hex values mirror tailwind.config.mjs.
+ * All colors are read at runtime from the CSS custom properties defined in
+ * src/styles/global.css — the single source of truth. The site toggles
+ * dark/light by adding/removing the `dark` class on <html>; charts read the
+ * current computed values and rebuild their option, so they restyle live on
+ * toggle. Hex fallbacks below mirror global.css for non-DOM contexts (tests).
  */
 
 export type VizMode = "dark" | "light";
@@ -13,44 +14,66 @@ export interface VizTokens {
   fg: string;
   muted: string;
   accent: string;
+  accent2: string;
   border: string;
   grid: string;
   tooltipBg: string;
   series: string[];
 }
 
-/** Categorical series palette (accent first), reused across dashboards. */
-export const VIZ_SERIES = [
-  "#2563eb", // accent blue
-  "#10b981", // emerald
-  "#a855f7", // violet
-  "#f59e0b", // amber
-  "#ef4444", // red
-  "#06b6d4", // cyan
-];
+/** Static fallbacks mirroring global.css, keyed by mode. */
+const FALLBACK: Record<VizMode, Omit<VizTokens, "series"> & { series: string[] }> = {
+  light: {
+    fg: "#111113",
+    muted: "#52525b",
+    accent: "#2563eb",
+    accent2: "#0891b2",
+    border: "#e4e4e7",
+    grid: "#e4e4e7",
+    tooltipBg: "#ffffff",
+    // Categorical series validated against #ffffff (dataviz six checks).
+    series: ["#2563eb", "#b45309", "#7c3aed", "#059669", "#dc2626", "#0891b2"],
+  },
+  dark: {
+    fg: "#ededf0",
+    muted: "#a1a1aa",
+    accent: "#3b82f6",
+    accent2: "#22d3ee",
+    border: "#232329",
+    grid: "#26262b",
+    tooltipBg: "#111114",
+    // Categorical series validated against #111114 (dataviz six checks).
+    series: ["#3b82f6", "#d97706", "#a855f7", "#059669", "#ef4444", "#0891b2"],
+  },
+};
+
+/** Read one CSS custom property off <html>, with a fallback. */
+export function cssToken(name: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback;
+  const raw = getComputedStyle(document.documentElement)
+    .getPropertyValue(name)
+    .trim();
+  if (!raw) return fallback;
+  // Color tokens are stored as "R G B" triplets; viz tokens as plain hex.
+  return /^\d+ \d+ \d+$/.test(raw) ? `rgb(${raw.split(/\s+/).join(", ")})` : raw;
+}
 
 export function getTokens(mode: VizMode): VizTokens {
-  if (mode === "light") {
-    return {
-      fg: "#0a0a0a",
-      muted: "#52525b",
-      accent: "#2563eb",
-      border: "#e4e4e7",
-      grid: "#e4e4e7",
-      tooltipBg: "#ffffff",
-      series: VIZ_SERIES,
-    };
-  }
+  const fb = FALLBACK[mode];
   return {
-    fg: "#ededed",
-    muted: "#a1a1aa",
-    accent: "#2563eb",
-    border: "#1f1f23",
-    grid: "#26262b",
-    tooltipBg: "#0a0a0a",
-    series: VIZ_SERIES,
+    fg: cssToken("--color-fg", fb.fg),
+    muted: cssToken("--color-muted", fb.muted),
+    accent: cssToken("--color-accent", fb.accent),
+    accent2: cssToken("--color-accent-2", fb.accent2),
+    border: cssToken("--color-border", fb.border),
+    grid: cssToken("--color-border", fb.grid),
+    tooltipBg: cssToken("--color-surface", fb.tooltipBg),
+    series: fb.series.map((hex, i) => cssToken(`--viz-series-${i + 1}`, hex)),
   };
 }
+
+/** Categorical series palette for the current document theme. */
+export const VIZ_SERIES = FALLBACK.dark.series;
 
 /** Tooltip styling that follows the theme. */
 export function tooltip(t: VizTokens, extra: Record<string, unknown> = {}) {
