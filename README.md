@@ -69,6 +69,16 @@ gh repo create alexhuggler/fraud-signals --public --source=. --push
 - All licenses are MIT.
 - No real secrets, API keys, or PII anywhere in this repo.
 
+## Working on this repo with Claude
+
+`.claude/skills/` carries two skills that load automatically in Claude Code
+sessions: `frontend-design` (vendored from
+[anthropics/skills](https://github.com/anthropics/skills), Apache-2.0) for
+general premium-UI guidance, and `portfolio-design-system` documenting this
+repo's design tokens, chart-color validation, and measurement/honesty
+conventions. Read the latter before changing site styling or quoting any
+number.
+
 ## License
 
 MIT. See individual project `LICENSE` files.
