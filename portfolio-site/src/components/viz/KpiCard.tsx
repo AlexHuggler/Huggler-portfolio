@@ -1,3 +1,5 @@
+import type { JSX } from "react";
+
 interface KpiCardProps {
   label: string;
   value: string;

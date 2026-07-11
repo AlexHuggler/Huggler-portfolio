@@ -2,8 +2,12 @@
 
 This monorepo contains Alex Huggler's public data engineering portfolio: a static
 showcase site plus three production-quality data engineering projects. Each
-subdirectory is independently structured (own `LICENSE`, `.gitignore`, `README`,
-CI workflow) so it can later be split into its own GitHub repository.
+subdirectory is independently structured (own `LICENSE`, `.gitignore`, `README`)
+so it can later be split into its own GitHub repository. CI workflows for all
+projects live at the repo root in `.github/workflows/` (GitHub only runs
+workflows from the root path): `ci-fraud-signals.yml`,
+`ci-telecom-lakehouse.yml`, `ci-ai-sql-optimizer.yml`, and `deploy.yml` for
+the site.
 
 ## Contents
 
@@ -58,8 +62,10 @@ gh repo create alexhuggler/fraud-signals --public --source=. --push
 
 - Python projects use the `src/` layout with `pyproject.toml` (no
   `requirements.txt`).
-- Architecture diagrams are inline Mermaid in each `README.md` (no image files).
-- Every project has GitHub Actions CI running test + lint on push to `main`.
+- Architecture diagrams are inline Mermaid in each `README.md`; rendered
+  screenshots and captures live in each project's `docs/img/`.
+- Every project has GitHub Actions CI (root `.github/workflows/ci-*.yml`)
+  running lint + test + demo on push to `main`.
 - All licenses are MIT.
 - No real secrets, API keys, or PII anywhere in this repo.
 

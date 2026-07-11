@@ -32,7 +32,7 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN as
 ---
 
 <!doctype html>
-<html lang="en" class="dark">
+<html lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -59,11 +59,21 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN as
     )}
     <ClientRouter />
     <script is:inline>
-      // Theme bootstrap — runs before paint to avoid flash.
-      const stored = localStorage.getItem("theme");
-      const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      const theme = stored ?? (prefersDark ? "dark" : "dark");
-      document.documentElement.classList.toggle("dark", theme === "dark");
+      // Theme bootstrap — runs before paint to avoid flash. Stored choice
+      // wins; otherwise follow the system preference. Re-applied after every
+      // view transition because the incoming <html> carries no theme class.
+      (() => {
+        const applyTheme = () => {
+          const stored = localStorage.getItem("theme");
+          const prefersDark = window.matchMedia(
+            "(prefers-color-scheme: dark)",
+          ).matches;
+          const theme = stored ?? (prefersDark ? "dark" : "light");
+          document.documentElement.classList.toggle("dark", theme === "dark");
+        };
+        applyTheme();
+        document.addEventListener("astro:after-swap", applyTheme);
+      })();
     </script>
     {cfAnalyticsToken && (
       <script

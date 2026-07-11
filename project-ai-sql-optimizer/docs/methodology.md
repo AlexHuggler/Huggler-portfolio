@@ -2,16 +2,18 @@
 
 ## Corpus
 
-Fifty queries split across five categories. Five are fully written; the
-remaining 45 are placeholders the maintainer fills in over time.
+A seeded benchmark corpus of five categories, one fully specified query per
+category, each with explicit ground truth in `corpus/ground_truth.yaml`.
+The corpus is designed to grow: adding a query is one `.sql` file plus one
+ground-truth entry, and the benchmark discovers both automatically.
 
-| Category | Count | What we test |
-| --- | --- | --- |
-| join_optimization | 10 | Broadcast hint placement, join key selection, join reordering |
-| aggregation_rewrite | 10 | Correlated subqueries -> single GROUP BY, window functions |
-| cte_flattening | 10 | Multiple scans of the same source -> single scan with CASE |
-| partition_pruning | 10 | Predicate cannot be pushed -> rewrite to use the partition column directly |
-| broadcast_join | 10 | Small-dim joins emitted as shuffled hash, should be broadcast |
+| Category | What we test |
+| --- | --- |
+| join_optimization | Broadcast hint placement, join key selection, join reordering |
+| aggregation_rewrite | Correlated subqueries -> single GROUP BY, window functions |
+| cte_flattening | Multiple scans of the same source -> single scan with CASE |
+| partition_pruning | Predicate cannot be pushed -> rewrite to use the partition column directly |
+| broadcast_join | Small-dim joins emitted as shuffled hash, should be broadcast |
 
 ## Scoring
 

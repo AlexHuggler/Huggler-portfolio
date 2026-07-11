@@ -1,22 +1,22 @@
-name: CI
+name: ai-sql-optimizer CI
 
 on:
   push:
     branches: [main]
     paths:
-      - "project-fraud-signals/**"
-      - ".github/workflows/ci.yml"
+      - "project-ai-sql-optimizer/**"
+      - ".github/workflows/ci-ai-sql-optimizer.yml"
   pull_request:
     paths:
-      - "project-fraud-signals/**"
-      - ".github/workflows/ci.yml"
+      - "project-ai-sql-optimizer/**"
+      - ".github/workflows/ci-ai-sql-optimizer.yml"
 
 jobs:
   test:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: project-fraud-signals
+        working-directory: project-ai-sql-optimizer
     steps:
       - uses: actions/checkout@v4
 

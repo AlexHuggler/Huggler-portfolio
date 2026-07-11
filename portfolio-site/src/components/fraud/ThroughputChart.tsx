@@ -111,7 +111,7 @@ export default function ThroughputChart() {
                 fontSize: 12,
               }}
               labelFormatter={(v) => `t=${v}s`}
-              formatter={(v: number) => [`${v.toFixed(1)} ev/s`, "Throughput"]}
+              formatter={(v) => [`${Number(v).toFixed(1)} ev/s`, "Throughput"]}
             />
             <Area
               type="monotone"

@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import EChart from "./EChart";
 import KpiCard from "./KpiCard";
 import DataTable from "./DataTable";
@@ -250,8 +251,8 @@ export default function SqlOptDashboard(): JSX.Element {
   return (
     <div>
       <div className="placeholder-banner mb-4">
-        Seeded benchmark over the 50-query corpus across 5 optimization
-        categories. Cost reductions and analyzer findings are illustrative.
+        Simulated 50-query optimization workload across 5 categories. Cost
+        reductions and analyzer findings are illustrative.
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

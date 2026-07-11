@@ -121,8 +121,8 @@ export default function BenchmarkChart() {
         )}
       </div>
       <p className="mt-2 text-[11px] text-muted">
-        Numbers reflect planner heuristics on the 50-query corpus, not
-        production runs. EXPLAIN-based scoring noted in the repo.
+        Numbers reflect planner heuristics on the seeded benchmark corpus,
+        not production runs. EXPLAIN-based scoring noted in the repo.
       </p>
       <table className="visually-hidden">
         <caption>Estimated cost reduction by query</caption>

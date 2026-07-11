@@ -1,15 +1,15 @@
-name: CI
+name: telecom-lakehouse CI
 
 on:
   push:
     branches: [main]
     paths:
       - "project-telecom-lakehouse/**"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/ci-telecom-lakehouse.yml"
   pull_request:
     paths:
       - "project-telecom-lakehouse/**"
-      - ".github/workflows/ci.yml"
+      - ".github/workflows/ci-telecom-lakehouse.yml"
 
 jobs:
   test:

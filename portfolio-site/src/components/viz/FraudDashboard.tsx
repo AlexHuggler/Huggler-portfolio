@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import EChart from "./EChart";
 import KpiCard from "./KpiCard";
 import DataTable from "./DataTable";

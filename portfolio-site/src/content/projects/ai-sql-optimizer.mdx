@@ -1,6 +1,6 @@
 ---
 title: "AI-Assisted SQL Optimizer"
-tagline: "CLI that uses Claude to suggest Spark/Snowflake query rewrites and partition strategies. Benchmarked against a 50-query corpus."
+tagline: "CLI that uses Claude to suggest Spark/Snowflake query rewrites and partition strategies. Benchmarked against a seeded corpus with explicit ground truth."
 order: 3
 stack:
   - "Python"
@@ -10,7 +10,7 @@ stack:
   - "pytest"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer"
 results:
-  - "50-query corpus across 5 optimization categories with labeled ground truth"
+  - "Seeded benchmark corpus across 5 optimization categories with labeled ground truth"
   - "Heuristic analyzer flags select-*, cross joins, missing partition predicates, and broadcast opportunities"
   - "Suggestions scored on keyword overlap, EXPLAIN cost delta, and human review"
 ---
@@ -56,7 +56,7 @@ and human review.
 
 ## Results
 
-The benchmark runs the CLI over the 50-query corpus and scores each suggestion on three
+The benchmark runs the CLI over the seeded corpus and scores each suggestion on three
 axes: keyword overlap with the labeled ground truth in `corpus/ground_truth.yaml`, EXPLAIN
 cost delta when an engine is available, and human review. The heuristic analyzer alone
 (no API key required) flags `SELECT *`, cross joins, missing partition predicates, broadcast

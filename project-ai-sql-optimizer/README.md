@@ -2,9 +2,9 @@
 
 A small CLI that uses Claude (via the Anthropic SDK) to suggest Spark SQL and
 Snowflake query rewrites - partition pruning, broadcast joins, CTE
-flattening, and friends. The tool is benchmarked against a 50-query corpus
-with explicit ground truth, and runs in a heuristic-only `--dry-run` mode
-when no API key is configured.
+flattening, and friends. The tool is benchmarked against a seeded
+5-category corpus with explicit ground truth per query (designed to grow),
+and runs in a heuristic-only `--dry-run` mode when no API key is configured.
 
 ## Problem
 
@@ -66,10 +66,11 @@ sql-optimizer benchmark [--dry-run] [--limit 50]
 
 ## Methodology
 
-Fifty queries across five categories: join_optimization,
-aggregation_rewrite, cte_flattening, partition_pruning, broadcast_join.
-Five are fully written; the rest are placeholders the maintainer fills
-in over time.
+Five categories, one fully specified query per category:
+join_optimization, aggregation_rewrite, cte_flattening,
+partition_pruning, broadcast_join. Every query has an explicit
+ground-truth entry, and the corpus is designed to grow - adding a query
+is one `.sql` file plus one ground-truth entry.
 
 Each ground-truth entry lists expected keywords (substrings the
 suggestion should mention) and expected cost direction. The benchmark

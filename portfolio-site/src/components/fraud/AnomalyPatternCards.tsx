@@ -1,3 +1,4 @@
+import type { JSX } from "react";
 import { motion, useReducedMotion as useFmReducedMotion } from "framer-motion";
 import { Activity, Globe, BarChart3 } from "lucide-react";
 

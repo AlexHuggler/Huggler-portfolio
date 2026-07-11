@@ -8,13 +8,13 @@ a Worker that runs the SQL optimizer demo against the live Anthropic API.
 ## Stack
 
 - Astro 5.x with View Transitions API
-- React 18 islands (hydrated `client:visible`) for interactive demos
+- React 19 islands (hydrated `client:visible`) for interactive demos
 - Tailwind CSS (custom dark/light palette)
 - TypeScript (strict mode, no `any`)
 - Inter (body) + JetBrains Mono (code/pills) via `@fontsource`
 - Mermaid for inline architecture diagrams
-- Recharts (charts), React Flow (DAG/lineage), Framer Motion (motion),
-  Monaco editor + react-diff-viewer-continued (SQL demo)
+- ECharts (dashboards + charts), React Flow (DAG/lineage), Framer Motion
+  (motion), Monaco editor + react-diff-viewer-continued (SQL demo)
 
 ## Getting started
 
@@ -42,13 +42,12 @@ npm run preview    # preview the production build
 | Project metadata (titles, taglines, repo URLs) | `src/content/projects/*.mdx` |
 | Static demo data | `src/data/*.json` |
 | About page | `src/pages/about.astro` |
-| Resume PDF | `public/alex-huggler-resume.pdf` |
-| OG image | `public/og-image.svg` (re-export to `og-image.png`) |
+| Resume PDF | `public/Alexandre_Huggler_Resume.pdf` (path set in `src/site.config.ts`) |
+| OG image | regenerate with `node scripts/generate-og.mjs` → `public/og-image.png` |
 | Theme palette | `tailwind.config.mjs` |
 
-The interactive project pages own their routes directly. The legacy
-`[slug].astro` dynamic route now skips those three slugs and only
-renders any future MDX-only project entries.
+The interactive project pages own their routes directly and render the
+long-form narrative from each project's MDX entry.
 
 ## Project demos
 

@@ -3,7 +3,7 @@
     "synthetic": true,
     "seed": 42,
     "source": "project-ai-sql-optimizer/corpus",
-    "note": "50-query corpus across 5 optimization categories; cost reductions and analyzer findings are seeded illustrative values.",
+    "note": "Simulated 50-query optimization workload across 5 categories; cost reductions and analyzer findings are seeded illustrative values.",
     "generated_by": "portfolio-site/scripts/generate_viz_data.py"
   },
   "kpis": {

@@ -1,3 +1,5 @@
+import type { JSX } from "react";
+
 interface DataTableProps {
   caption: string;
   columns: string[];
