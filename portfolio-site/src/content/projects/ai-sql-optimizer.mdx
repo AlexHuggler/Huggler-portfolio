@@ -10,9 +10,9 @@ stack:
   - "pytest"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer"
 results:
-  - "Seeded benchmark corpus across 5 optimization categories with labeled ground truth"
+  - "0.67 avg keyword overlap vs ground truth in heuristic-only dry-run mode (measured via make benchmark)"
+  - "Correct findings on 4 of 5 corpus queries at ~68ms analyzer latency per query"
   - "Heuristic analyzer flags select-*, cross joins, missing partition predicates, and broadcast opportunities"
-  - "Suggestions scored on keyword overlap, EXPLAIN cost delta, and human review"
 ---
 
 import MermaidBlock from "../../components/MermaidBlock.astro";

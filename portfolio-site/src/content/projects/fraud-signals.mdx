@@ -11,9 +11,9 @@ stack:
   - "Python"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-fraud-signals"
 results:
-  - "~50 events/sec sustained on a single local Spark executor (synthetic load)"
+  - "~110k events/sec detector throughput, measured single-process via make eval (seed 42)"
+  - "Impossible-travel detector at 1.00 precision / 1.00 recall vs seeded ground truth (account-level)"
   - "Exactly-once Delta writes with a 2-minute watermark for late-arriving events"
-  - "Velocity, impossible-travel, and amount-outlier detectors validated on seeded ground truth"
 ---
 
 import MermaidBlock from "../../components/MermaidBlock.astro";

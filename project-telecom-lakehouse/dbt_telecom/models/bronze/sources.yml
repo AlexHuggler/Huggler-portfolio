@@ -7,8 +7,8 @@ sources:
     tables:
       - name: cdr_raw
         description: "Synthetic CDR (Call Detail Record) parquet, partitioned by ingest_date"
-        external:
-          location: "data/raw"
+        meta:
+          external_location: "read_parquet('../data/raw/*/*.parquet', hive_partitioning = 1)"
         columns:
           - name: cdr_id
             tests: [unique, not_null]

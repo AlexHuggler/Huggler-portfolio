@@ -46,6 +46,9 @@ if events.empty:
     st.info("No events found yet. Run `make run-producer` (or `make demo`) first.")
     st.stop()
 
+# detect_all parses `ts` as ISO strings, so score before the datetime cast.
+anomalies = detect_all(events.to_dict(orient="records"))
+
 events["ts"] = pd.to_datetime(events["ts"])
 events = events.sort_values("ts")
 
@@ -56,7 +59,6 @@ duration = (events["ts"].max() - events["ts"].min()).total_seconds() or 1
 col3.metric("Events / sec (sampled)", f"{len(events) / duration:.1f}")
 col4.metric("Mean amount", f"${events['amount'].mean():.2f}")
 
-anomalies = detect_all(events.to_dict(orient="records"))
 anom_df = pd.DataFrame(
     [
         {

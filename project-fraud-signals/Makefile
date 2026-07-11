@@ -1,4 +1,4 @@
-.PHONY: install test lint format run run-producer run-stream run-dashboard demo clean
+.PHONY: install test lint format run run-producer run-stream run-dashboard demo eval clean
 
 UV ?= uv
 PY ?= $(UV) run python
@@ -37,6 +37,13 @@ demo:
 	@echo "Demo complete. See data/events.jsonl for the raw events."
 
 run: demo
+
+eval:
+	@echo "==> Generating a labeled evaluation set (seed 42, ~17k simulated events)"
+	$(PY) -m producer.generate --sink jsonl --rate 50 --duration 300 --accounts 1000 --out data/eval_events.jsonl
+	@echo ""
+	@echo "==> Scoring detectors against the embedded ground-truth labels"
+	$(PY) -m anomaly.evaluate data/eval_events.jsonl
 
 clean:
 	rm -rf data/events.jsonl checkpoints/ spark-warehouse/ .pytest_cache .ruff_cache dist build *.egg-info

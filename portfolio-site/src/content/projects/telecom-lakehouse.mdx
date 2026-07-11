@@ -11,9 +11,9 @@ stack:
   - "Terraform"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-telecom-lakehouse"
 results:
-  - "50,000 synthetic CDRs per run, partitioned by ingest_date across 3 days"
-  - "Great Expectations contracts enforce column types, nulls, and ranges at Bronze"
-  - "Gold marts (revenue_by_market, arpu_monthly, churn_signals) rebuilt on every dbt run"
+  - "49,998 CDRs raw to Gold in 0.53s (~94k rows/sec single process, measured via make demo)"
+  - "41 of 41 dbt tests passing across 8 bronze/silver/gold models (measured via make dbt-test)"
+  - "10-expectation Great Expectations data contract specified at the Bronze boundary"
 ---
 
 import MermaidBlock from "../../components/MermaidBlock.astro";

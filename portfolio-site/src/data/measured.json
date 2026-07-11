@@ -1,0 +1,116 @@
+{
+  "measuredAt": "2026-07",
+  "environment": "Linux container, single process, no-infra demo paths; all data synthetic (seed 42)",
+  "site": [
+    {
+      "value": "50k rows",
+      "label": "raw to Gold in 0.53s",
+      "sublabel": "medallion transform, single process",
+      "method": "telecom-lakehouse: make demo"
+    },
+    {
+      "value": "41/41",
+      "label": "dbt tests passing",
+      "sublabel": "unique, not_null, relationships, expressions",
+      "method": "telecom-lakehouse: make dbt-test"
+    },
+    {
+      "value": "~110k",
+      "label": "events/sec fraud-scored",
+      "sublabel": "labeled eval set, ground-truth P/R published",
+      "method": "fraud-signals: make eval"
+    },
+    {
+      "value": "44",
+      "label": "unit tests green",
+      "sublabel": "pytest across all three projects",
+      "method": "make test x3"
+    }
+  ],
+  "projects": {
+    "fraud-signals": {
+      "metrics": [
+        {
+          "value": "~110k/s",
+          "label": "detector throughput",
+          "sublabel": "16,664 events scored in 0.15s",
+          "method": "make eval (seed 42)"
+        },
+        {
+          "value": "1.00 / 1.00",
+          "label": "impossible-travel P/R",
+          "sublabel": "account-level vs seeded ground truth",
+          "method": "make eval"
+        },
+        {
+          "value": "0.97",
+          "label": "amount Z-score precision",
+          "sublabel": "recall 0.58 on seeded ground truth",
+          "method": "make eval"
+        },
+        {
+          "value": "18",
+          "label": "unit tests passing",
+          "sublabel": "1 Spark-only skip",
+          "method": "make test"
+        }
+      ]
+    },
+    "telecom-lakehouse": {
+      "metrics": [
+        {
+          "value": "0.53s",
+          "label": "raw to Gold, 49,998 rows",
+          "sublabel": "~94k rows/sec, single process",
+          "method": "make demo"
+        },
+        {
+          "value": "41/41",
+          "label": "dbt tests passing",
+          "sublabel": "8 models, bronze to gold",
+          "method": "make dbt-test"
+        },
+        {
+          "value": "10",
+          "label": "Bronze contract expectations",
+          "sublabel": "types, nulls, ranges, MSISDN regex",
+          "method": "cdr_bronze_suite.json"
+        },
+        {
+          "value": "8",
+          "label": "unit tests passing",
+          "sublabel": "generator + transform",
+          "method": "make test"
+        }
+      ]
+    },
+    "ai-sql-optimizer": {
+      "metrics": [
+        {
+          "value": "0.67",
+          "label": "keyword overlap vs ground truth",
+          "sublabel": "heuristics only, no API",
+          "method": "make benchmark --dry-run"
+        },
+        {
+          "value": "4 / 5",
+          "label": "queries with correct findings",
+          "sublabel": "seeded 5-category corpus",
+          "method": "make benchmark"
+        },
+        {
+          "value": "68ms",
+          "label": "analyzer latency per query",
+          "sublabel": "sqlglot AST + heuristics",
+          "method": "time make benchmark"
+        },
+        {
+          "value": "18",
+          "label": "unit tests passing",
+          "sublabel": "analyzer, benchmark, CLI",
+          "method": "make test"
+        }
+      ]
+    }
+  }
+}

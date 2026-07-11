@@ -1,5 +1,11 @@
 # Telecom Billing Lakehouse
 
+[![CI](https://img.shields.io/github/actions/workflow/status/AlexHuggler/Huggler-portfolio/ci-telecom-lakehouse.yml?branch=main&label=CI)](https://github.com/AlexHuggler/Huggler-portfolio/actions/workflows/ci-telecom-lakehouse.yml)
+![Python](https://img.shields.io/badge/python-3.11%2B-3776AB?logo=python&logoColor=white)
+![License](https://img.shields.io/badge/license-MIT-22c55e)
+![Ruff](https://img.shields.io/badge/linting-ruff-261230)
+![uv](https://img.shields.io/badge/deps-uv-6340ac)
+
 End-to-end Medallion lakehouse for synthetic CDR (Call Detail Record) data:
 **generator -> MinIO/S3 -> Airflow -> Bronze -> Silver -> dbt Gold marts**.
 Runs locally on docker-compose; an optional Terraform stack provisions the
@@ -60,6 +66,8 @@ make install
 make demo
 ```
 
+![make demo output: 50k CDRs generated, then Bronze/Silver/Gold row counts from the medallion transform](docs/img/pipeline-run.png)
+
 For the full Airflow + MinIO experience:
 
 ```bash
@@ -73,11 +81,13 @@ make airflow-up
 docker compose exec airflow-scheduler airflow dags trigger ingest_cdr_bronze
 ```
 
-For the analytics layer:
+For the analytics layer (fully offline - the project vendors local
+replacements for its two dbt_utils macros, so there is no `dbt deps` step):
 
 ```bash
-cp dbt_telecom/profiles.yml.example ~/.dbt/profiles.yml
-cd dbt_telecom && dbt deps && dbt build
+make demo   # produces data/raw the dbt sources read
+cp dbt_telecom/profiles.yml.example dbt_telecom/profiles.yml
+make dbt-run && make dbt-test
 ```
 
 For the AWS deployment, see [`terraform/README.md`](terraform/README.md).
@@ -85,8 +95,11 @@ For the AWS deployment, see [`terraform/README.md`](terraform/README.md).
 ## Data quality strategy
 
 - **Bronze** is the contract layer. The Great Expectations suite
-  `cdr_bronze_suite` enforces column types, nulls, ranges, and a regex
-  on `caller_msisdn`. Failures fail the Airflow task and block Silver.
+  `cdr_bronze_suite` (10 expectations) specifies column types, nulls,
+  ranges, and a regex on `caller_msisdn`. The design intent is that
+  failures fail the Airflow task and block Silver; the bundled demo DAG
+  wires the checkpoint as a demonstrative stub, so enforcement requires
+  the full Airflow + GE stack.
 - **Silver** is the modeled layer. dbt tests on every model with
   `unique`, `not_null`, `accepted_values`, and expression checks
   (`>= 0`, etc).
@@ -108,16 +121,25 @@ A representative excerpt:
 
 ## Results
 
-Numbers below are placeholders - run the pipeline locally and fill them
-in with your own measurements.
+Measured on the no-infra demo path (`make demo` + `make dbt-run` +
+`make dbt-test`, DuckDB engine, seed 42, 49,998 CDR rows across 3 day
+partitions). Single process on a Linux container, 2026-07. Reproduce
+with the three commands above.
 
-| Metric | Value |
+| Metric | Measured |
 | --- | --- |
-| Bronze ingest rate | [TODO: rows/sec on your laptop] |
-| GE pass rate after first run | [TODO: pct] |
-| Gold mart freshness SLA | [TODO: minutes from raw->gold] |
-| dbt test count (silver+gold) | [TODO: count] |
-| Storage compression ratio | [TODO: parquet vs csv] |
+| Raw -> Bronze -> Silver -> Gold transform | 49,998 rows in 0.53 s (~94k rows/sec, single process) |
+| End-to-end demo (generate + transform) | 2.8 s wall clock |
+| dbt build | 8 models (bronze views, silver + gold tables), all built |
+| dbt tests | 41 of 41 passing (unique, not_null, accepted_values, relationships, expression checks) |
+| Bronze data contract | 10 expectations defined in `cdr_bronze_suite.json` (demo DAG stubs enforcement) |
+| Unit tests | 8 passed |
+
+![dbt test output: 41 of 41 data tests passing](docs/img/dbt-tests.png)
+
+Raw synthetic CDRs land as Parquet already, so there is no CSV-to-Parquet
+compression ratio to report on the local path; on the AWS path the same
+claim depends on the upstream feed format.
 
 ## Tradeoffs
 
