@@ -77,12 +77,11 @@ export default function SqlOptDashboard(): JSX.Element {
 
   return (
     <div className="space-y-5">
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <KpiCard label="Corpus" value={`${s.queries} queries`} sub="one per optimization category" tone="accent" />
         <KpiCard label="With findings" value={`${s.queriesWithFindings} / ${s.queries}`} sub={`${totalFindings} findings in total`} />
         <KpiCard label="Rules exercised" value={`${fired} / ${ruleCount}`} sub={s.rulesNeverFired.filter((r) => r !== "parse_error").join(", ") + " never fire"} tone="warn" />
-        <KpiCard label="Keyword overlap" value={s.meanKeywordOverlap.toFixed(2)} sub="published (upper bound)" />
-        <KpiCard label="From findings only" value={s.meanKeywordOverlapFindingsOnly.toFixed(2)} sub="stricter re-score" tone="danger" />
+        <KpiCard label="Keyword overlap" value={s.meanKeywordOverlap.toFixed(2)} sub="analyzer findings only" />
       </div>
       <div className="grid gap-5 xl:grid-cols-2">
         <ChartCard

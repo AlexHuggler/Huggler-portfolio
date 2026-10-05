@@ -36,7 +36,7 @@ export interface CorpusQuery {
   findings: Finding[];
   groundTruth: { keywords: string[]; costDirection: string };
   keywordHits: KeywordHit[];
-  benchmark: { keywordOverlap: number; findingsHit: boolean; keywordOverlapFindingsOnly: number };
+  benchmark: { keywordOverlap: number; findingsHit: boolean };
   payload: string;
   withPartitionColumns?: { columns: string[]; findings: Finding[] };
   rewrite?: {
@@ -54,7 +54,6 @@ export interface Corpus {
   summary: {
     queries: number;
     meanKeywordOverlap: number;
-    meanKeywordOverlapFindingsOnly: number;
     queriesWithFindings: number;
     rulesFired: string[];
     rulesNeverFired: string[];

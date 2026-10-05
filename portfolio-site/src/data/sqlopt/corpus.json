@@ -5,12 +5,11 @@
     "source": "project-ai-sql-optimizer",
     "sourceDigest": "690ef349d648",
     "sqlglot": "30.21.0",
-    "note": "Real corpus queries and real analyze() output. Keyword scoring mirrors benchmark._score, which searches the query text as well as the findings; keywordOverlapFindingsOnly re-scores against findings alone. Rewrites are hand-written references, not Claude output, and are not EXPLAIN-verified."
+    "note": "Real corpus queries and real analyze() output. Keyword overlap comes from benchmark._score, which searches the analyzer findings only, never the query text; inQueryText marks keywords the query already contains. Rewrites are hand-written references, not Claude output, and are not EXPLAIN-verified."
   },
   "summary": {
     "queries": 5,
-    "meanKeywordOverlap": 0.6667,
-    "meanKeywordOverlapFindingsOnly": 0.3333,
+    "meanKeywordOverlap": 0.3333,
     "queriesWithFindings": 4,
     "rulesFired": [
       "consider_broadcast",
@@ -127,8 +126,7 @@
       ],
       "benchmark": {
         "keywordOverlap": 1.0,
-        "findingsHit": true,
-        "keywordOverlapFindingsOnly": 1.0
+        "findingsHit": true
       },
       "payload": "## Dialect\nspark\n## SQL\n```sql\n-- engine: spark\n-- category: join_optimization\n-- An order-line join against a small dim_product table. The query selects\n-- everything and joins without a broadcast hint - the optimizer may pick a\n-- shuffled hash join even though dim_product is well under the 8MB\n-- broadcast threshold.\n\nSELECT *\nFROM bronze.fct_order_lines fol\nJOIN bronze.dim_product dp\n  ON fol.product_id = dp.product_id\nWHERE fol.order_date >= '2026-01-01';\n\n```\n## Heuristic findings\n- (warn) select_star: SELECT * fans out columns and disables column pruning. List columns explicitly.\n- (info) consider_broadcast: Join detected without BROADCAST hint. If one side is small (< ~8MB), broadcast it.\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`.",
       "rewrite": {
@@ -244,9 +242,8 @@
         }
       ],
       "benchmark": {
-        "keywordOverlap": 0.6667,
-        "findingsHit": true,
-        "keywordOverlapFindingsOnly": 0.3333
+        "keywordOverlap": 0.3333,
+        "findingsHit": true
       },
       "payload": "## Dialect\nspark\n## SQL\n```sql\n-- engine: snowflake\n-- category: aggregation_rewrite\n-- Counts and sums computed via correlated subqueries instead of a single\n-- GROUP BY. Each subquery scans the fact table again; in Snowflake this\n-- defeats result-set caching and inflates credits.\n\nSELECT\n    c.customer_id,\n    c.customer_name,\n    (SELECT COUNT(*)        FROM gold.fct_orders o WHERE o.customer_id = c.customer_id) AS order_count,\n    (SELECT SUM(amount_usd) FROM gold.fct_orders o WHERE o.customer_id = c.customer_id) AS total_spend_usd,\n    (SELECT MAX(order_date) FROM gold.fct_orders o WHERE o.customer_id = c.customer_id) AS last_order_at\nFROM gold.dim_customer c\nWHERE c.is_active = TRUE;\n\n```\n## Heuristic findings\n- (warn) correlated_subquery: Correlated subquery detected. Consider rewriting as a JOIN or windowed expression.\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`.",
       "rewrite": {
@@ -410,8 +407,7 @@
       ],
       "benchmark": {
         "keywordOverlap": 0.0,
-        "findingsHit": true,
-        "keywordOverlapFindingsOnly": 0.0
+        "findingsHit": true
       },
       "payload": "## Dialect\nspark\n## SQL\n```sql\n-- engine: spark\n-- category: cte_flattening\n-- Several CTEs that each read the same source table and apply\n-- near-identical filters. Spark's Catalyst will not always combine these\n-- automatically, so the underlying scan can run multiple times.\n\nWITH voice_calls AS (\n    SELECT caller_msisdn, start_time, duration_sec, market\n    FROM silver.cdr WHERE call_type = 'VOICE'\n),\nsms_msgs AS (\n    SELECT caller_msisdn, start_time, market\n    FROM silver.cdr WHERE call_type = 'SMS'\n),\ndata_sessions AS (\n    SELECT caller_msisdn, start_time, bytes_used, market\n    FROM silver.cdr WHERE call_type = 'DATA'\n),\nvoice_agg AS (\n    SELECT market, COUNT(*) AS voice_count, SUM(duration_sec) AS voice_seconds\n    FROM voice_calls GROUP BY market\n),\nsms_agg AS (\n    SELECT market, COUNT(*) AS sms_count\n    FROM sms_msgs GROUP BY market\n),\ndata_agg AS (\n    SELECT market, COUNT(*) AS data_count, SUM(bytes_used) AS bytes_total\n    FROM data_sessions GROUP BY market\n)\nSELECT\n    v.market,\n    v.voice_count,\n    v.voice_seconds,\n    s.sms_count,\n    d.data_count,\n    d.bytes_total\nFROM voice_agg v\nLEFT JOIN sms_agg s USING (market)\nLEFT JOIN data_agg d USING (market);\n\n```\n## Heuristic findings\n- (info) consider_broadcast: Join detected without BROADCAST hint. If one side is small (< ~8MB), broadcast it.\n- (info) many_ctes: 6 CTEs found; some Spark plans benefit from flattening.\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`.",
       "rewrite": {
@@ -644,9 +640,8 @@
         }
       ],
       "benchmark": {
-        "keywordOverlap": 0.6667,
-        "findingsHit": false,
-        "keywordOverlapFindingsOnly": 0.0
+        "keywordOverlap": 0.0,
+        "findingsHit": false
       },
       "payload": "## Dialect\nspark\n## SQL\n```sql\n-- engine: spark\n-- category: partition_pruning\n-- The events table is partitioned by ingest_date but the query filters on\n-- a derived date_format expression, which Spark cannot push down to the\n-- partition predicate.\n\nSELECT\n    market,\n    COUNT(*) AS event_count\nFROM silver.cdr_events\nWHERE date_format(start_time, 'yyyy-MM') = '2026-04'\n  AND market = 'WEST'\nGROUP BY market;\n\n```\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`.",
       "withPartitionColumns": {
@@ -762,9 +757,8 @@
         }
       ],
       "benchmark": {
-        "keywordOverlap": 1.0,
-        "findingsHit": true,
-        "keywordOverlapFindingsOnly": 0.3333
+        "keywordOverlap": 0.3333,
+        "findingsHit": true
       },
       "payload": "## Dialect\nspark\n## SQL\n```sql\n-- engine: snowflake\n-- category: broadcast_join\n-- Three-table join where dim_market is small (~5 rows) but is being\n-- shuffled because the planner does not see size statistics. The fix is\n-- engine-specific: a broadcast hint in Spark, or a result-set cache plus\n-- search-optimization in Snowflake.\n\nSELECT\n    f.customer_id,\n    f.order_date,\n    m.market_name,\n    p.product_name,\n    f.amount_usd\nFROM gold.fct_orders f\nJOIN gold.dim_market m\n  ON f.market_id = m.market_id\nJOIN gold.dim_product p\n  ON f.product_id = p.product_id\nWHERE f.order_date >= '2026-01-01';\n\n```\n## Heuristic findings\n- (info) consider_broadcast: Join detected without BROADCAST hint. If one side is small (< ~8MB), broadcast it.\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`.",
       "rewrite": {
