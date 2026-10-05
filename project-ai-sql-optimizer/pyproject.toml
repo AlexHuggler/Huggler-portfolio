@@ -24,6 +24,9 @@ dev = [
     "pytest-cov>=5.0",
     "ruff>=0.5",
 ]
+# Optional EXPLAIN engines for `benchmark --explain`; imported lazily.
+spark = ["pyspark>=3.5"]
+snowflake = ["snowflake-connector-python>=3.10"]
 
 [project.scripts]
 sql-optimizer = "sql_optimizer.cli:app"

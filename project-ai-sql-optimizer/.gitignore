@@ -17,3 +17,8 @@ uv.lock
 # Benchmark artifacts
 benchmark_results/
 *.report.md
+
+# Local Spark state from `benchmark --explain spark`
+spark-warehouse/
+metastore_db/
+derby.log
