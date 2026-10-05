@@ -51,7 +51,6 @@ export interface Evaluations {
     summary: {
       queries: number;
       meanKeywordOverlap: number;
-      meanKeywordOverlapFindingsOnly: number;
       queriesWithFindings: number;
       rulesFired: string[];
       rulesNeverFired: string[];

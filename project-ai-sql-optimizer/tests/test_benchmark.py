@@ -8,7 +8,7 @@ import pytest
 import yaml
 
 from sql_optimizer import benchmark
-from sql_optimizer.benchmark import MissingApiKeyError, run_benchmark
+from sql_optimizer.benchmark import GroundTruthEntry, MissingApiKeyError, _score, run_benchmark
 from sql_optimizer.client import Suggestion
 from sql_optimizer.explain import CostEstimate
 
@@ -76,6 +76,47 @@ def test_benchmark_skips_placeholder_files(tmp_path: Path):
     assert summary.evaluated == 0
 
 
+def test_keyword_only_in_query_text_does_not_count(tmp_path: Path):
+    # "dim_market" appears in the query (and its comment) but in no finding;
+    # "broadcast" appears only in the consider_broadcast finding.
+    (tmp_path / "q.sql").write_text(
+        "-- dim_market is tiny\n"
+        "SELECT f.id FROM fct f JOIN dim_market m ON f.market_id = m.market_id"
+    )
+    (tmp_path / "ground_truth.yaml").write_text(
+        "queries:\n"
+        "  - query_id: q\n"
+        "    category: broadcast_join\n"
+        "    expected_keywords: [broadcast, dim_market]\n"
+    )
+    summary = run_benchmark(
+        corpus_dir=tmp_path,
+        ground_truth_path=tmp_path / "ground_truth.yaml",
+        dry_run=True,
+    )
+    [evaluation] = summary.evaluations
+    assert evaluation.keyword_overlap == 0.5
+    assert evaluation.findings_hit
+
+
+def test_score_counts_rewrite_and_reasoning():
+    truth = GroundTruthEntry(
+        query_id="q",
+        category="cte_flattening",
+        expected_keywords=["single scan", "case when"],
+        expected_cost_direction="lower",
+    )
+    assert _score([], truth) == (0.0, False)
+    overlap, hit = _score(
+        [],
+        truth,
+        rewrite="SELECT SUM(CASE WHEN call_type = 'SMS' THEN 1 END) FROM cdr",
+        reasoning="Collapses three CTEs into a single scan.",
+    )
+    assert overlap == 1.0
+    assert not hit
+
+
 def test_dry_run_never_builds_a_client(monkeypatch: pytest.MonkeyPatch):
     def _boom(*args, **kwargs):
         raise AssertionError("dry run must not construct the Anthropic client")
@@ -107,7 +148,7 @@ def test_live_run_calls_claude_and_stores_rewrites():
 
 def test_live_run_scores_only_claude_output():
     # The original query text must not leak into the live score: 01 scores 1.0
-    # in dry-run mode on its own SQL, but 0.0 when Claude says nothing relevant.
+    # in dry-run mode from its findings, but 0.0 when Claude says nothing relevant.
     summary = run_benchmark(
         corpus_dir=CORPUS, ground_truth_path=TRUTH, dry_run=False, client=FakeClient(rewrite="x")
     )

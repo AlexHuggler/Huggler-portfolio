@@ -41,8 +41,8 @@ const transformDag = dags.dags.find((d) => d.id === "transform_silver");
 
 const limitations = [
   {
-    title: "Benchmark keyword overlap is inflated",
-    body: `benchmark._score searches the query text (comments included) as well as the analyzer findings. The published mean is ${sq.summary.meanKeywordOverlap.toFixed(2)}; scored on findings alone it is ${sq.summary.meanKeywordOverlapFindingsOnly.toFixed(2)}.`,
+    title: "Dry-run keyword overlap is low",
+    body: `Scored on analyzer findings only, the mean is ${sq.summary.meanKeywordOverlap.toFixed(2)}: the heuristics flag patterns but rarely name the fix, and ${sq.byCategory.filter((c) => c.keywordOverlap === 0).map((c) => c.category).join(" and ")} score 0.00. Until 2026-10-05 the scorer also searched the query text, which inflated it.`,
     href: "/projects/ai-sql-optimizer#benchmark",
   },
   {
