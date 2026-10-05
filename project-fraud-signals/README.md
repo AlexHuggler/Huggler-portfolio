@@ -8,8 +8,8 @@
 
 Production-shaped streaming fraud-detection pipeline:
 **Kafka -> Spark Structured Streaming -> Delta -> dbt -> Streamlit**.
-A recruiter can clone, run `make demo`, and see meaningful output in under
-five minutes without Kafka, Spark, or any cloud account.
+A recruiter can clone, run `make demo`, and see meaningful output without
+Kafka, Spark, or any cloud account.
 
 ## Problem
 
@@ -96,30 +96,47 @@ cd dbt_fraud && dbt deps && dbt build
 ## Dashboard
 
 The Streamlit ops dashboard reads the Delta table when the streaming
-stack is up, or the local JSONL written by `make demo`:
+stack is up, or the local JSONL written by `make demo`. The screenshot is
+from an earlier synthetic run; its tiles are illustrative, not measured
+results:
 
 ![Fraud Signals Streamlit dashboard: KPI tiles, events-over-time, anomalies by kind, and top accounts by anomaly score](docs/img/dashboard.png)
 
 ## Results
 
-Measured on the no-infra demo path with `make eval` (seed 42, ~16.6k
-labeled events over a simulated 5-minute window across 1,000 accounts,
-5% fraud injection). Reproduce with one command; every event carries a
-ground-truth `label`, and scoring is account-level (a pattern counts as
-caught when any event on a truly-affected account is flagged).
-Measured on a Linux container, single process, 2026-07.
+Re-measured 2026-10-05 by `portfolio-site/scripts/measure.py run` on the
+no-infra demo path: `make test` and `make eval` (seed 42, 16,664 events
+over a simulated 300 s window across 1,000 accounts, producer
+`--fraud-rate` 0.05 per event, each trigger emitting a multi-event
+pattern). Every event carries a ground-truth `label`, and scoring is
+account-level (a pattern counts as caught when any event on a
+truly-affected account is flagged). Linux container, single process; all
+data synthetic. Transcript:
+[`measurements/fraud-signals.txt`](../portfolio-site/src/data/measurements/fraud-signals.txt);
+values: [`measured.json`](../portfolio-site/src/data/measured.json).
 
 | Metric | Measured |
 | --- | --- |
-| Detector throughput (single process) | ~110k events/sec (16,664 events scored in 0.15 s) |
-| Impossible-travel precision / recall | 1.00 / 1.00 |
-| Amount Z-score precision / recall | 0.97 / 0.58 |
-| Velocity-burst precision / recall | 0.26 / 1.00 |
+| Detector throughput (3 detectors, single process) | ~131k events/sec (16,664 events, median of 5 in-process runs) |
+| Impossible-travel precision / recall | 1.00 / 1.00 (240 of 240 accounts) |
+| Amount Z-score precision / recall | 0.97 / 0.58 (117 of 200 outlier accounts caught) |
+| Velocity-burst precision / recall | 0.26 / 1.00 (865 of 1,000 accounts flagged at threshold 5) |
 | Unit tests | 18 passed, 1 skipped (Spark-only) |
 
-The velocity detector's fixed 5-events-per-60s threshold is deliberately
-recall-first: it never misses a burst but over-flags dense accounts. The
-honest fix is per-account baselining (see "What I would do differently").
+Throughput is the median of five in-process `detect_all()` runs timed by
+`portfolio-site/scripts/artifacts/fraud.py`, and it moves with the host CPU
+(recorded in `measured.json`). A single `make eval` prints its own
+one-shot figure: 152,419 events/sec in the transcript. Reproduce the
+precision / recall with `make eval`; reproduce the throughput median and the
+transcript with `npm run measure` in `portfolio-site/`.
+
+The velocity detector's fixed 5-events-in-60s rule fires on ordinary
+traffic at this simulated rate: it catches every one of the 226 burst
+accounts, but flags 865 of 1,000 accounts to do it (precision 0.26, F1
+0.41). A threshold sweep over the same events
+(`portfolio-site/scripts/artifacts/fraud.py`) peaks at F1 0.79 at
+threshold 9 (precision 0.78 / recall 0.80). The honest fix is per-account
+baselining (see "What I would do differently").
 
 ### Streaming path (requires `docker compose up`) - not measured here
 

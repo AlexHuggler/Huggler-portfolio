@@ -121,19 +121,29 @@ A representative excerpt:
 
 ## Results
 
-Measured on the no-infra demo path (`make demo` + `make dbt-run` +
-`make dbt-test`, DuckDB engine, seed 42, 49,998 CDR rows across 3 day
-partitions). Single process on a Linux container, 2026-07. Reproduce
-with the three commands above.
+Re-measured 2026-10-05 by `portfolio-site/scripts/measure.py run` on the
+no-infra demo path: `make test`, `make demo`, then `dbt build` over the
+same raw Parquet (DuckDB engine, seed 42, 49,998 CDR rows across 3 day
+partitions). Linux container, single process; all data synthetic.
+Transcript:
+[`measurements/telecom-lakehouse.txt`](../portfolio-site/src/data/measurements/telecom-lakehouse.txt);
+values: [`measured.json`](../portfolio-site/src/data/measured.json).
 
 | Metric | Measured |
 | --- | --- |
-| Raw -> Bronze -> Silver -> Gold transform | 49,998 rows in 0.53 s (~94k rows/sec, single process) |
-| End-to-end demo (generate + transform) | 2.8 s wall clock |
+| Raw -> Bronze -> Silver -> Gold transform | 0.26 s for 49,998 CDRs (median of 5 in-process runs, DuckDB) |
 | dbt build | 8 models (bronze views, silver + gold tables), all built |
 | dbt tests | 41 of 41 passing (unique, not_null, accepted_values, relationships, expression checks) |
-| Bronze data contract | 10 expectations defined in `cdr_bronze_suite.json` (demo DAG stubs enforcement) |
+| Bronze data contract | 10 expectations defined in `cdr_bronze_suite.json` (enforcement stubbed: the DAG's checkpoint task is a stub) |
 | Unit tests | 8 passed |
+
+The transform time covers `raw_to_bronze` -> `bronze_to_silver` ->
+`silver_to_gold`, timed in-process by
+`portfolio-site/scripts/artifacts/telecom.py`. It excludes data generation
+and interpreter startup, and it moves with the host CPU (recorded in
+`measured.json`). Reproduce the counts with `make test`, `make demo` and
+`make dbt-run && make dbt-test` (setup above); reproduce the timing and the
+transcript with `npm run measure` in `portfolio-site/`.
 
 ![dbt test output: 41 of 41 data tests passing](docs/img/dbt-tests.png)
 
