@@ -1,28 +1,29 @@
 #!/usr/bin/env python3
-"""Generate aggregated visualization datasets for the Data Visualizations page.
+"""Telecom scenario data for the /visualizations dashboard.
 
-This script reproduces (in dependency-free, stdlib-only form) the same domains
-modeled by the three project generators and aggregates them down to compact
-JSON that the Apache ECharts dashboards consume at build time:
+The telecom project's own demo covers three days with a fresh caller per
+record, which is too thin to show trends, seasonality or churn. This script
+simulates a labelled, documented *scenario* in the same domain — and keeps
+every rule identical to the project's dbt models, so the dashboard reads like
+the Gold marts would on a year of real traffic:
 
-* Fraud  -> mirrors project-fraud-signals/src/producer/generate.py
-            (COUNTRIES, MERCHANT_CATEGORIES, the velocity / impossible-travel /
-             amount-outlier patterns)
-* Telecom-> mirrors project-telecom-lakehouse/data_generator/generate_cdrs.py
-            (MARKETS, PLANS, CALL_TYPES, partitioned CDRs)
-* SQLOpt -> mirrors project-ai-sql-optimizer/corpus (5 optimization categories,
-            heuristic analyzer rules)
+* pricing        = dbt_telecom/models/silver/sl_revenue_event.sql
+                   VOICE ceil(sec/60) * $0.05, DATA MB * $0.02, SMS $0.01
+* monthly ARPU   = dbt_telecom/models/gold/arpu_monthly.sql
+                   average revenue per caller active in the month
+* churn risk     = dbt_telecom/models/gold/churn_signals.sql
+                   events in the last 30 days: <=1 high, <=5 medium, else low
+* markets/plans  = data_generator/generate_cdrs.py
 
-All randomness is seeded (seed=42, matching the projects) so the committed
-JSON is fully reproducible:
+Everything is seeded (42) and stdlib-only. ``--check`` regenerates in memory
+and fails if src/data/viz/telecom.json differs; internal consistency checks
+(totals reconcile, KPI == mean of the series, heatmap == event count) run on
+every invocation.
 
-    python scripts/generate_viz_data.py
+    python3 scripts/generate_viz_data.py [--check]
 
-Output: portfolio-site/src/data/viz/{fraud,telecom,sqlopt}.json
-
-The numbers are synthetic and illustrative; the dashboards label them as such.
-No third-party packages are required (no pyarrow / faker / pyyaml), so this runs
-anywhere Python 3.11+ is available and keeps the site a pure static build.
+The fraud and SQL dashboards no longer use generated data: they read the real
+artifacts exported by scripts/artifacts/{fraud,sqlopt}.py.
 """
 
 from __future__ import annotations
@@ -30,463 +31,236 @@ from __future__ import annotations
 import json
 import math
 import random
-import statistics
-from collections import defaultdict
-from datetime import datetime, timedelta, timezone
+import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 SEED = 42
-OUT_DIR = Path(__file__).resolve().parent.parent / "src" / "data" / "viz"
-
-GENERATED_AT = datetime(2026, 5, 30, tzinfo=timezone.utc)
-
-
-def _meta(source: str, note: str) -> dict:
-    return {
-        "synthetic": True,
-        "seed": SEED,
-        "source": source,
-        "note": note,
-        "generated_by": "portfolio-site/scripts/generate_viz_data.py",
-    }
-
-
-# --------------------------------------------------------------------------- #
-# Fraud  (mirrors project-fraud-signals/src/producer/generate.py)
-# --------------------------------------------------------------------------- #
-
-FRAUD_COUNTRIES = ["US", "CA", "GB", "DE", "FR", "ES", "IT", "AU", "BR", "JP", "ZA", "NG"]
-MERCHANT_CATEGORIES = [
-    "grocery",
-    "gas",
-    "restaurant",
-    "online_retail",
-    "electronics",
-    "travel",
-    "atm_withdrawal",
-    "subscription",
-]
-FRAUD_PATTERNS = ["velocity_burst", "impossible_travel", "amount_outlier"]
-
-
-def generate_fraud() -> dict:
-    rng = random.Random(SEED)
-    n_accounts = 200
-    accounts = []
-    for _ in range(n_accounts):
-        mean = rng.uniform(20, 250)
-        accounts.append(
-            {
-                "home_country": rng.choice(FRAUD_COUNTRIES),
-                "mean": round(mean, 2),
-                "std": round(mean * rng.uniform(0.2, 0.5), 2),
-            }
-        )
-
-    n_events = 24_000
-    # Per-decision fraud rate. Each fraud decision can emit several events
-    # (velocity bursts emit 5-8), so the event-level fraud rate lands ~1.5-2%.
-    fraud_rate = 0.006
-
-    by_category: dict[str, dict[str, int]] = {
-        c: {"total": 0, "fraud": 0} for c in MERCHANT_CATEGORIES
-    }
-    by_country: dict[str, dict[str, int]] = {
-        c: {"total": 0, "fraud": 0} for c in FRAUD_COUNTRIES
-    }
-    patterns: dict[str, dict[str, float]] = {
-        p: {"count": 0, "amount_sum": 0.0} for p in FRAUD_PATTERNS
-    }
-    # amount histogram buckets (USD)
-    bucket_edges = [0, 25, 50, 100, 200, 400, 800, 1600, math.inf]
-    bucket_labels = ["0-25", "25-50", "50-100", "100-200", "200-400", "400-800", "800-1600", "1600+"]
-    hist_normal = [0] * len(bucket_labels)
-    hist_fraud = [0] * len(bucket_labels)
-
-    flagged_amount = 0.0
-    fraud_count = 0
-
-    def bucket_index(amount: float) -> int:
-        for i in range(len(bucket_labels)):
-            if bucket_edges[i] <= amount < bucket_edges[i + 1]:
-                return i
-        return len(bucket_labels) - 1
-
-    def record(category: str, country: str, amount: float, is_fraud: bool) -> None:
-        by_category[category]["total"] += 1
-        by_country[country]["total"] += 1
-        if is_fraud:
-            by_category[category]["fraud"] += 1
-            by_country[country]["fraud"] += 1
-            hist_fraud[bucket_index(amount)] += 1
-        else:
-            hist_normal[bucket_index(amount)] += 1
-
-    emitted = 0
-    while emitted < n_events:
-        acct = rng.choice(accounts)
-        category = rng.choice(MERCHANT_CATEGORIES)
-        if rng.random() < fraud_rate:
-            pattern = rng.choice(FRAUD_PATTERNS)
-            if pattern == "velocity_burst":
-                burst = rng.randint(5, 8)
-                for _ in range(burst):
-                    amount = round(acct["mean"] * rng.uniform(3, 8), 2)
-                    record(category, rng.choice(FRAUD_COUNTRIES), amount, True)
-                    patterns[pattern]["count"] += 1
-                    patterns[pattern]["amount_sum"] += amount
-                    flagged_amount += amount
-                    fraud_count += 1
-                    emitted += 1
-            elif pattern == "impossible_travel":
-                for _ in range(2):
-                    amount = round(max(1.0, rng.gauss(acct["mean"], acct["std"])), 2)
-                    record(category, rng.choice(FRAUD_COUNTRIES), amount, True)
-                    patterns[pattern]["count"] += 1
-                    patterns[pattern]["amount_sum"] += amount
-                    flagged_amount += amount
-                    fraud_count += 1
-                    emitted += 1
-            else:  # amount_outlier
-                amount = round(acct["mean"] + 6 * acct["std"], 2)
-                record(category, acct["home_country"], amount, True)
-                patterns[pattern]["count"] += 1
-                patterns[pattern]["amount_sum"] += amount
-                flagged_amount += amount
-                fraud_count += 1
-                emitted += 1
-        else:
-            amount = round(max(1.0, rng.gauss(acct["mean"], acct["std"])), 2)
-            record(category, acct["home_country"], amount, False)
-            emitted += 1
-
-    total = emitted
-    top_pattern = max(patterns.items(), key=lambda kv: kv[1]["count"])[0]
-
-    # throughput timeseries: 90 seconds, ~50 events/sec with flagged overlay
-    throughput = []
-    t_rng = random.Random(SEED + 1)
-    for sec in range(90):
-        eps = max(0, int(t_rng.gauss(50, 8)))
-        # ~2% of throughput is flagged so the overlay stays visible on the chart
-        flagged = sum(1 for _ in range(eps) if t_rng.random() < 0.02)
-        throughput.append({"t": sec, "events_per_sec": eps, "flagged_per_sec": flagged})
-
-    return {
-        "_meta": _meta(
-            "project-fraud-signals/src/producer/generate.py",
-            "Synthetic transaction stream with 5% seeded fraud across velocity, "
-            "impossible-travel, and amount-outlier patterns.",
-        ),
-        "kpis": {
-            "events_scored": total,
-            "fraud_rate_pct": round(100 * fraud_count / total, 2),
-            "flagged_amount_usd": round(flagged_amount, 2),
-            "top_pattern": top_pattern,
-        },
-        "fraud_by_category": [
-            {
-                "category": c,
-                "total": v["total"],
-                "fraud": v["fraud"],
-                "fraud_rate": round(100 * v["fraud"] / v["total"], 2) if v["total"] else 0,
-            }
-            for c, v in sorted(by_category.items(), key=lambda kv: -kv[1]["fraud"])
-        ],
-        "fraud_by_country": [
-            {
-                "country": c,
-                "total": v["total"],
-                "fraud": v["fraud"],
-                "fraud_rate": round(100 * v["fraud"] / v["total"], 2) if v["total"] else 0,
-            }
-            for c, v in sorted(by_country.items(), key=lambda kv: -kv[1]["fraud"])
-        ],
-        "pattern_breakdown": [
-            {
-                "pattern": p,
-                "count": int(v["count"]),
-                "avg_amount": round(v["amount_sum"] / v["count"], 2) if v["count"] else 0,
-            }
-            for p, v in patterns.items()
-        ],
-        "amount_distribution": [
-            {"bucket": bucket_labels[i], "normal": hist_normal[i], "fraud": hist_fraud[i]}
-            for i in range(len(bucket_labels))
-        ],
-        "throughput": throughput,
-    }
-
-
-# --------------------------------------------------------------------------- #
-# Telecom  (mirrors project-telecom-lakehouse/data_generator/generate_cdrs.py)
-# --------------------------------------------------------------------------- #
+OUT = Path(__file__).resolve().parent.parent / "src" / "data" / "viz" / "telecom.json"
 
 MARKETS = ["NORTH", "SOUTH", "EAST", "WEST", "CENTRAL"]
+MARKET_WEIGHT = [0.18, 0.20, 0.24, 0.22, 0.16]
 PLANS = ["BASIC_5GB", "PRO_25GB", "UNLIMITED", "FAMILY_50GB", "PREPAID"]
+PLAN_WEIGHT = [0.26, 0.20, 0.18, 0.16, 0.20]
+# events per active day, and call-type mix (voice, sms, data), by plan
+PLAN_RATE = {"BASIC_5GB": 1.0, "PRO_25GB": 1.4, "UNLIMITED": 2.0, "FAMILY_50GB": 1.7, "PREPAID": 0.7}
+PLAN_MIX = {
+    "BASIC_5GB": (0.45, 0.35, 0.20),
+    "PRO_25GB": (0.35, 0.25, 0.40),
+    "UNLIMITED": (0.25, 0.20, 0.55),
+    "FAMILY_50GB": (0.35, 0.30, 0.35),
+    "PREPAID": (0.50, 0.40, 0.10),
+}
+# probability a subscriber churns at some point during the year, by plan
+PLAN_CHURN = {"BASIC_5GB": 0.18, "PRO_25GB": 0.10, "UNLIMITED": 0.08, "FAMILY_50GB": 0.06, "PREPAID": 0.35}
 CALL_TYPES = ["VOICE", "SMS", "DATA"]
 
-PLAN_BASE_FEE = {
-    "BASIC_5GB": 25.0,
-    "PRO_25GB": 45.0,
-    "UNLIMITED": 65.0,
-    "FAMILY_50GB": 90.0,
-    "PREPAID": 15.0,
-}
-PLAN_CHURN_RATE = {
-    "BASIC_5GB": 2.1,
-    "PRO_25GB": 1.4,
-    "UNLIMITED": 0.9,
-    "FAMILY_50GB": 0.7,
-    "PREPAID": 4.8,
-}
+# Diurnal profile (relative events per hour, 00..23): quiet overnight, a
+# morning ramp, a lunchtime shoulder and an evening busy hour.
+HOURLY = [0.6, 0.35, 0.25, 0.2, 0.25, 0.45, 0.9, 1.6, 2.2, 2.4, 2.5, 2.6,
+          2.8, 2.7, 2.5, 2.5, 2.6, 2.9, 3.3, 3.5, 3.2, 2.6, 1.8, 1.1]
+# Day-of-week factor (Mon..Sun): business days busier, Sunday quietest.
+WEEKDAY = [1.05, 1.05, 1.05, 1.05, 1.1, 0.88, 0.78]
+DATA_GROWTH_PER_MONTH = 0.015  # data sessions grow ~1.5% a month
+DECEMBER_LIFT = 0.10
+WIND_DOWN_DAYS = 45  # activity fades over the 45 days before a subscriber churns
+
+N_SUBS = 1_200
+START = date(2025, 10, 1)
+DAYS = 365
 
 
-def generate_telecom() -> dict:
+def poisson(rng: random.Random, lam: float) -> int:
+    """Knuth's method — fine for the small rates used here."""
+    l, k, p = math.exp(-lam), 0, 1.0
+    while True:
+        p *= rng.random()
+        if p <= l:
+            return k
+        k += 1
+
+
+def price(call_type: str, duration_sec: int, mb: float) -> float:
+    if call_type == "VOICE":
+        return math.ceil(duration_sec / 60.0) * 0.05
+    if call_type == "DATA":
+        return mb * 0.02
+    return 0.01
+
+
+def generate() -> dict:
     rng = random.Random(SEED)
-    n_rows = 50_000
-    days = 365  # spread across a year so monthly ARPU has 12 buckets
+    hour_cum = []
+    acc = 0.0
+    for w in HOURLY:
+        acc += w
+        hour_cum.append(acc)
 
-    # subscriber base per market / plan (seeded, stable)
-    subs_by_market = {m: rng.randint(9_000, 26_000) for m in MARKETS}
-    subs_by_plan = {p: rng.randint(7_000, 30_000) for p in PLANS}
-    total_subs = sum(subs_by_market.values())
+    subs = []
+    for i in range(N_SUBS):
+        plan = rng.choices(PLANS, weights=PLAN_WEIGHT)[0]
+        market = rng.choices(MARKETS, weights=MARKET_WEIGHT)[0]
+        join_day = 0 if rng.random() < 0.85 else rng.randint(1, DAYS - 1)
+        # Churn dates may fall after the window: those subscribers are still
+        # active at year end but already winding down — the early-warning case.
+        churn_day = rng.randint(join_day + 30, DAYS + 60) if rng.random() < PLAN_CHURN[plan] else None
+        subs.append({"id": i, "plan": plan, "market": market, "join": join_day,
+                     "churn": churn_day, "rate": PLAN_RATE[plan] * rng.uniform(0.6, 1.4)})
 
-    revenue_by_market = {m: 0.0 for m in MARKETS}
-    calltype_by_market = {m: {"VOICE": 0, "SMS": 0, "DATA": 0} for m in MARKETS}
-    revenue_by_month: dict[str, float] = defaultdict(float)
-    # heatmap: weekday (0=Mon) x hour (0-23)
-    heatmap = [[0 for _ in range(24)] for _ in range(7)]
-    roaming_count = 0
+    months = [(START + timedelta(days=d)).strftime("%Y-%m") for d in range(DAYS)]
+    month_keys = sorted(set(months))
+    scopes = ["ALL", *MARKETS]
 
-    start = GENERATED_AT.replace(hour=0, minute=0, second=0, microsecond=0)
+    def empty_scope():
+        return {
+            "rev_month": {m: 0.0 for m in month_keys},
+            "events_month": {m: 0 for m in month_keys},
+            "active_month": {m: set() for m in month_keys},
+            "rev_type": {t: 0.0 for t in CALL_TYPES},
+            "count_type": {t: 0 for t in CALL_TYPES},
+            "heat": [[0] * 24 for _ in range(7)],
+            "last30": {},
+            "events": 0,
+            "roaming": 0,
+        }
 
-    for _ in range(n_rows):
-        call_type = rng.choices(CALL_TYPES, weights=[0.4, 0.35, 0.25])[0]
-        market = rng.choice(MARKETS)
-        ts = start - timedelta(
-            days=rng.randint(0, days - 1), seconds=rng.randint(0, 86_399)
-        )
-        is_roaming = rng.random() < 0.05
-        if is_roaming:
-            roaming_count += 1
+    agg = {s: empty_scope() for s in scopes}
+    last30_start = DAYS - 30
 
-        # rate the event
-        if call_type == "VOICE":
-            minutes = int(rng.expovariate(1 / 90)) / 60.0
-            rated = minutes * 0.02
-        elif call_type == "DATA":
-            gb = rng.randint(1024, 50_000_000) / 1e9
-            rated = gb * 5.0
-        else:  # SMS
-            rated = 0.01
-        if is_roaming:
-            rated *= 3.0
+    for s in subs:
+        end = min(s["churn"], DAYS) if s["churn"] is not None else DAYS
+        mix = PLAN_MIX[s["plan"]]
+        for d in range(s["join"], end):
+            day = START + timedelta(days=d)
+            month = months[d]
+            seasonal = 1.0 + (DECEMBER_LIFT if day.month == 12 else 0.0)
+            lam = s["rate"] * WEEKDAY[day.weekday()] * seasonal
+            if s["churn"] is not None and d >= s["churn"] - WIND_DOWN_DAYS:
+                lam *= max(0.03, (s["churn"] - d) / WIND_DOWN_DAYS) ** 2
+            n = poisson(rng, lam)
+            for _ in range(n):
+                growth = 1.0 + DATA_GROWTH_PER_MONTH * month_keys.index(month)
+                w = (mix[0], mix[1], mix[2] * growth)
+                ct = rng.choices(CALL_TYPES, weights=w)[0]
+                duration = int(rng.expovariate(1 / 150)) if ct == "VOICE" else 0
+                mb = round(math.exp(rng.gauss(math.log(40), 0.9)), 3) if ct == "DATA" else 0.0
+                rev = price(ct, duration, mb)
+                hour = rng.choices(range(24), cum_weights=hour_cum)[0]
+                roaming = rng.random() < 0.04
+                for scope in ("ALL", s["market"]):
+                    a = agg[scope]
+                    a["rev_month"][month] += rev
+                    a["events_month"][month] += 1
+                    a["active_month"][month].add(s["id"])
+                    a["rev_type"][ct] += rev
+                    a["count_type"][ct] += 1
+                    a["heat"][day.weekday()][hour] += 1
+                    a["events"] += 1
+                    a["roaming"] += roaming
+                    if d >= last30_start:
+                        a["last30"][s["id"]] = a["last30"].get(s["id"], 0) + 1
 
-        revenue_by_market[market] += rated
-        calltype_by_market[market][call_type] += 1
-        revenue_by_month[ts.strftime("%Y-%m")] += rated
-        heatmap[ts.weekday()][ts.hour] += 1
+    def risk(n: int) -> str:
+        return "high" if n <= 1 else "medium" if n <= 5 else "low"
 
-    # base subscription revenue makes ARPU realistic
-    base_revenue = sum(subs_by_plan[p] * PLAN_BASE_FEE[p] for p in PLANS)
-    usage_revenue = sum(revenue_by_market.values())
-    total_revenue = base_revenue + usage_revenue
-    arpu = total_revenue / total_subs
-
-    # distribute base revenue across months evenly for the monthly ARPU line
-    months = sorted(revenue_by_month.keys())[-12:]  # trailing 12 months
-    base_per_month = base_revenue / max(len(months), 1)
-    arpu_monthly = []
-    for m in months:
-        month_rev = revenue_by_month[m] + base_per_month
-        arpu_monthly.append(
-            {
+    out_scopes = {}
+    for scope in scopes:
+        a = agg[scope]
+        members = [s for s in subs if scope == "ALL" or s["market"] == scope]
+        monthly = []
+        for m in month_keys:
+            active = len(a["active_month"][m])
+            rev = a["rev_month"][m]
+            monthly.append({
                 "month": m,
-                "revenue": round(month_rev, 2),
-                "arpu": round(month_rev / total_subs, 2),
-            }
-        )
+                "revenue": round(rev, 2),
+                "activeCallers": active,
+                "arpu": round(rev / active, 4) if active else 0.0,
+                "events": a["events_month"][m],
+            })
+        churn = {p: {"high": 0, "medium": 0, "low": 0} for p in PLANS}
+        for s in members:
+            if s["join"] > last30_start:
+                continue  # too new to classify
+            churn[s["plan"]][risk(a["last30"].get(s["id"], 0))] += 1
+        churned = sum(1 for s in members if s["churn"] is not None and s["churn"] < DAYS)
+        out_scopes[scope] = {
+            "subscribers": len(members),
+            "churned": churned,
+            "events": a["events"],
+            "roamingShare": round(a["roaming"] / a["events"], 4) if a["events"] else 0,
+            "revenue": round(sum(a["rev_month"].values()), 2),
+            "arpuMonthlyMean": round(sum(r["arpu"] for r in monthly) / len(monthly), 4),
+            "monthly": monthly,
+            "revenueByType": {t: round(v, 2) for t, v in a["rev_type"].items()},
+            "countByType": a["count_type"],
+            "heatmap": a["heat"],
+            "churnRiskByPlan": churn,
+        }
 
-    churn_weighted = sum(subs_by_plan[p] * PLAN_CHURN_RATE[p] for p in PLANS)
-    churn_rate = churn_weighted / sum(subs_by_plan.values())
-
-    days_labels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
-    heatmap_data = [
-        [h, d, heatmap[d][h]] for d in range(7) for h in range(24)
-    ]  # [x=hour, y=weekday, value]
-
-    return {
-        "_meta": _meta(
-            "project-telecom-lakehouse/data_generator/generate_cdrs.py",
-            "50,000 synthetic CDRs across a year, rated into revenue/ARPU/churn marts.",
-        ),
-        "kpis": {
-            "total_cdrs": n_rows,
-            "revenue_usd": round(total_revenue, 2),
-            "arpu_usd": round(arpu, 2),
-            "churn_rate_pct": round(churn_rate, 2),
-            "roaming_pct": round(100 * roaming_count / n_rows, 2),
+    doc = {
+        "_meta": {
+            "synthetic": True,
+            "scenario": True,
+            "seed": SEED,
+            "generatedBy": "portfolio-site/scripts/generate_viz_data.py",
+            "note": (
+                "Scenario data, not make demo output: a year of simulated traffic for "
+                f"{N_SUBS:,} subscribers, priced and aggregated with the project's own dbt rules."
+            ),
+            "assumptions": [
+                "Pricing, monthly ARPU and churn-risk thresholds match the dbt models exactly.",
+                "Usage revenue only — no plan fees, as in sl_revenue_event.",
+                "Diurnal profile: quiet 01:00–05:00, morning ramp, evening busy hour around 19:00.",
+                "Weekdays run ~5% above average; Saturday −12%, Sunday −22%.",
+                "Data sessions grow ~1.5% a month; December carries a 10% seasonal lift.",
+                "15% of subscribers join mid-year; churn probability per plan ranges 6% (family) to 35% (prepaid).",
+                "Activity fades over the 45 days before churn, so the churn mart can flag subscribers early.",
+            ],
+            "start": START.isoformat(),
+            "days": DAYS,
         },
-        "revenue_by_market": [
-            {
-                "market": m,
-                "revenue": round(revenue_by_market[m] + base_revenue * subs_by_market[m] / total_subs, 2),
-                "subscribers": subs_by_market[m],
-            }
-            for m in sorted(MARKETS, key=lambda x: -subs_by_market[x])
-        ],
-        "arpu_monthly": arpu_monthly,
-        "calltype_by_market": [
-            {
-                "market": m,
-                "voice": calltype_by_market[m]["VOICE"],
-                "sms": calltype_by_market[m]["SMS"],
-                "data": calltype_by_market[m]["DATA"],
-            }
-            for m in MARKETS
-        ],
-        "churn_signals": [
-            {
-                "plan_id": p,
-                "churn_rate": PLAN_CHURN_RATE[p],
-                "subscribers": subs_by_plan[p],
-            }
-            for p in sorted(PLANS, key=lambda x: -PLAN_CHURN_RATE[x])
-        ],
-        "usage_heatmap": {
-            "days": days_labels,
-            "hours": [f"{h:02d}" for h in range(24)],
-            "data": heatmap_data,
-            "max": max(max(row) for row in heatmap),
-        },
+        "markets": MARKETS,
+        "plans": PLANS,
+        "months": month_keys,
+        "scopes": out_scopes,
     }
+    self_check(doc)
+    return doc
 
 
-# --------------------------------------------------------------------------- #
-# SQL optimizer  (mirrors project-ai-sql-optimizer/corpus + analyzer rules)
-# --------------------------------------------------------------------------- #
-
-SQLOPT_CATEGORIES = [
-    "join_optimization",
-    "aggregation_rewrite",
-    "cte_flattening",
-    "partition_pruning",
-    "broadcast_join",
-]
-# realistic median cost-reduction band per category (%)
-CATEGORY_BAND = {
-    "join_optimization": (35, 75),
-    "aggregation_rewrite": (20, 55),
-    "cte_flattening": (15, 45),
-    "partition_pruning": (50, 90),
-    "broadcast_join": (40, 80),
-}
-ANALYZER_RULES = [
-    ("select_star", "info"),
-    ("cross_join", "high"),
-    ("missing_partition_predicate", "high"),
-    ("broadcast_opportunity", "warn"),
-    ("deep_cte_nesting", "warn"),
-    ("correlated_subquery", "warn"),
-]
+def self_check(doc: dict) -> None:
+    all_ = doc["scopes"]["ALL"]
+    markets = [doc["scopes"][m] for m in doc["markets"]]
+    tol = 0.05
+    assert abs(sum(m["revenue"] for m in markets) - all_["revenue"]) < tol, "market revenue != total"
+    assert sum(m["events"] for m in markets) == all_["events"], "market events != total"
+    assert sum(m["subscribers"] for m in markets) == all_["subscribers"], "market subs != total"
+    for scope in doc["scopes"].values():
+        assert abs(sum(r["revenue"] for r in scope["monthly"]) - scope["revenue"]) < tol, "monthly != total"
+        assert sum(map(sum, scope["heatmap"])) == scope["events"], "heatmap != events"
+        assert abs(sum(scope["revenueByType"].values()) - scope["revenue"]) < tol, "by type != total"
+        mean = sum(r["arpu"] for r in scope["monthly"]) / len(scope["monthly"])
+        assert abs(mean - scope["arpuMonthlyMean"]) < 1e-3, "KPI ARPU != mean of series"
 
 
-def generate_sqlopt() -> dict:
-    rng = random.Random(SEED)
-    corpus_size = 50
-
-    cost_reduction = []
-    for i in range(1, corpus_size + 1):
-        category = SQLOPT_CATEGORIES[(i - 1) % len(SQLOPT_CATEGORIES)]
-        lo, hi = CATEGORY_BAND[category]
-        # ~10% of queries regress or barely move (the optimizer isn't perfect)
-        if rng.random() < 0.1:
-            reduction = round(rng.uniform(-8, 4), 1)
-        else:
-            reduction = round(rng.triangular(lo, hi, (lo + hi) / 2), 1)
-        cost_before = rng.randint(2_000, 50_000)
-        cost_after = round(cost_before * (1 - reduction / 100), 0)
-        cost_reduction.append(
-            {
-                "query_id": f"{i:02d}",
-                "category": category,
-                "reduction_pct": reduction,
-                "cost_before": cost_before,
-                "cost_after": int(cost_after),
-            }
-        )
-
-    reductions = [q["reduction_pct"] for q in cost_reduction]
-    wins = sum(1 for r in reductions if r > 0)
-
-    by_category = []
-    for cat in SQLOPT_CATEGORIES:
-        vals = [q["reduction_pct"] for q in cost_reduction if q["category"] == cat]
-        by_category.append(
-            {
-                "category": cat,
-                "count": len(vals),
-                "median": round(statistics.median(vals), 1),
-                "min": min(vals),
-                "max": max(vals),
-            }
-        )
-
-    # histogram of reductions
-    edges = [0, 20, 30, 40, 50, 60, 70, 80, 100]
-    labels = ["0-20", "20-30", "30-40", "40-50", "50-60", "60-70", "70-80", "80+"]
-    hist = [0] * len(labels)
-    for r in reductions:
-        for j in range(len(labels)):
-            if edges[j] <= r < edges[j + 1]:
-                hist[j] += 1
-                break
-
-    # findings per rule (seeded counts across the corpus)
-    findings = []
-    f_rng = random.Random(SEED + 7)
-    total_findings = 0
-    for rule, severity in ANALYZER_RULES:
-        count = f_rng.randint(6, 34)
-        total_findings += count
-        findings.append({"rule": rule, "count": count, "severity": severity})
-
-    return {
-        "_meta": _meta(
-            "project-ai-sql-optimizer/corpus",
-            "Simulated 50-query optimization workload across 5 categories; cost "
-            "reductions and analyzer findings are seeded illustrative values.",
-        ),
-        "kpis": {
-            "corpus_size": corpus_size,
-            "median_cost_reduction_pct": round(statistics.median(reductions), 1),
-            "win_rate_pct": round(100 * wins / corpus_size, 1),
-            "avg_findings_per_query": round(total_findings / corpus_size, 2),
-        },
-        "cost_reduction": sorted(cost_reduction, key=lambda q: -q["reduction_pct"]),
-        "by_category": by_category,
-        "reduction_distribution": [
-            {"bucket": labels[j], "count": hist[j]} for j in range(len(labels))
-        ],
-        "findings_by_rule": sorted(findings, key=lambda f: -f["count"]),
-    }
-
-
-# --------------------------------------------------------------------------- #
-
-def main() -> None:
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    datasets = {
-        "fraud.json": generate_fraud(),
-        "telecom.json": generate_telecom(),
-        "sqlopt.json": generate_sqlopt(),
-    }
-    for name, data in datasets.items():
-        path = OUT_DIR / name
-        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-        print(f"wrote {path}  ({path.stat().st_size:,} bytes)")
+def main() -> int:
+    doc = generate()
+    text = json.dumps(doc, indent=1, ensure_ascii=False) + "\n"
+    if "--check" in sys.argv:
+        current = OUT.read_text(encoding="utf-8") if OUT.exists() else ""
+        if current != text:
+            print(f"DRIFT {OUT}", file=sys.stderr)
+            return 1
+        print(f"ok    {OUT.name} (self-checks passed)", file=sys.stderr)
+        return 0
+    OUT.parent.mkdir(parents=True, exist_ok=True)
+    OUT.write_text(text, encoding="utf-8")
+    a = doc["scopes"]["ALL"]
+    print(f"wrote {OUT.name}: {a['events']:,} events, ${a['revenue']:,.0f} revenue, "
+          f"mean monthly ARPU ${a['arpuMonthlyMean']:.2f}", file=sys.stderr)
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())

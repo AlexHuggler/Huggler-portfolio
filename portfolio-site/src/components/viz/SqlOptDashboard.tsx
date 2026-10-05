@@ -1,351 +1,116 @@
 import type { JSX } from "react";
 import EChart from "./EChart";
+import ChartCard, { type Provenance } from "./ChartCard";
 import KpiCard from "./KpiCard";
-import DataTable from "./DataTable";
-import {
-  axisLabel,
-  axisLine,
-  grid,
-  splitLine,
-  tooltip,
-  type VizTokens,
-} from "./theme";
-import sqlopt from "../../data/viz/sqlopt.json";
+import { axisLabel, grid, legend, motion, splitLine, tooltip, type VizMode, type VizTokens } from "./theme";
+import { corpus } from "../../data/artifacts";
 
-const CATEGORIES = [
-  "join_optimization",
-  "aggregation_rewrite",
-  "cte_flattening",
-  "partition_pruning",
-  "broadcast_join",
-];
-const CATEGORY_LABEL: Record<string, string> = {
-  join_optimization: "Join opt",
-  aggregation_rewrite: "Aggregation",
-  cte_flattening: "CTE flatten",
-  partition_pruning: "Partition prune",
-  broadcast_join: "Broadcast",
+/**
+ * SQL analyzer dashboard over the real corpus and analyze() output (no
+ * simulated cost reductions — the project hasn't measured any). Findings by
+ * severity per query, and the structural complexity the rules respond to.
+ */
+
+const PROV: Provenance = {
+  label: "Real corpus · analyze() output",
+  title: corpus._meta.note,
+  kind: "real",
 };
+const Q = corpus.queries;
+const label = (q: (typeof Q)[number]) => `${String(q.n).padStart(2, "0")} ${q.category.replace(/_/g, " ")}`;
+const SEVERITIES = ["info", "warn", "high"] as const;
 
-function catColor(t: VizTokens, category: string): string {
-  return t.series[CATEGORIES.indexOf(category) % t.series.length];
-}
-
-const SEVERITY_COLOR: Record<string, string> = {
-  high: "#ef4444",
-  warn: "#f59e0b",
-  info: "#2563eb",
-};
-
-// --- option builders (module scope => stable identity) --------------------
-
-function costReductionOption(t: VizTokens) {
-  const rows = sqlopt.cost_reduction;
-  const avg = rows.reduce((s, r) => s + r.reduction_pct, 0) / rows.length;
+function findingsOption(t: VizTokens, _m: VizMode, reduced: boolean) {
+  const colors = { info: t.accent, warn: t.warn, high: t.danger };
+  const rows = [...Q].reverse();
   return {
-    grid: grid({ bottom: 24 }),
-    tooltip: tooltip(t, {
-      trigger: "axis",
-      axisPointer: { type: "shadow" },
-      formatter: (p: any) => {
-        const r = rows[p[0].dataIndex];
-        return `Query ${r.query_id} · ${CATEGORY_LABEL[r.category]}<br/>Cost reduction: ${r.reduction_pct}%`;
-      },
-    }),
-    xAxis: {
-      type: "category",
-      data: rows.map((r) => r.query_id),
-      axisLabel: { ...axisLabel(t), interval: 4 },
-      axisLine: axisLine(t),
-      name: "query",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
-    },
-    yAxis: {
-      type: "value",
-      name: "reduction %",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
-      axisLabel: axisLabel(t),
-      axisLine: axisLine(t),
-      splitLine: splitLine(t),
-    },
-    series: [
-      {
-        type: "bar",
-        data: rows.map((r) => ({
-          value: r.reduction_pct,
-          itemStyle: { color: catColor(t, r.category) },
-        })),
-        markLine: {
-          silent: true,
-          symbol: "none",
-          lineStyle: { color: t.fg, type: "dashed" },
-          label: { color: t.fg, formatter: `median ${sqlopt.kpis.median_cost_reduction_pct}%` },
-          data: [{ yAxis: avg }],
-        },
-      },
-    ],
-  };
-}
-
-function byCategoryOption(t: VizTokens) {
-  const rows = sqlopt.by_category;
-  return {
-    grid: grid({ bottom: 40 }),
-    tooltip: tooltip(t, {
-      trigger: "axis",
-      axisPointer: { type: "shadow" },
-      formatter: (p: any) => {
-        const r = rows[p[0].dataIndex];
-        return `<b>${CATEGORY_LABEL[r.category]}</b><br/>Median: ${r.median}%<br/>Range: ${r.min}% – ${r.max}%<br/>${r.count} queries`;
-      },
-    }),
-    xAxis: {
-      type: "category",
-      data: rows.map((r) => CATEGORY_LABEL[r.category]),
-      axisLabel: { ...axisLabel(t), rotate: 20 },
-      axisLine: axisLine(t),
-    },
-    yAxis: {
-      type: "value",
-      name: "median reduction %",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
-      axisLabel: axisLabel(t),
-      axisLine: axisLine(t),
-      splitLine: splitLine(t),
-    },
-    series: [
-      {
-        type: "bar",
-        barWidth: "50%",
-        data: rows.map((r) => ({
-          value: r.median,
-          itemStyle: { color: catColor(t, r.category), borderRadius: [3, 3, 0, 0] },
-        })),
-      },
-    ],
-  };
-}
-
-function distributionOption(t: VizTokens) {
-  const rows = sqlopt.reduction_distribution;
-  return {
-    grid: grid({ bottom: 24 }),
+    ...motion(reduced),
+    grid: grid({ top: 36 }),
+    legend: legend(t, { top: 0, left: 0 }),
     tooltip: tooltip(t, { trigger: "axis", axisPointer: { type: "shadow" } }),
-    xAxis: {
-      type: "category",
-      data: rows.map((r) => r.bucket),
-      axisLabel: axisLabel(t),
-      axisLine: axisLine(t),
-      name: "reduction %",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
-    },
-    yAxis: {
-      type: "value",
-      name: "queries",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
-      axisLabel: axisLabel(t),
-      axisLine: axisLine(t),
-      splitLine: splitLine(t),
-    },
-    series: [
-      {
-        type: "bar",
-        data: rows.map((r) => r.count),
-        itemStyle: { color: t.accent, borderRadius: [3, 3, 0, 0] },
-        barWidth: "62%",
-      },
-    ],
+    xAxis: { type: "value", minInterval: 1, max: 3, axisLabel: axisLabel(t), splitLine: splitLine(t) },
+    yAxis: { type: "category", data: rows.map(label), axisLabel: axisLabel(t, { color: t.fg }), axisTick: { show: false }, axisLine: { show: false } },
+    series: SEVERITIES.map((sev, i) => ({
+      name: sev,
+      type: "bar",
+      stack: "f",
+      barMaxWidth: 22,
+      itemStyle: { color: colors[sev], borderColor: t.surface, borderWidth: 2, borderRadius: i === SEVERITIES.length - 1 ? [0, 4, 4, 0] : 0 },
+      emphasis: { focus: "series" },
+      data: rows.map((q) => q.findings.filter((f) => f.severity === sev).length),
+    })),
   };
 }
 
-function findingsOption(t: VizTokens) {
-  const rows = sqlopt.findings_by_rule;
+function complexityOption(t: VizTokens, _m: VizMode, reduced: boolean) {
+  const metrics = [
+    { k: "tables" as const, name: "Tables" },
+    { k: "ctes" as const, name: "CTEs" },
+    { k: "joins" as const, name: "Joins" },
+  ];
   return {
-    grid: grid({ left: 8, right: 24 }),
-    tooltip: tooltip(t, {
-      trigger: "axis",
-      axisPointer: { type: "shadow" },
-      formatter: (p: any) => {
-        const r = rows[p[0].dataIndex];
-        return `<b>${r.rule}</b><br/>${r.count} findings · ${r.severity}`;
-      },
-    }),
-    xAxis: {
-      type: "value",
-      axisLabel: axisLabel(t),
-      axisLine: axisLine(t),
-      splitLine: splitLine(t),
-    },
-    yAxis: {
-      type: "category",
-      inverse: true,
-      data: rows.map((r) => r.rule),
-      axisLabel: axisLabel(t),
-      axisLine: axisLine(t),
-    },
-    series: [
-      {
-        type: "bar",
-        data: rows.map((r) => ({
-          value: r.count,
-          itemStyle: { color: SEVERITY_COLOR[r.severity] ?? t.accent, borderRadius: [0, 3, 3, 0] },
-        })),
-        barWidth: "58%",
-      },
-    ],
+    ...motion(reduced),
+    grid: grid({ top: 36 }),
+    legend: legend(t, { top: 0, left: 0 }),
+    tooltip: tooltip(t, { trigger: "axis", axisPointer: { type: "shadow" } }),
+    xAxis: { type: "category", data: Q.map((q) => String(q.n).padStart(2, "0")), axisLabel: axisLabel(t, { color: t.fg }), axisTick: { show: false }, axisLine: { lineStyle: { color: t.border } } },
+    yAxis: { type: "value", minInterval: 1, axisLabel: axisLabel(t), splitLine: splitLine(t) },
+    series: metrics.map((m, i) => ({
+      name: m.name,
+      type: "bar",
+      barGap: "12%",
+      barMaxWidth: 18,
+      itemStyle: { color: t.series[i], borderRadius: [4, 4, 0, 0] },
+      emphasis: { focus: "series" },
+      data: Q.map((q) => q.stats[m.k]),
+    })),
   };
 }
-
-function beforeAfterOption(t: VizTokens) {
-  const rows = sqlopt.cost_reduction;
-  const maxCost = Math.max(...rows.map((r) => r.cost_before));
-  return {
-    grid: grid({ left: 8, right: 16, bottom: 32 }),
-    tooltip: tooltip(t, {
-      trigger: "item",
-      formatter: (p: any) => {
-        const r = rows[p.dataIndex];
-        return `Query ${r.query_id} · ${CATEGORY_LABEL[r.category]}<br/>Before: ${r.cost_before.toLocaleString()}<br/>After: ${r.cost_after.toLocaleString()}`;
-      },
-    }),
-    xAxis: {
-      type: "value",
-      name: "cost before",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
-      axisLabel: { ...axisLabel(t), formatter: (v: number) => `${(v / 1000).toFixed(0)}k` },
-      axisLine: axisLine(t),
-      splitLine: splitLine(t),
-    },
-    yAxis: {
-      type: "value",
-      name: "cost after",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
-      axisLabel: { ...axisLabel(t), formatter: (v: number) => `${(v / 1000).toFixed(0)}k` },
-      axisLine: axisLine(t),
-      splitLine: splitLine(t),
-    },
-    series: [
-      {
-        type: "scatter",
-        symbolSize: 9,
-        data: rows.map((r) => ({
-          value: [r.cost_before, r.cost_after],
-          itemStyle: { color: catColor(t, r.category), opacity: 0.85 },
-        })),
-        markLine: {
-          silent: true,
-          symbol: "none",
-          lineStyle: { color: t.muted, type: "dashed" },
-          label: { color: t.muted, formatter: "break-even", position: "end" },
-          data: [[{ coord: [0, 0] }, { coord: [maxCost, maxCost] }]],
-        },
-      },
-    ],
-  };
-}
-
-// --------------------------------------------------------------------------
 
 export default function SqlOptDashboard(): JSX.Element {
-  const k = sqlopt.kpis;
+  const s = corpus.summary;
+  const totalFindings = Q.reduce((a, q) => a + q.findings.length, 0);
+  const high = Q.reduce((a, q) => a + q.findings.filter((f) => f.severity === "high").length, 0);
+  const mostComplex = [...Q].sort((a, b) => b.stats.ctes + b.stats.joins - (a.stats.ctes + a.stats.joins))[0];
+  const ruleCount = corpus.rules.filter((r) => r.id !== "parse_error").length;
+  const fired = s.rulesFired.length;
+
   return (
-    <div>
-      <div className="mb-4">
-        <span
-          className="data-chip"
-          title="Simulated 50-query optimization workload across 5 categories. Cost reductions and analyzer findings are illustrative."
-        >
-          Synthetic demo data · seed 42
-        </span>
+    <div className="space-y-5">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <KpiCard label="Corpus" value={`${s.queries} queries`} sub="one per optimization category" tone="accent" />
+        <KpiCard label="With findings" value={`${s.queriesWithFindings} / ${s.queries}`} sub={`${totalFindings} findings in total`} />
+        <KpiCard label="Rules exercised" value={`${fired} / ${ruleCount}`} sub={s.rulesNeverFired.filter((r) => r !== "parse_error").join(", ") + " never fire"} tone="warn" />
+        <KpiCard label="Keyword overlap" value={s.meanKeywordOverlap.toFixed(2)} sub="published (upper bound)" />
+        <KpiCard label="From findings only" value={s.meanKeywordOverlapFindingsOnly.toFixed(2)} sub="stricter re-score" tone="danger" />
       </div>
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Corpus size" value={`${k.corpus_size}`} />
-        <KpiCard label="Median cost cut" value={`${k.median_cost_reduction_pct}%`} />
-        <KpiCard label="Win rate" value={`${k.win_rate_pct}%`} />
-        <KpiCard label="Findings / query" value={`${k.avg_findings_per_query}`} />
-      </div>
-
-      <figure className="demo-card mt-4">
-        <figcaption className="mb-2 text-sm font-semibold">Cost reduction per query (colored by category)</figcaption>
-        <EChart
-          height={300}
-          ariaLabel="Cost reduction per query, colored by optimization category"
-          buildOption={costReductionOption}
-          fallbackTable={
-            <DataTable
-              caption="Cost reduction per query"
-              columns={["Query", "Category", "Reduction %"]}
-              rows={sqlopt.cost_reduction.map((r) => [r.query_id, r.category, r.reduction_pct])}
-            />
+      <div className="grid gap-5 xl:grid-cols-2">
+        <ChartCard
+          id="sql-findings"
+          title="Analyzer findings per query, by severity"
+          subtitle="Exactly what analyze() reports when run the way the benchmark runs it"
+          provenance={PROV}
+          takeaway={
+            high === 0 ? (
+              <>No high-severity finding fires anywhere: the two high rules (cross join, missing partition predicate) are the two the corpus never triggers.</>
+            ) : (
+              <>{high} high-severity findings across the corpus.</>
+            )
           }
+          table={{ caption: "Findings per query", columns: ["Query", "info", "warn", "high", "Rules"], rows: Q.map((q) => [label(q), ...SEVERITIES.map((sev) => q.findings.filter((f) => f.severity === sev).length), q.findings.map((f) => f.rule).join(", ") || "—"]) }}
+          height={240}
+          renderChart={(h) => <EChart buildOption={findingsOption} height={h} ariaLabel={`Stacked bars of findings per corpus query by severity; ${totalFindings} findings in total.`} />}
         />
-      </figure>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-2">
-        <figure className="demo-card">
-          <figcaption className="mb-2 text-sm font-semibold">Median reduction by category</figcaption>
-          <EChart
-            height={290}
-            ariaLabel="Median cost reduction by category"
-            buildOption={byCategoryOption}
-            fallbackTable={
-              <DataTable
-                caption="Median reduction by category"
-                columns={["Category", "Median %", "Min %", "Max %", "Queries"]}
-                rows={sqlopt.by_category.map((r) => [r.category, r.median, r.min, r.max, r.count])}
-              />
-            }
-          />
-        </figure>
-
-        <figure className="demo-card">
-          <figcaption className="mb-2 text-sm font-semibold">Reduction distribution</figcaption>
-          <EChart
-            height={290}
-            ariaLabel="Distribution of cost reductions across the corpus"
-            buildOption={distributionOption}
-            fallbackTable={
-              <DataTable
-                caption="Reduction distribution"
-                columns={["Bucket %", "Queries"]}
-                rows={sqlopt.reduction_distribution.map((r) => [r.bucket, r.count])}
-              />
-            }
-          />
-        </figure>
-
-        <figure className="demo-card">
-          <figcaption className="mb-2 text-sm font-semibold">Analyzer findings by rule</figcaption>
-          <EChart
-            height={290}
-            ariaLabel="Heuristic analyzer findings by rule and severity"
-            buildOption={findingsOption}
-            fallbackTable={
-              <DataTable
-                caption="Analyzer findings by rule"
-                columns={["Rule", "Count", "Severity"]}
-                rows={sqlopt.findings_by_rule.map((r) => [r.rule, r.count, r.severity])}
-              />
-            }
-          />
-        </figure>
-
-        <figure className="demo-card">
-          <figcaption className="mb-2 text-sm font-semibold">EXPLAIN cost: before vs after</figcaption>
-          <EChart
-            height={290}
-            ariaLabel="EXPLAIN cost before versus after, per query"
-            buildOption={beforeAfterOption}
-            fallbackTable={
-              <DataTable
-                caption="EXPLAIN cost before vs after"
-                columns={["Query", "Before", "After"]}
-                rows={sqlopt.cost_reduction.map((r) => [r.query_id, r.cost_before, r.cost_after])}
-              />
-            }
-          />
-        </figure>
+        <ChartCard
+          id="sql-complexity"
+          title="Query structure the rules react to"
+          subtitle="Tables, CTEs and joins per corpus query (sqlglot AST)"
+          provenance={PROV}
+          takeaway={<>Query {String(mostComplex.n).padStart(2, "0")} ({mostComplex.category.replace(/_/g, " ")}) carries {mostComplex.stats.ctes} CTEs and {mostComplex.stats.joins} joins from a single source table — the shape the flattening rewrite removes.</>}
+          table={{ caption: "Query structure", columns: ["Query", "Tables", "CTEs", "Joins", "Lines"], rows: Q.map((q) => [label(q), q.stats.tables, q.stats.ctes, q.stats.joins, q.stats.lines]) }}
+          height={240}
+          renderChart={(h) => <EChart buildOption={complexityOption} height={h} ariaLabel="Grouped bars of tables, CTEs and joins per corpus query." />}
+        />
       </div>
     </div>
   );

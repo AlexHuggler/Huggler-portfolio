@@ -12,7 +12,9 @@
     "check": "astro check",
     "astro": "astro",
     "measure": "python3 scripts/measure.py run",
-    "measure:render": "python3 scripts/measure.py render"
+    "measure:render": "python3 scripts/measure.py render",
+    "data:check": "python3 scripts/generate_viz_data.py --check",
+    "data:viz": "python3 scripts/generate_viz_data.py"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

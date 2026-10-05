@@ -121,11 +121,16 @@ export default function ChartCard({
         {renderChart(height)}
       </div>
 
-      {showData && (
+      {showData ? (
         <div
           id={tableId}
           className="data-table-visible mt-3 max-h-72 overflow-auto rounded-lg border border-border"
         >
+          <DataTable {...table} />
+        </div>
+      ) : (
+        // Screen readers always get the data, chart or no chart.
+        <div className="visually-hidden">
           <DataTable {...table} />
         </div>
       )}
