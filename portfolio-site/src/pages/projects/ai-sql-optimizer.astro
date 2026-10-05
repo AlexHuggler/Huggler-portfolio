@@ -6,7 +6,7 @@ import RuleCoverage from "../../components/sqlopt/RuleCoverage.astro";
 import KeywordAttributionChart from "../../components/sqlopt/KeywordAttributionChart.tsx";
 import transcript from "../../data/measurements/ai-sql-optimizer.txt?raw";
 import { corpus } from "../../data/artifacts";
-import { measuredLabel } from "../../data/measured";
+import { measuredLabel, metric } from "../../data/measured";
 
 // The benchmark table exactly as `make benchmark` printed it.
 const benchStart = transcript.indexOf("$ make benchmark");
@@ -24,7 +24,7 @@ const stack = [
   { label: "Typer + Rich", rationale: "Ergonomic CLI with readable findings tables." },
   { label: "Anthropic SDK", rationale: "Claude Messages API with retry/backoff on rate limits and 5xx." },
   { label: "PyYAML", rationale: "Ground truth for the benchmark lives in reviewable YAML." },
-  { label: "pytest", rationale: "18 tests across analyzer, benchmark, CLI and client (API mocked)." },
+  { label: "pytest", rationale: `${metric("sqlopt.tests").value} tests across analyzer, benchmark, CLI, client and EXPLAIN (API and engines mocked).` },
 ];
 ---
 
@@ -75,10 +75,10 @@ const stack = [
       <KeywordAttributionChart client:visible />
       <RuleCoverage />
       <div class="card card-pad">
-        <p class="kicker">Planned evaluation · not measured</p>
+        <p class="kicker">Evaluation status · not measured</p>
         <ul class="mt-4 grid gap-3 md:grid-cols-3">
-          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">Claude rewrite quality</p><p class="mt-1 text-muted"><code class="font-mono text-[0.9em]">--no-dry-run</code> doesn't call the API yet, so no model output is scored.</p></li>
-          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">EXPLAIN cost delta</p><p class="mt-1 text-muted">Needs a live Spark or Snowflake engine and the runner described in methodology.md.</p></li>
+          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="implemented">Built · not run</span><p class="mt-2 font-medium">Claude rewrite quality</p><p class="mt-1 text-muted"><code class="font-mono text-[0.9em]">--no-dry-run</code> scores Claude's rewrites with the same scorer, but it needs an API key and no live run is recorded yet.</p></li>
+          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="needs-infra">Needs an engine</span><p class="mt-2 font-medium">EXPLAIN cost delta</p><p class="mt-1 text-muted"><code class="font-mono text-[0.9em]">--explain spark|snowflake</code> records estimated bytes scanned before and after; it needs an engine holding the corpus tables.</p></li>
           <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">Human acceptance</p><p class="mt-1 text-muted">Reviewer accept/reject with rationale per suggestion, as the corpus grows.</p></li>
         </ul>
       </div>

@@ -62,7 +62,7 @@ export const capabilityMatrix: { area: string; cells: Record<(typeof matrixProje
     cells: {
       "fraud-signals": null,
       "telecom-lakehouse": null,
-      "ai-sql-optimizer": { status: "implemented", note: "Claude rewrite; needs API key" },
+      "ai-sql-optimizer": { status: "implemented", note: "Claude rewrite + live benchmark; needs API key" },
     },
   },
   {

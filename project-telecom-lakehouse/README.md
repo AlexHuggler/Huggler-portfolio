@@ -137,7 +137,7 @@ commands above.
 
 | Metric | Measured |
 | --- | --- |
-| Raw -> Bronze -> Silver -> Gold transform | 49,998 rows in 0.20 s (median of 5 in-process runs, ~253k rows/sec) |
+| Raw -> Bronze -> Silver -> Gold transform | 49,998 rows in 0.20 s (median of 5 in-process runs, ~256k rows/sec) |
 | End-to-end demo (generate + transform) | 1.95 s wall clock (median of 3 `make demo` runs) |
 | dbt build | 8 models (bronze views, silver + gold tables), all built |
 | dbt tests | 41 of 41 passing (unique, not_null, accepted_values, relationships, expression checks) |

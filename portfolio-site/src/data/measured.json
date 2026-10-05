@@ -15,13 +15,12 @@
       "method": "make benchmark (dry run) over corpus/queries/*.sql vs corpus/ground_truth.yaml",
       "transcript": "src/data/measurements/ai-sql-optimizer.txt",
       "tests": {
-        "passed": 43,
+        "passed": 45,
         "skipped": 0
       },
       "summary": {
         "queries": 5,
-        "meanKeywordOverlap": 0.6667,
-        "meanKeywordOverlapFindingsOnly": 0.3333,
+        "meanKeywordOverlap": 0.3333,
         "queriesWithFindings": 4,
         "rulesFired": [
           "consider_broadcast",
@@ -43,7 +42,7 @@
         },
         {
           "category": "aggregation_rewrite",
-          "keywordOverlap": 0.6667,
+          "keywordOverlap": 0.3333,
           "findingsHitRate": 1.0
         },
         {
@@ -53,18 +52,18 @@
         },
         {
           "category": "partition_pruning",
-          "keywordOverlap": 0.6667,
+          "keywordOverlap": 0.0,
           "findingsHitRate": 0.0
         },
         {
           "category": "broadcast_join",
-          "keywordOverlap": 1.0,
+          "keywordOverlap": 0.3333,
           "findingsHitRate": 1.0
         }
       ],
       "analyzerLatencyMs": {
-        "median": 0.77,
-        "p95": 2.76,
+        "median": 0.9,
+        "p95": 3.76,
         "samples": 200
       }
     },
@@ -236,8 +235,8 @@
       },
       "throughput": {
         "events": 16664,
-        "secondsMedian": 0.1356,
-        "eventsPerSec": 122855,
+        "secondsMedian": 0.138,
+        "eventsPerSec": 120713,
         "runs": 5
       }
     },
@@ -266,7 +265,7 @@
       },
       "partitions": 3,
       "transform": {
-        "secondsMedian": 0.198,
+        "secondsMedian": 0.195,
         "runs": 5
       }
     }
@@ -289,7 +288,7 @@
       "id": "telecom.dbt"
     },
     {
-      "value": "~123k/s",
+      "value": "~121k/s",
       "label": "events scored by 3 detectors",
       "sublabel": "16,664 events · single process · median of 5",
       "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -297,7 +296,7 @@
       "id": "fraud.throughput"
     },
     {
-      "value": "77",
+      "value": "79",
       "label": "unit tests passing",
       "sublabel": "pytest across 3 projects · 1 skipped",
       "method": "make test ×3",
@@ -309,7 +308,7 @@
     "fraud-signals": {
       "metrics": [
         {
-          "value": "~123k/s",
+          "value": "~121k/s",
           "label": "events scored by 3 detectors",
           "sublabel": "16,664 events · single process · median of 5",
           "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -392,16 +391,15 @@
           "id": "sqlopt.findings"
         },
         {
-          "value": "0.67",
-          "label": "benchmark keyword overlap (upper bound)",
-          "sublabel": "0.33 when scored on findings alone",
-          "method": "make benchmark (dry run); findings-only re-score by scripts/artifacts/sqlopt.py",
+          "value": "0.33",
+          "label": "benchmark keyword overlap",
+          "sublabel": "analyzer findings only · heuristics, no API",
+          "method": "make benchmark (dry run)",
           "kind": "measured",
-          "caveat": "benchmark._score searches the query text — including its explanatory comments — as well as the findings, which inflates the score.",
           "id": "sqlopt.overlap"
         },
         {
-          "value": "0.8 ms",
+          "value": "0.9 ms",
           "label": "analyzer latency per query",
           "sublabel": "in-process median, warm · n=200",
           "method": "scripts/artifacts/sqlopt.py times analyze() over the 5 corpus queries ×40",
@@ -409,9 +407,9 @@
           "id": "sqlopt.latency"
         },
         {
-          "value": "43",
+          "value": "45",
           "label": "unit tests passing",
-          "sublabel": "analyzer, benchmark, CLI, client",
+          "sublabel": "analyzer, benchmark, CLI, client, EXPLAIN",
           "method": "make test",
           "kind": "count",
           "id": "sqlopt.tests"
@@ -454,7 +452,7 @@
       "id": "telecom.tests"
     },
     "fraud.throughput": {
-      "value": "~123k/s",
+      "value": "~121k/s",
       "label": "events scored by 3 detectors",
       "sublabel": "16,664 events · single process · median of 5",
       "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -504,16 +502,15 @@
       "id": "sqlopt.findings"
     },
     "sqlopt.overlap": {
-      "value": "0.67",
-      "label": "benchmark keyword overlap (upper bound)",
-      "sublabel": "0.33 when scored on findings alone",
-      "method": "make benchmark (dry run); findings-only re-score by scripts/artifacts/sqlopt.py",
+      "value": "0.33",
+      "label": "benchmark keyword overlap",
+      "sublabel": "analyzer findings only · heuristics, no API",
+      "method": "make benchmark (dry run)",
       "kind": "measured",
-      "caveat": "benchmark._score searches the query text — including its explanatory comments — as well as the findings, which inflates the score.",
       "id": "sqlopt.overlap"
     },
     "sqlopt.latency": {
-      "value": "0.8 ms",
+      "value": "0.9 ms",
       "label": "analyzer latency per query",
       "sublabel": "in-process median, warm · n=200",
       "method": "scripts/artifacts/sqlopt.py times analyze() over the 5 corpus queries ×40",
@@ -521,15 +518,15 @@
       "id": "sqlopt.latency"
     },
     "sqlopt.tests": {
-      "value": "43",
+      "value": "45",
       "label": "unit tests passing",
-      "sublabel": "analyzer, benchmark, CLI, client",
+      "sublabel": "analyzer, benchmark, CLI, client, EXPLAIN",
       "method": "make test",
       "kind": "count",
       "id": "sqlopt.tests"
     },
     "site.tests": {
-      "value": "77",
+      "value": "79",
       "label": "unit tests passing",
       "sublabel": "pytest across 3 projects · 1 skipped",
       "method": "make test ×3",
@@ -539,8 +536,8 @@
   },
   "notMeasured": {
     "ai-sql-optimizer": [
-      "Claude rewrite quality — `benchmark --no-dry-run` does not call the API yet",
-      "EXPLAIN cost delta — no EXPLAIN runner is implemented",
+      "Claude rewrite quality — `benchmark --no-dry-run` is implemented; no live run recorded (needs ANTHROPIC_API_KEY)",
+      "EXPLAIN cost delta — `benchmark --explain spark|snowflake` is implemented; no run recorded (needs an engine holding the corpus tables with statistics)",
       "Human acceptance rate of suggestions"
     ],
     "fraud-signals": [

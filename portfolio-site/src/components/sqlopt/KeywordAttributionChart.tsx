@@ -5,10 +5,10 @@ import { axisLabel, grid, legend, motion, splitLine, tooltip, withAlpha, type Vi
 import { corpus } from "../../data/artifacts";
 
 /**
- * Where do the benchmark's keyword hits come from? For each real corpus
- * query, ground-truth keywords split into: matched in analyzer findings,
- * matched only because they appear in the query's own text (which the
- * scorer also searches), and missed. Real data from sqlopt.py.
+ * Which ground-truth keywords does the analyzer actually earn? For each real
+ * corpus query, keywords split into: matched in analyzer findings (all the
+ * scorer counts), present only in the query's own text (which the scorer
+ * ignores), and missed. Real data from sqlopt.py.
  */
 
 const ROWS = corpus.queries.map((q) => {
@@ -68,7 +68,7 @@ export default function KeywordAttributionChart(): JSX.Element {
   return (
     <ChartCard
       id="keyword-attribution"
-      title="Ground-truth keywords, by where the scorer found them"
+      title="Ground-truth keywords: earned by findings vs. already in the query"
       subtitle="Each bar is one corpus query; segments count its expected keywords."
       provenance={{
         label: "Real corpus · make benchmark",
@@ -77,8 +77,8 @@ export default function KeywordAttributionChart(): JSX.Element {
       }}
       takeaway={
         <>
-          Only {IN_FINDINGS} of {TOTAL} expected keywords come from analyzer findings; {TEXT_ONLY} are
-          matched from the query's own text — why the published overlap is an upper bound.
+          {IN_FINDINGS} of {TOTAL} expected keywords appear in analyzer findings, the only place the
+          scorer looks. {TEXT_ONLY} more appear only in the query's own text, which it does not count.
         </>
       }
       table={{

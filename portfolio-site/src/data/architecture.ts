@@ -126,7 +126,7 @@ export const architecture: Record<string, Lane[]> = {
       id: "suggest",
       title: "Suggest",
       status: "implemented",
-      note: "needs ANTHROPIC_API_KEY — not part of the published benchmark",
+      note: "needs ANTHROPIC_API_KEY — benchmark --no-dry-run scores it; no live run recorded",
       nodes: [
         { label: "SQL + findings", detail: "structured user message", file: "src/sql_optimizer/client.py" },
         { label: "Optimizer prompt", detail: "versioned in the repo", file: "src/sql_optimizer/prompts/optimizer_prompt.md" },
@@ -148,12 +148,12 @@ export const architecture: Record<string, Lane[]> = {
     {
       id: "verify",
       title: "Verify",
-      status: "planned",
-      note: "designed in docs/methodology.md, not implemented",
+      status: "needs-infra",
+      note: "benchmark --explain spark|snowflake — needs an engine holding the corpus tables",
       nodes: [
-        { label: "EXPLAIN original" },
-        { label: "EXPLAIN rewrite" },
-        { label: "Cost delta" },
+        { label: "EXPLAIN original", detail: "Spark EXPLAIN COST · Snowflake EXPLAIN USING JSON", file: "src/sql_optimizer/explain.py" },
+        { label: "EXPLAIN rewrite", detail: "same engine, same statistics", file: "src/sql_optimizer/explain.py" },
+        { label: "Cost delta", detail: "estimated bytes scanned, before → after", file: "src/sql_optimizer/benchmark.py" },
       ],
     },
   ],

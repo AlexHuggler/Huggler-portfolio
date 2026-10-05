@@ -28,13 +28,17 @@ Each query has a ground-truth entry in `corpus/ground_truth.yaml` with:
 The benchmark computes:
 
 - `keyword_overlap`: fraction of expected keywords that appear in the
-  rewrite or findings.
+  tool's output - the heuristic finding messages in a dry run, Claude's
+  rewrite and reasoning in a live run. The input query is never
+  searched: a keyword it already contains (a table name, `JOIN`, a word
+  in a comment) would otherwise count as a hit the tool never earned.
 - `findings_hit_rate`: fraction of queries where the heuristic analyzer
   returned at least one finding.
 
-In `--dry-run` mode the scored text is the original query (including its
-header comments) plus the heuristic findings, so a keyword already present
-in the input counts as a hit.
+Correction: before 2026-10-05 the scorer also searched the input query
+text, including its explanatory comments, which inflated keyword
+overlap. Every keyword-overlap figure in the README is scored on tool
+output only.
 
 ## Live mode (`--no-dry-run`)
 
@@ -42,9 +46,8 @@ in the input counts as a hit.
   the same prompt and findings payload as `sql-optimizer analyze`. The
   model id is recorded in the summary (`--output` JSON).
 - `keyword_overlap` uses the same scorer, but the scored text is Claude's
-  rewrite + reasoning only - the original query is not included. Dry-run
-  and live scores are therefore not directly comparable: dry-run credits
-  keywords that were already in the input.
+  rewrite + reasoning only, where a dry run scores the heuristic findings.
+  Neither mode searches the original query.
 - `findings_hit_rate` stays the heuristic analyzer's result in both modes.
 - Without `ANTHROPIC_API_KEY` the run exits with status 2 before scoring
   anything. An API failure (after the client's three retries) aborts the

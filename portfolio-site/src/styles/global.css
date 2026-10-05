@@ -30,7 +30,7 @@
     --color-accent: 37 99 235; /* #2563eb — fills, buttons */
     --color-accent-fg: 29 78 216; /* #1d4ed8 — text/links */
     --color-accent-2: 8 145 178; /* #0891b2 — signature cyan (fills) */
-    --color-accent-2-fg: 14 116 144; /* #0e7490 — cyan as text */
+    --color-accent-2-fg: 21 94 117; /* #155e75 — cyan as text; holds 4.5:1 on tinted insets */
     --color-success: 4 120 87; /* #047857 */
     --color-warn: 180 83 9; /* #b45309 */
     --color-warn-fg: 146 64 14; /* #92400e — amber as small text on tints */
