@@ -10,7 +10,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "astro": "astro"
+    "astro": "astro",
+    "measure": "python3 scripts/measure.py run",
+    "measure:render": "python3 scripts/measure.py render"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",

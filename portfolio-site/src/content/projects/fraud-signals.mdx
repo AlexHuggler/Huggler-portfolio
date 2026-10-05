@@ -1,6 +1,6 @@
 ---
 title: "Real-Time Fraud Signals Pipeline"
-tagline: "Kafka -> Spark Structured Streaming -> Delta -> dbt -> Streamlit. Exactly-once processing, anomaly detection, dbt tests."
+tagline: "Kafka -> Spark Structured Streaming -> Delta, plus three fraud detectors evaluated against labeled ground truth."
 order: 1
 stack:
   - "Apache Kafka"
@@ -10,70 +10,80 @@ stack:
   - "Streamlit"
   - "Python"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-fraud-signals"
-problem: "Simulates fraud-event detection across streaming telecom-style data, with rules + statistical anomalies surfaced in seconds."
-approach: "Kafka -> Spark Structured Streaming -> Delta -> dbt -> Streamlit, with watermarked windows, exactly-once writes, and dbt tests on the marts."
+problem: "Fraud ages out in minutes: score transaction streams with rules and statistics, and prove the detectors work against labeled ground truth."
+approach: "Kafka -> Spark Structured Streaming (2-min watermark, checkpointed) -> Delta, with framework-free Python detectors scored against seeded labels."
 demonstrates:
   - "Streaming ingestion + watermarks"
-  - "Data quality / dbt tests"
+  - "Detector evaluation vs ground truth"
   - "Fraud analytics architecture"
   - "Production-style local dev"
 screenshot: "fraud-dashboard.png"
-results:
-  - "~110k events/sec detector throughput, measured single-process via make eval (seed 42)"
-  - "Impossible-travel detector at 1.00 precision / 1.00 recall vs seeded ground truth (account-level)"
-  - "Exactly-once Delta writes with a 2-minute watermark for late-arriving events"
 ---
+
+import { metric, evaluation } from "../../data/measured";
+export const ev = evaluation("fraud-signals");
+export const v = ev.scores.find((s) => s.kind === "velocity");
+export const best = [...ev.sweeps.velocity].sort((a, b) => b.f1 - a.f1)[0];
 
 ## Problem
 
 Fraud teams in telecom and fintech need to react in seconds, not hours. Batch
-ETL surfaces compromised accounts long after the damage is done. A streaming
-fraud-signals pipeline ingests transaction events, applies rules and statistical
-anomaly detection, and writes scored events to a lakehouse where analysts can
-slice further with dbt. This project demonstrates the production patterns that
-matter: exactly-once semantics, watermark-based late-event handling, dbt tests
-on the resulting marts, and a lightweight dashboard for operators.
+ETL surfaces a compromised account long after the money has moved. This
+project is the streaming half of that problem: a producer publishes labeled
+transaction events, Spark Structured Streaming lands them in Delta with a
+watermark and checkpoint, and three detectors — velocity, impossible travel,
+and amount outliers — score the stream. Because every synthetic event carries
+its ground-truth label, detector quality is something the repo measures
+rather than asserts.
 
 ## Judgment calls
 
-**Why streaming over batch?** Fraud ages out fast. A batch ETL that lands an
-anomaly two hours late is informational, not operational. The producer
-publishes JSON events to a Kafka topic partitioned by `account_id`, which
-preserves per-account ordering even when consumers scale horizontally.
+**Why streaming over batch?** Fraud ages out fast. An anomaly that lands two
+hours late is informational, not operational. The producer keys events by
+`account_id`, which preserves per-account ordering in Kafka even when
+consumers scale out.
 
-**Why Spark Structured Streaming over Flink?** Both are mature; Flink has
-lower latency at the tail and richer stateful semantics. I picked Spark
-because (a) the downstream lakehouse is already Spark-native via Delta, so the
-interop story is one engine instead of two, and (b) Structured Streaming's
-batch-equivalence model matches how analytics teams already reason about SQL.
-For sub-100ms detection, Flink would be the right call.
+**Why Spark Structured Streaming over Flink?** Flink has lower tail latency
+and richer state primitives. I picked Spark because the lakehouse is already
+Delta, so ingestion and analytics share one engine, and Structured
+Streaming's batch-equivalent model matches how analytics teams already reason
+in SQL. For sub-100 ms decisions, Flink would be the right call.
 
-**Exactly-once trade-offs.** Spark's exactly-once guarantee is "exactly-once
-across the checkpoint boundary," which assumes the sink is idempotent. Delta
-MERGE on a deterministic key is idempotent; raw Kafka-to-Kafka is not. The
-failure modes (e.g. committing the offset before the Delta write) are
-documented in the repo's `docs/architecture.md`, alongside the watermark
-policy that bounds late-event memory.
+**Exactly-once, precisely.** The consumer appends to Delta with a checkpoint.
+Delta's streaming sink records each micro-batch id in its transaction log, so
+a batch replayed after a crash is recognised and skipped — that is what makes
+the pipeline exactly-once *across the checkpoint boundary*. The 2-minute
+watermark bounds how much late-event state Spark has to keep.
+
+**Detectors stay framework-free.** The three detectors are plain Python
+functions over event dicts, so they unit-test without a cluster and run the
+same way in the evaluator, the Streamlit dashboard, or a future streaming
+`foreachBatch`. Today they run in batch over the evaluation set; wiring them
+into the streaming query is the next step, not something the demo claims.
 
 ## Measured results
 
-Every event the producer writes carries a ground-truth label, so detector
-quality is measured, not asserted: `make eval` generates ~16.6k labeled
-events (seed 42) and scores each detector account-level. Impossible-travel
-detection lands at 1.00 precision / 1.00 recall, the amount Z-score detector
-at 0.97 precision / 0.58 recall, and the recall-first velocity rule catches
-every seeded burst while over-flagging dense accounts (0.26 precision) - a
-deliberate trade-off the repo documents along with the fix (per-account
-baselining). The single-process detector scores ~110k events/sec.
+`make eval` generates {ev.dataset.events.toLocaleString("en-US")} labeled events (seed 42,
+{ev.dataset.accounts.toLocaleString("en-US")} accounts) and scores each detector at the
+account level. Impossible travel lands at {metric("fraud.geo.pr").value} precision / recall,
+and the amount z-score detector at {metric("fraud.amount.pr").value}. The fixed velocity rule
+is the instructive one: it catches every seeded burst but flags {v.flaggedAccounts} of
+{ev.dataset.accounts.toLocaleString("en-US")} accounts, for {v.precision.toFixed(2)} precision. At
+this simulated rate an ordinary account produces about three events a minute, so
+"five in sixty seconds" fires on normal traffic. The threshold explorer on this page shows
+the fix is calibration rather than a new model: threshold {best.threshold} reaches
+{best.precision.toFixed(2)} precision at {best.recall.toFixed(2)} recall. The detectors
+score {metric("fraud.throughput").value.replace("/s", "")} events per second in a single
+process.
 
 ## What I would do differently in production
 
-- Move anomaly detection to a dedicated feature store with versioned features.
-- Replace the fixed velocity threshold with a per-account baseline so precision
-  holds up under dense activity - `make eval` shows exactly where the naive
-  rule over-flags.
-- Replace per-event Z-score with online algorithms (Welford or t-digest) to bound memory.
-- Add a schema registry (Confluent or AWS Glue) so producer/consumer
-  compatibility is enforced at deploy time.
-- Push the dashboard onto a role-aware web framework (Streamlit is fine for
-  ops, not for customer-facing).
+- Replace the fixed velocity threshold with a per-account baseline, so
+  precision holds up for naturally busy accounts.
+- Swap per-account z-scores computed over the whole window for an online
+  estimator (Welford or t-digest) to bound memory.
+- Run the detectors inside the streaming query (`foreachBatch`) and write
+  scored events to their own Delta table.
+- Add a schema registry so producer/consumer compatibility is enforced at
+  deploy time.
+- Move the operator dashboard off Streamlit for anything customer-facing.

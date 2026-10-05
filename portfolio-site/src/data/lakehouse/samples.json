@@ -1,0 +1,512 @@
+{
+  "_meta": {
+    "synthetic": true,
+    "generatedBy": "portfolio-site/scripts/artifacts/telecom.py",
+    "source": "project-telecom-lakehouse/data (make demo, seed 42)",
+    "note": "Real make demo output read with DuckDB. MSISDNs are masked, cdr_id (a random uuid4) is redacted, and dates are shown as partition offsets (D1..D3) because the generator stamps rows relative to the run date."
+  },
+  "partitions": 3,
+  "layers": {
+    "bronze": {
+      "rows": 49998,
+      "schema": [
+        {
+          "column": "cdr_id",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "caller_msisdn",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "callee_msisdn",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "start_time",
+          "type": "TIMESTAMP"
+        },
+        {
+          "column": "duration_sec",
+          "type": "INTEGER"
+        },
+        {
+          "column": "bytes_used",
+          "type": "BIGINT"
+        },
+        {
+          "column": "call_type",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "market",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "plan_id",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "is_roaming",
+          "type": "BOOLEAN"
+        },
+        {
+          "column": "ingest_date",
+          "type": "DATE"
+        }
+      ],
+      "sample": [
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••8136",
+          "callee_msisdn": "+1••••••4380",
+          "start_time": "D2 22:52:39",
+          "duration_sec": 14,
+          "bytes_used": 0,
+          "call_type": "VOICE",
+          "market": "EAST",
+          "plan_id": "PRO_25GB",
+          "is_roaming": false,
+          "ingest_date": "D2"
+        },
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••1090",
+          "callee_msisdn": "+1••••••3054",
+          "start_time": "D1 08:20:33",
+          "duration_sec": 0,
+          "bytes_used": 0,
+          "call_type": "SMS",
+          "market": "SOUTH",
+          "plan_id": "UNLIMITED",
+          "is_roaming": false,
+          "ingest_date": "D1"
+        },
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••7272",
+          "callee_msisdn": "+1••••••4101",
+          "start_time": "D1 19:16:37",
+          "duration_sec": 281,
+          "bytes_used": 0,
+          "call_type": "VOICE",
+          "market": "CENTRAL",
+          "plan_id": "BASIC_5GB",
+          "is_roaming": false,
+          "ingest_date": "D1"
+        },
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••3231",
+          "callee_msisdn": null,
+          "start_time": "D2 18:50:58",
+          "duration_sec": 0,
+          "bytes_used": 29590767,
+          "call_type": "DATA",
+          "market": "CENTRAL",
+          "plan_id": "PRO_25GB",
+          "is_roaming": false,
+          "ingest_date": "D2"
+        }
+      ]
+    },
+    "silver": {
+      "rows": 49998,
+      "schema": [
+        {
+          "column": "cdr_id",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "caller_msisdn",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "callee_msisdn",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "start_time",
+          "type": "TIMESTAMP"
+        },
+        {
+          "column": "duration_sec",
+          "type": "INTEGER"
+        },
+        {
+          "column": "billable_minutes",
+          "type": "DOUBLE"
+        },
+        {
+          "column": "bytes_used",
+          "type": "BIGINT"
+        },
+        {
+          "column": "billable_mb",
+          "type": "DOUBLE"
+        },
+        {
+          "column": "call_type",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "market",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "plan_id",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "is_roaming",
+          "type": "BOOLEAN"
+        },
+        {
+          "column": "ingest_date",
+          "type": "DATE"
+        }
+      ],
+      "sample": [
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••8136",
+          "callee_msisdn": "+1••••••4380",
+          "start_time": "D2 22:52:39",
+          "duration_sec": 14,
+          "billable_minutes": 1.0,
+          "bytes_used": 0,
+          "billable_mb": 0.0,
+          "call_type": "VOICE",
+          "market": "EAST",
+          "plan_id": "PRO_25GB",
+          "is_roaming": false,
+          "ingest_date": "D2"
+        },
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••1090",
+          "callee_msisdn": "+1••••••3054",
+          "start_time": "D1 08:20:33",
+          "duration_sec": 0,
+          "billable_minutes": 0.0,
+          "bytes_used": 0,
+          "billable_mb": 0.0,
+          "call_type": "SMS",
+          "market": "SOUTH",
+          "plan_id": "UNLIMITED",
+          "is_roaming": false,
+          "ingest_date": "D1"
+        },
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••7272",
+          "callee_msisdn": "+1••••••4101",
+          "start_time": "D1 19:16:37",
+          "duration_sec": 281,
+          "billable_minutes": 5.0,
+          "bytes_used": 0,
+          "billable_mb": 0.0,
+          "call_type": "VOICE",
+          "market": "CENTRAL",
+          "plan_id": "BASIC_5GB",
+          "is_roaming": false,
+          "ingest_date": "D1"
+        },
+        {
+          "cdr_id": "uuid4…",
+          "caller_msisdn": "+1••••••3231",
+          "callee_msisdn": null,
+          "start_time": "D2 18:50:58",
+          "duration_sec": 0,
+          "billable_minutes": 0.0,
+          "bytes_used": 29590767,
+          "billable_mb": 28.22,
+          "call_type": "DATA",
+          "market": "CENTRAL",
+          "plan_id": "PRO_25GB",
+          "is_roaming": false,
+          "ingest_date": "D2"
+        }
+      ]
+    },
+    "gold.revenue_by_market": {
+      "rows": 15,
+      "schema": [
+        {
+          "column": "market",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "ingest_date",
+          "type": "DATE"
+        },
+        {
+          "column": "revenue_usd",
+          "type": "DOUBLE"
+        },
+        {
+          "column": "event_count",
+          "type": "BIGINT"
+        }
+      ],
+      "sample": [
+        {
+          "market": "CENTRAL",
+          "ingest_date": "D1",
+          "revenue_usd": 541.0676,
+          "event_count": 3372
+        },
+        {
+          "market": "CENTRAL",
+          "ingest_date": "D2",
+          "revenue_usd": 536.6291,
+          "event_count": 3326
+        },
+        {
+          "market": "CENTRAL",
+          "ingest_date": "D3",
+          "revenue_usd": 540.9509,
+          "event_count": 3341
+        },
+        {
+          "market": "EAST",
+          "ingest_date": "D1",
+          "revenue_usd": 515.0003,
+          "event_count": 3254
+        }
+      ]
+    },
+    "gold.arpu_monthly": {
+      "rows": 5,
+      "schema": [
+        {
+          "column": "month",
+          "type": "TIMESTAMP"
+        },
+        {
+          "column": "plan_id",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "arpu_usd",
+          "type": "DOUBLE"
+        },
+        {
+          "column": "active_callers",
+          "type": "BIGINT"
+        }
+      ],
+      "sample": [
+        {
+          "month": "M1",
+          "plan_id": "BASIC_5GB",
+          "arpu_usd": 0.1641,
+          "active_callers": 9926
+        },
+        {
+          "month": "M1",
+          "plan_id": "FAMILY_50GB",
+          "arpu_usd": 0.1623,
+          "active_callers": 10085
+        },
+        {
+          "month": "M1",
+          "plan_id": "PREPAID",
+          "arpu_usd": 0.1656,
+          "active_callers": 10176
+        },
+        {
+          "month": "M1",
+          "plan_id": "PRO_25GB",
+          "arpu_usd": 0.1608,
+          "active_callers": 9913
+        }
+      ]
+    },
+    "gold.churn_signals": {
+      "rows": 49998,
+      "schema": [
+        {
+          "column": "caller_msisdn",
+          "type": "VARCHAR"
+        },
+        {
+          "column": "last_event",
+          "type": "TIMESTAMP"
+        },
+        {
+          "column": "events_30d",
+          "type": "BIGINT"
+        },
+        {
+          "column": "roaming_events",
+          "type": "DOUBLE"
+        },
+        {
+          "column": "churn_risk",
+          "type": "VARCHAR"
+        }
+      ],
+      "sample": [
+        {
+          "caller_msisdn": "+1••••••8136",
+          "last_event": "D2 22:52:39",
+          "events_30d": 1,
+          "roaming_events": 0.0,
+          "churn_risk": "high"
+        },
+        {
+          "caller_msisdn": "+1••••••1090",
+          "last_event": "D1 08:20:33",
+          "events_30d": 1,
+          "roaming_events": 0.0,
+          "churn_risk": "high"
+        },
+        {
+          "caller_msisdn": "+1••••••7272",
+          "last_event": "D1 19:16:37",
+          "events_30d": 1,
+          "roaming_events": 0.0,
+          "churn_risk": "high"
+        },
+        {
+          "caller_msisdn": "+1••••••3231",
+          "last_event": "D2 18:50:58",
+          "events_30d": 1,
+          "roaming_events": 0.0,
+          "churn_risk": "high"
+        }
+      ]
+    }
+  },
+  "gold": {
+    "revenueByMarket": [
+      {
+        "market": "CENTRAL",
+        "day": "D1",
+        "revenueUsd": 541.07,
+        "events": 3372
+      },
+      {
+        "market": "CENTRAL",
+        "day": "D2",
+        "revenueUsd": 536.63,
+        "events": 3326
+      },
+      {
+        "market": "CENTRAL",
+        "day": "D3",
+        "revenueUsd": 540.95,
+        "events": 3341
+      },
+      {
+        "market": "EAST",
+        "day": "D1",
+        "revenueUsd": 515.0,
+        "events": 3254
+      },
+      {
+        "market": "EAST",
+        "day": "D2",
+        "revenueUsd": 542.3,
+        "events": 3344
+      },
+      {
+        "market": "EAST",
+        "day": "D3",
+        "revenueUsd": 559.04,
+        "events": 3381
+      },
+      {
+        "market": "NORTH",
+        "day": "D1",
+        "revenueUsd": 543.69,
+        "events": 3309
+      },
+      {
+        "market": "NORTH",
+        "day": "D2",
+        "revenueUsd": 528.91,
+        "events": 3315
+      },
+      {
+        "market": "NORTH",
+        "day": "D3",
+        "revenueUsd": 533.24,
+        "events": 3304
+      },
+      {
+        "market": "SOUTH",
+        "day": "D1",
+        "revenueUsd": 571.47,
+        "events": 3411
+      },
+      {
+        "market": "SOUTH",
+        "day": "D2",
+        "revenueUsd": 532.89,
+        "events": 3296
+      },
+      {
+        "market": "SOUTH",
+        "day": "D3",
+        "revenueUsd": 551.9,
+        "events": 3335
+      },
+      {
+        "market": "WEST",
+        "day": "D1",
+        "revenueUsd": 550.63,
+        "events": 3320
+      },
+      {
+        "market": "WEST",
+        "day": "D2",
+        "revenueUsd": 560.86,
+        "events": 3385
+      },
+      {
+        "market": "WEST",
+        "day": "D3",
+        "revenueUsd": 545.44,
+        "events": 3305
+      }
+    ],
+    "arpuMonthly": [
+      {
+        "plan": "BASIC_5GB",
+        "arpuUsd": 0.1641,
+        "activeCallers": 9926
+      },
+      {
+        "plan": "FAMILY_50GB",
+        "arpuUsd": 0.1623,
+        "activeCallers": 10085
+      },
+      {
+        "plan": "PREPAID",
+        "arpuUsd": 0.1656,
+        "activeCallers": 10176
+      },
+      {
+        "plan": "PRO_25GB",
+        "arpuUsd": 0.1608,
+        "activeCallers": 9913
+      },
+      {
+        "plan": "UNLIMITED",
+        "arpuUsd": 0.1627,
+        "activeCallers": 9898
+      }
+    ],
+    "churnRisk": {
+      "high": 49998
+    }
+  },
+  "distinctCallers": 49998,
+  "callMix": {
+    "DATA": 12516,
+    "SMS": 17695,
+    "VOICE": 19787
+  }
+}

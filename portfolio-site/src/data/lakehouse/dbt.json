@@ -1,0 +1,315 @@
+{
+  "_meta": {
+    "synthetic": false,
+    "generatedBy": "portfolio-site/scripts/artifacts/telecom.py",
+    "source": "project-telecom-lakehouse/dbt_telecom",
+    "note": "Parsed from the dbt project's model SQL and schema.yml files."
+  },
+  "source": {
+    "id": "raw.cdr_raw",
+    "description": "Synthetic CDR (Call Detail Record) parquet, partitioned by ingest_date",
+    "location": "read_parquet('../data/raw/*/*.parquet', hive_partitioning = 1)",
+    "tests": [
+      {
+        "column": "cdr_id",
+        "type": "unique"
+      },
+      {
+        "column": "cdr_id",
+        "type": "not_null"
+      },
+      {
+        "column": "caller_msisdn",
+        "type": "not_null"
+      },
+      {
+        "column": "start_time",
+        "type": "not_null"
+      },
+      {
+        "column": "call_type",
+        "type": "accepted_values",
+        "detail": "VOICE, SMS, DATA"
+      }
+    ]
+  },
+  "models": [
+    {
+      "id": "br_account_register",
+      "layer": "bronze",
+      "materialized": "view",
+      "description": "Bronze: deduped account-level register derived from CDR caller msisdn",
+      "refs": [
+        "br_cdr"
+      ],
+      "sources": [],
+      "tests": [
+        {
+          "column": "account_key",
+          "type": "unique"
+        },
+        {
+          "column": "account_key",
+          "type": "not_null"
+        },
+        {
+          "column": "caller_msisdn",
+          "type": "not_null"
+        }
+      ],
+      "sql": "{{ config(materialized='view') }}\n\nwith caller_first_seen as (\n    select\n        caller_msisdn,\n        min(start_time) as first_event_at,\n        plan_id,\n        market\n    from {{ ref('br_cdr') }}\n    group by caller_msisdn, plan_id, market\n)\nselect\n    {{ generate_surrogate_key(['caller_msisdn']) }} as account_key,\n    caller_msisdn,\n    plan_id,\n    market,\n    first_event_at\nfrom caller_first_seen\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/bronze/br_account_register.sql"
+    },
+    {
+      "id": "br_cdr",
+      "layer": "bronze",
+      "materialized": "view",
+      "description": "Bronze: typed CDR rows straight off the raw parquet landing",
+      "refs": [],
+      "sources": [
+        "raw.cdr_raw"
+      ],
+      "tests": [
+        {
+          "column": "cdr_id",
+          "type": "unique"
+        },
+        {
+          "column": "cdr_id",
+          "type": "not_null"
+        },
+        {
+          "column": "caller_msisdn",
+          "type": "not_null"
+        },
+        {
+          "column": "call_type",
+          "type": "accepted_values",
+          "detail": "VOICE, SMS, DATA"
+        },
+        {
+          "column": "market",
+          "type": "accepted_values",
+          "detail": "NORTH, SOUTH, EAST, WEST, CENTRAL"
+        },
+        {
+          "column": "ingest_date",
+          "type": "not_null"
+        }
+      ],
+      "sql": "{{ config(materialized='view') }}\n\nselect\n    cdr_id,\n    caller_msisdn,\n    nullif(callee_msisdn, '') as callee_msisdn,\n    cast(start_time as timestamp) as start_time,\n    cast(duration_sec as integer) as duration_sec,\n    cast(bytes_used as bigint) as bytes_used,\n    upper(call_type) as call_type,\n    upper(market) as market,\n    plan_id,\n    cast(is_roaming as boolean) as is_roaming,\n    cast(ingest_date as date) as ingest_date\nfrom {{ source('raw', 'cdr_raw') }}\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/bronze/br_cdr.sql"
+    },
+    {
+      "id": "sl_account_daily",
+      "layer": "silver",
+      "materialized": "table",
+      "description": "Silver: per-account, per-day aggregate of billable usage",
+      "refs": [
+        "sl_cdr_clean"
+      ],
+      "sources": [],
+      "tests": [
+        {
+          "column": "caller_msisdn",
+          "type": "not_null"
+        },
+        {
+          "column": "caller_msisdn",
+          "type": "relationships",
+          "detail": "br_account_register.caller_msisdn",
+          "to": "br_account_register"
+        },
+        {
+          "column": "plan_id",
+          "type": "not_null"
+        },
+        {
+          "column": "ingest_date",
+          "type": "not_null"
+        }
+      ],
+      "sql": "{{ config(materialized='table') }}\n\nselect\n    caller_msisdn,\n    plan_id,\n    market,\n    ingest_date,\n    sum(billable_minutes) as billable_minutes,\n    sum(billable_mb) as billable_mb,\n    count(*) filter (where call_type = 'VOICE') as voice_events,\n    count(*) filter (where call_type = 'SMS') as sms_events,\n    count(*) filter (where call_type = 'DATA') as data_events,\n    sum(case when is_roaming then 1 else 0 end) as roaming_events\nfrom {{ ref('sl_cdr_clean') }}\ngroup by 1, 2, 3, 4\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/silver/sl_account_daily.sql"
+    },
+    {
+      "id": "sl_cdr_clean",
+      "layer": "silver",
+      "materialized": "table",
+      "description": "Silver: cleaned CDR with billable_minutes / billable_mb derived",
+      "refs": [
+        "br_cdr"
+      ],
+      "sources": [],
+      "tests": [
+        {
+          "column": "cdr_id",
+          "type": "unique"
+        },
+        {
+          "column": "cdr_id",
+          "type": "not_null"
+        },
+        {
+          "column": "caller_msisdn",
+          "type": "not_null"
+        },
+        {
+          "column": "call_type",
+          "type": "accepted_values",
+          "detail": "VOICE, SMS, DATA"
+        },
+        {
+          "column": "billable_minutes",
+          "type": "expression_is_true",
+          "detail": ">= 0"
+        },
+        {
+          "column": "billable_mb",
+          "type": "expression_is_true",
+          "detail": ">= 0"
+        }
+      ],
+      "sql": "{{ config(materialized='table') }}\n\nwith src as (\n    select * from {{ ref('br_cdr') }}\n)\nselect\n    cdr_id,\n    caller_msisdn,\n    callee_msisdn,\n    start_time,\n    duration_sec,\n    case when call_type = 'VOICE' then ceil(duration_sec / 60.0) else 0 end as billable_minutes,\n    bytes_used,\n    round(bytes_used / 1048576.0, 3) as billable_mb,\n    call_type,\n    market,\n    plan_id,\n    coalesce(is_roaming, false) as is_roaming,\n    ingest_date\nfrom src\nwhere caller_msisdn is not null\n  and duration_sec >= 0\n  and call_type in ('VOICE', 'SMS', 'DATA')\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/silver/sl_cdr_clean.sql"
+    },
+    {
+      "id": "sl_revenue_event",
+      "layer": "silver",
+      "materialized": "table",
+      "description": "Silver: per-event revenue breakdown used by gold marts",
+      "refs": [
+        "sl_cdr_clean"
+      ],
+      "sources": [],
+      "tests": [
+        {
+          "column": "cdr_id",
+          "type": "unique"
+        },
+        {
+          "column": "cdr_id",
+          "type": "not_null"
+        },
+        {
+          "column": "revenue_usd",
+          "type": "expression_is_true",
+          "detail": ">= 0"
+        }
+      ],
+      "sql": "{{ config(materialized='table') }}\n\nselect\n    cdr_id,\n    caller_msisdn,\n    plan_id,\n    market,\n    ingest_date,\n    start_time,\n    call_type,\n    case\n        when call_type = 'VOICE' then billable_minutes * 0.05\n        when call_type = 'DATA'  then billable_mb * 0.02\n        when call_type = 'SMS'   then 0.01\n        else 0.0\n    end as revenue_usd,\n    is_roaming\nfrom {{ ref('sl_cdr_clean') }}\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/silver/sl_revenue_event.sql"
+    },
+    {
+      "id": "arpu_monthly",
+      "layer": "gold",
+      "materialized": "table",
+      "description": "Gold: monthly ARPU by plan",
+      "refs": [
+        "sl_revenue_event"
+      ],
+      "sources": [],
+      "tests": [
+        {
+          "column": "month",
+          "type": "not_null"
+        },
+        {
+          "column": "plan_id",
+          "type": "not_null"
+        },
+        {
+          "column": "plan_id",
+          "type": "accepted_values",
+          "detail": "BASIC_5GB, PRO_25GB, UNLIMITED, FAMILY_50GB, PREPAID"
+        },
+        {
+          "column": "arpu_usd",
+          "type": "not_null"
+        },
+        {
+          "column": "arpu_usd",
+          "type": "expression_is_true",
+          "detail": ">= 0"
+        }
+      ],
+      "sql": "{{ config(materialized='table') }}\n\nwith per_caller as (\n    select\n        caller_msisdn,\n        plan_id,\n        date_trunc('month', start_time) as month,\n        sum(revenue_usd) as revenue_usd\n    from {{ ref('sl_revenue_event') }}\n    group by 1, 2, 3\n)\nselect\n    month,\n    plan_id,\n    avg(revenue_usd) as arpu_usd,\n    count(*) as active_callers\nfrom per_caller\ngroup by 1, 2\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/gold/arpu_monthly.sql"
+    },
+    {
+      "id": "churn_signals",
+      "layer": "gold",
+      "materialized": "table",
+      "description": "Gold: per-caller churn-risk classification",
+      "refs": [
+        "sl_account_daily"
+      ],
+      "sources": [],
+      "tests": [
+        {
+          "column": "caller_msisdn",
+          "type": "unique"
+        },
+        {
+          "column": "caller_msisdn",
+          "type": "not_null"
+        },
+        {
+          "column": "churn_risk",
+          "type": "not_null"
+        },
+        {
+          "column": "churn_risk",
+          "type": "accepted_values",
+          "detail": "high, medium, low"
+        }
+      ],
+      "sql": "{{ config(materialized='table') }}\n\nwith per_caller as (\n    select\n        caller_msisdn,\n        max(ingest_date) as last_active_date,\n        sum(voice_events + sms_events + data_events) as events_30d,\n        sum(roaming_events) as roaming_events\n    from {{ ref('sl_account_daily') }}\n    group by 1\n)\nselect\n    caller_msisdn,\n    last_active_date,\n    events_30d,\n    roaming_events,\n    case\n        when events_30d <= 1 then 'high'\n        when events_30d <= 5 then 'medium'\n        else 'low'\n    end as churn_risk\nfrom per_caller\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/gold/churn_signals.sql"
+    },
+    {
+      "id": "revenue_by_market",
+      "layer": "gold",
+      "materialized": "table",
+      "description": "Gold: daily revenue rollup by market for FP&A",
+      "refs": [
+        "sl_revenue_event"
+      ],
+      "sources": [],
+      "tests": [
+        {
+          "column": "market",
+          "type": "not_null"
+        },
+        {
+          "column": "market",
+          "type": "accepted_values",
+          "detail": "NORTH, SOUTH, EAST, WEST, CENTRAL"
+        },
+        {
+          "column": "ingest_date",
+          "type": "not_null"
+        },
+        {
+          "column": "revenue_usd",
+          "type": "not_null"
+        },
+        {
+          "column": "revenue_usd",
+          "type": "expression_is_true",
+          "detail": ">= 0"
+        }
+      ],
+      "sql": "{{ config(materialized='table') }}\n\nselect\n    market,\n    ingest_date,\n    sum(revenue_usd) as revenue_usd,\n    count(*) as event_count,\n    count(distinct caller_msisdn) as active_callers\nfrom {{ ref('sl_revenue_event') }}\ngroup by 1, 2\n",
+      "file": "project-telecom-lakehouse/dbt_telecom/models/gold/revenue_by_market.sql"
+    }
+  ],
+  "testCount": 41,
+  "testTypes": [
+    "accepted_values",
+    "expression_is_true",
+    "not_null",
+    "relationships",
+    "unique"
+  ]
+}
