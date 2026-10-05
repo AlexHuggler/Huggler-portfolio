@@ -1,0 +1,238 @@
+---
+/**
+ * QueryWorkbench — one tab per real corpus query. Everything shown is real
+ * output from the project (scripts/artifacts/sqlopt.py): the SQL and its
+ * author note, the dialect the benchmark actually parsed it as, the
+ * analyzer's findings, the ground-truth keywords and where each was matched,
+ * and the exact message the CLI would send to Claude. The rewrite is a
+ * labelled, hand-written reference — never presented as model output.
+ */
+import { Code } from "astro:components";
+import { cssVarsTheme } from "../../lib/shiki-theme.mjs";
+import { corpus } from "../../data/artifacts";
+import { rewriteNotes, categoryTitle } from "../../data/sqlopt/rewrite-notes";
+
+const ruleIds = corpus.rules.map((r) => r.id).filter((r) => r !== "parse_error");
+const severityOf = Object.fromEntries(corpus.rules.map((r) => [r.id, r.severity]));
+---
+
+<div class="card overflow-hidden" data-tabs data-tabs-hash>
+  <div class="overflow-x-auto border-b border-border bg-surface-2/60 px-3 pt-3">
+    <div role="tablist" aria-label="Corpus queries" class="flex min-w-max gap-1">
+      {corpus.queries.map((q, i) => (
+        <button
+          role="tab"
+          id={`qtab-${q.id}`}
+          aria-controls={`qpanel-${q.id}`}
+          aria-selected={i === 0 ? "true" : "false"}
+          tabindex={i === 0 ? 0 : -1}
+          data-hash={`q${q.n}`}
+          class="wb-tab"
+        >
+          <span class="font-mono text-[11px] text-muted">{String(q.n).padStart(2, "0")}</span>
+          <span>{categoryTitle[q.category] ?? q.category}</span>
+          <span
+            class:list={["h-1.5 w-1.5 rounded-full", q.findings.length ? "bg-warn" : "bg-border-strong"]}
+            aria-hidden="true"
+          />
+          <span class="sr-only">{q.findings.length} findings</span>
+        </button>
+      ))}
+    </div>
+  </div>
+
+  {corpus.queries.map((q, i) => {
+    const note = rewriteNotes[q.id];
+    const fired = new Set(q.findings.map((f) => f.rule));
+    const notFired = ruleIds.filter((r) => !fired.has(r));
+    const kwInFindings = q.keywordHits.filter((k) => k.inFindings).length;
+    const mismatch = q.engineTag !== q.parsedAs;
+    return (
+      <section
+        role="tabpanel"
+        id={`qpanel-${q.id}`}
+        aria-labelledby={`qtab-${q.id}`}
+        hidden={i !== 0}
+        tabindex="0"
+        class="p-5 md:p-7"
+      >
+        <header class="flex flex-wrap items-start justify-between gap-4">
+          <div class="min-w-0 max-w-3xl">
+            <p class="font-mono text-[11px] text-muted">corpus/queries/{q.id}.sql</p>
+            <h3 class="heading-2 mt-1.5">{categoryTitle[q.category] ?? q.category}</h3>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{q.note}</p>
+          </div>
+          <dl class="grid grid-cols-4 gap-px overflow-hidden rounded-lg border border-border bg-border text-center">
+            {Object.entries(q.stats).map(([k, v]) => (
+              <div class="flex flex-col bg-surface px-3 py-2">
+                <dt class="order-2 font-mono text-[10px] uppercase tracking-wider text-muted">{k}</dt>
+                <dd class="order-1 font-mono text-base font-semibold">{v}</dd>
+              </div>
+            ))}
+          </dl>
+        </header>
+
+        <p class="mt-4 flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted">
+          <span class="pill">tagged: {q.engineTag}</span>
+          <span class="pill">parsed as: {q.parsedAs}</span>
+          {mismatch && <span class="text-warn">The benchmark ignores the engine header.</span>}
+        </p>
+
+        <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
+          <div class="min-w-0">
+            <p class="kicker mb-2">Original</p>
+            <div class="code-surface" data-code-copy>
+              <Code code={q.sql.trim()} lang="sql" theme={cssVarsTheme} />
+            </div>
+          </div>
+
+          <div class="min-w-0 space-y-5">
+            <div>
+              <p class="kicker mb-2">Analyzer findings · real output</p>
+              {q.findings.length === 0 ? (
+                <div class="card-inset p-4 text-sm leading-relaxed">
+                  <p class="font-medium">No findings.</p>
+                  <p class="mt-1 text-muted">
+                    The partition rule only runs when partition columns are passed; the benchmark passes none.
+                  </p>
+                </div>
+              ) : (
+                <ul class="space-y-2">
+                  {q.findings.map((f) => (
+                    <li class="card-inset p-3.5">
+                      <p class="flex items-center gap-2">
+                        <span class="severity" data-severity={f.severity}>{f.severity}</span>
+                        <code class="font-mono text-[12px] font-semibold">{f.rule}</code>
+                      </p>
+                      <p class="mt-1.5 text-sm leading-relaxed text-fg/85">{f.message}</p>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              {q.withPartitionColumns && (
+                <div class="mt-3 rounded-lg border border-dashed border-border-strong p-3.5">
+                  <p class="font-mono text-[11px] text-muted">
+                    With <code>--partition-columns {q.withPartitionColumns.columns.join(",")}</code>:
+                  </p>
+                  {q.withPartitionColumns.findings.map((f) => (
+                    <p class="mt-2 flex flex-wrap items-center gap-2 text-sm">
+                      <span class="severity" data-severity={f.severity}>{f.severity}</span>
+                      <code class="font-mono text-[12px] font-semibold">{f.rule}</code>
+                      <span class="text-fg/85">{f.message}</span>
+                    </p>
+                  ))}
+                </div>
+              )}
+              <details class="mt-3">
+                <summary class="cursor-pointer font-mono text-[11px] text-muted hover:text-fg">
+                  {notFired.length} rules didn't fire
+                </summary>
+                <ul class="mt-2 flex flex-wrap gap-1.5">
+                  {notFired.map((r) => (
+                    <li class="pill text-muted" title={`severity: ${severityOf[r]}`}>{r}</li>
+                  ))}
+                </ul>
+              </details>
+            </div>
+
+            <div>
+              <p class="kicker mb-2">Ground truth · keyword matches</p>
+              <ul class="space-y-1.5 text-sm">
+                {q.keywordHits.map((k) => (
+                  <li class="flex items-center justify-between gap-3">
+                    <code class="font-mono text-[12px]">"{k.keyword}"</code>
+                    {k.inFindings ? (
+                      <span class="status-chip" data-status="measured">in findings</span>
+                    ) : k.inQueryText ? (
+                      <span class="status-chip" data-status="stub">query text only</span>
+                    ) : (
+                      <span class="status-chip" data-status="planned">missed</span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              <p class="mt-3 font-mono text-[11px] leading-relaxed text-muted">
+                benchmark score {q.benchmark.keywordOverlap.toFixed(2)} · from findings alone {q.benchmark.keywordOverlapFindingsOnly.toFixed(2)} ({kwInFindings}/{q.keywordHits.length})
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {q.rewrite && note && (
+          <div class="mt-7 rounded-xl border border-border">
+            <div class="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
+              <div class="min-w-0">
+                <p class="kicker">Reference rewrite</p>
+                <p class="mt-1.5 font-semibold tracking-tight">{note.title}</p>
+                <p class="mt-1 max-w-[72ch] text-sm leading-relaxed text-muted">{note.change}</p>
+              </div>
+              <span class="data-chip" title="Written by the author as a reference answer. It is not Claude output and has not been verified with EXPLAIN on a live engine.">
+                Hand-written · not Claude output · not EXPLAIN-verified
+              </span>
+            </div>
+            <div class="grid gap-0 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+              <div class="min-w-0 border-b border-border lg:border-b-0 lg:border-r">
+                <p class="sr-only">Line diff, original to rewrite</p>
+                <pre class="overflow-x-auto bg-surface-2 py-3 font-mono text-[12px] leading-[1.7]" aria-label="Diff from original to rewrite">{q.rewrite.diff.map((l) => <span class="diff-line" data-op={l.op}>{l.text || " "}</span>)}</pre>
+              </div>
+              <div class="space-y-4 p-5">
+                <ul class="space-y-2 text-sm">
+                  <li class="flex items-center justify-between gap-3">
+                    <span>Parses ({q.rewrite.dialect})</span>
+                    <span class="status-chip" data-status={q.rewrite.parses ? "measured" : "stub"}>{q.rewrite.parses ? "yes" : "no"}</span>
+                  </li>
+                  <li class="flex items-center justify-between gap-3">
+                    <span>Analyzer findings</span>
+                    <span class="font-mono text-[12px]">{q.findings.length} → {q.rewrite.findingsAfter.length}</span>
+                  </li>
+                  <li class="flex items-center justify-between gap-3">
+                    <span>Ground-truth keywords in SQL</span>
+                    <span class="font-mono text-[12px]">{q.rewrite.keywordsMatched.length}/{q.groundTruth.keywords.length}</span>
+                  </li>
+                </ul>
+                {q.rewrite.findingsAfter.length > 0 && (
+                  <p class="font-mono text-[11px] text-muted">
+                    still flagged: {q.rewrite.findingsAfter.map((f) => f.rule).join(", ")}
+                  </p>
+                )}
+                <div>
+                  <p class="kicker">Assumptions</p>
+                  <ul class="mt-2 space-y-2">
+                    {note.assumptions.map((a) => <li class="focus-item text-[13px] text-fg/85">{a}</li>)}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <details class="group mt-5 rounded-xl border border-border">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3.5">
+            <span class="text-sm font-medium">What Claude would receive for this query</span>
+            <span class="font-mono text-[11px] text-muted">client._build_user_message()</span>
+          </summary>
+          <div class="border-t border-border" data-code-copy>
+            <pre class="max-h-80 overflow-auto bg-surface-2 p-5 font-mono text-[12px] leading-relaxed text-fg/90">{q.payload}</pre>
+          </div>
+        </details>
+      </section>
+    );
+  })}
+</div>
+
+<style>
+  .wb-tab {
+    @apply inline-flex items-center gap-2 rounded-t-lg border border-b-0 border-transparent px-3.5 py-2.5 text-sm text-muted;
+    transition: color var(--dur-2) ease, background-color var(--dur-2) ease;
+  }
+  .wb-tab:hover {
+    @apply text-fg;
+  }
+  .wb-tab[aria-selected="true"] {
+    @apply border-border bg-surface font-medium text-fg;
+    margin-bottom: -1px;
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

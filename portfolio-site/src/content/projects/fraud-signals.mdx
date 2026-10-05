@@ -18,6 +18,19 @@ demonstrates:
   - "Fraud analytics architecture"
   - "Production-style local dev"
 screenshot: "fraud-dashboard.png"
+runCommand: "make install && make eval"
+docs:
+  - { label: "README", path: "README.md" }
+  - { label: "Architecture", path: "docs/architecture.md" }
+capabilities:
+  - { name: "Labeled synthetic producer (3 fraud patterns)", status: "measured", note: "16,664-event eval set, seed 42" }
+  - { name: "Velocity, impossible-travel, amount z-score detectors", status: "measured", note: "account-level P/R vs ground truth" }
+  - { name: "Kafka topic keyed by account_id", status: "needs-infra", note: "docker compose up" }
+  - { name: "Structured Streaming → Delta (2-min watermark, checkpoint)", status: "needs-infra", note: "make install-streaming" }
+  - { name: "Streamlit operator dashboard", status: "implemented" }
+  - { name: "dbt staging + marts", status: "stub", note: "needs a packages.yml for dbt_utils" }
+  - { name: "Detectors inside the stream (foreachBatch)", status: "planned" }
+  - { name: "End-to-end latency p50/p95/p99", status: "planned" }
 ---
 
 import { metric, evaluation } from "../../data/measured";

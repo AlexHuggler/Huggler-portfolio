@@ -58,7 +58,7 @@ export interface EChartProps {
    * Pure builder for the chart option. Keep its identity stable (module scope
    * or useCallback) so it rebuilds only when theme / motion / inputs change.
    */
-  buildOption: (tokens: VizTokens, mode: VizMode, reduced: boolean) => ChartOption;
+  buildOption: (tokens: VizTokens, mode: VizMode, reduced: boolean) => ChartOption | Record<string, unknown>;
   height?: number;
   ariaLabel: string;
   /** Visually-hidden table fallback for screen readers. */
@@ -129,7 +129,10 @@ export default function EChart({
     const chart = chartRef.current;
     if (!chart || chart.isDisposed()) return;
     const option = buildOption(getTokens(mode), mode, reduced);
-    chart.setOption({ aria: { enabled: true, label: { description: ariaLabel } }, ...option }, true);
+    chart.setOption(
+      { aria: { enabled: true, label: { description: ariaLabel } }, ...option } as ChartOption,
+      true,
+    );
   }, [buildOption, mode, reduced, ariaLabel]);
 
   return (

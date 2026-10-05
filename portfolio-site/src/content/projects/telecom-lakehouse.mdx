@@ -18,6 +18,20 @@ demonstrates:
   - "dbt modeling for BI"
   - "Orchestration + IaC"
 screenshot: "telecom-pipeline-run.svg"
+runCommand: "make install && make demo"
+docs:
+  - { label: "README", path: "README.md" }
+  - { label: "Architecture", path: "docs/architecture.md" }
+  - { label: "Terraform", path: "terraform/README.md" }
+capabilities:
+  - { name: "CDR generator → partitioned Parquet", status: "implemented", note: "49,998 rows across 3 day partitions" }
+  - { name: "Medallion transform (DuckDB)", status: "measured", note: "raw → Gold timed in-process" }
+  - { name: "8 dbt models with 41 tests", status: "measured", note: "dbt build, dbt-duckdb" }
+  - { name: "Great Expectations Bronze contract", status: "stub", note: "10 expectations defined; checkpoint stubbed" }
+  - { name: "Three Airflow DAGs (hourly, hourly, daily)", status: "needs-infra", note: "docker compose: Airflow + MinIO" }
+  - { name: "Terraform: S3 buckets + Glue catalog", status: "implemented", note: "terraform validate + fmt in CI" }
+  - { name: "Iceberg tables", status: "planned", note: "target format; demo writes Parquet" }
+  - { name: "Churn signals mart", status: "implemented", note: "degenerate on current synthetic data" }
 ---
 
 import { metric, evaluation } from "../../data/measured";

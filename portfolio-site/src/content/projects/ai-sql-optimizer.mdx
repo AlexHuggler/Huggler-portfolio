@@ -17,6 +17,18 @@ demonstrates:
   - "Benchmark methodology"
   - "Engineer-in-the-loop UX"
 screenshot: "sqlopt-analyze.svg"
+runCommand: "make install && make benchmark"
+docs:
+  - { label: "README", path: "README.md" }
+  - { label: "Methodology", path: "docs/methodology.md" }
+capabilities:
+  - { name: "sqlglot parse + 6 heuristic rules", status: "measured", note: "4 of 6 rules fire on the corpus" }
+  - { name: "5-query corpus with ground truth", status: "measured", note: "make benchmark (dry run)" }
+  - { name: "Claude rewrite via versioned prompt", status: "implemented", note: "needs ANTHROPIC_API_KEY; not benchmarked" }
+  - { name: "Cloudflare Worker proxy for live mode", status: "stub", note: "wrangler.toml placeholders" }
+  - { name: "Claude in the benchmark (--no-dry-run)", status: "planned" }
+  - { name: "EXPLAIN cost verification", status: "planned" }
+  - { name: "Human acceptance study", status: "planned" }
 ---
 
 import { metric, evaluation } from "../../data/measured";

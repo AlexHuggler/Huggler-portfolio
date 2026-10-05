@@ -23,9 +23,4 @@ export default defineConfig({
     mdx(),
     sitemap({ filter: (page) => !page.includes("/404") }),
   ],
-  vite: {
-    ssr: {
-      noExternal: ["react-diff-viewer-continued"],
-    },
-  },
 });
