@@ -1,0 +1,272 @@
+---
+/**
+ * Evidence ledger — where every number on the site comes from. Shows the
+ * measurement pipeline, the environment, every metric (anchor per id, the
+ * targets of MetricTile's "Evidence ledger" links), the raw transcripts, what
+ * is deliberately not measured, and the limitations the data itself exposes.
+ */
+import BaseLayout from "../layouts/BaseLayout.astro";
+import SectionHeader from "../components/shared/SectionHeader.astro";
+import { measured, evaluation, type MeasuredMetric } from "../data/measured";
+import sqloptTranscript from "../data/measurements/ai-sql-optimizer.txt?raw";
+import fraudTranscript from "../data/measurements/fraud-signals.txt?raw";
+import telecomTranscript from "../data/measurements/telecom-lakehouse.txt?raw";
+import samples from "../data/lakehouse/samples.json";
+import dags from "../data/lakehouse/dags.json";
+
+const projectTitles: Record<string, string> = {
+  "fraud-signals": "Real-Time Fraud Signals",
+  "telecom-lakehouse": "Telecom Billing Lakehouse",
+  "ai-sql-optimizer": "AI-Assisted SQL Optimizer",
+};
+const order = ["fraud-signals", "telecom-lakehouse", "ai-sql-optimizer"];
+const byProject = order.map((slug) => ({ slug, metrics: measured.projects[slug].metrics }));
+const siteOnly = measured.site.filter(
+  (m) => !order.some((slug) => measured.projects[slug].metrics.some((pm) => pm.id === m.id)),
+);
+
+const transcripts = [
+  { slug: "fraud-signals", title: "fraud-signals — make test, make eval", text: fraudTranscript },
+  { slug: "telecom-lakehouse", title: "telecom-lakehouse — make test, make demo, dbt build", text: telecomTranscript },
+  { slug: "ai-sql-optimizer", title: "ai-sql-optimizer — make test, make benchmark", text: sqloptTranscript },
+];
+
+const sq = evaluation("ai-sql-optimizer");
+const fr = evaluation("fraud-signals");
+const velocity = fr.scores.find((s) => s.kind === "velocity")!;
+const bestVelocity = [...fr.sweeps.velocity].sort((a, b) => b.f1 - a.f1)[0];
+const churnHigh = (samples.gold.churnRisk as Record<string, number>).high ?? 0;
+const env = measured.environmentDetail;
+const transformDag = dags.dags.find((d) => d.id === "transform_silver");
+
+const limitations = [
+  {
+    title: "Benchmark keyword overlap is inflated",
+    body: `benchmark._score searches the query text (comments included) as well as the analyzer findings. The published mean is ${sq.summary.meanKeywordOverlap.toFixed(2)}; scored on findings alone it is ${sq.summary.meanKeywordOverlapFindingsOnly.toFixed(2)}.`,
+    href: "/projects/ai-sql-optimizer#benchmark",
+  },
+  {
+    title: "Two analyzer rules are never exercised",
+    body: `${sq.summary.rulesNeverFired.filter((r) => r !== "parse_error").join(" and ")} don't fire on the corpus — the partition rule needs --partition-columns, which the benchmark doesn't pass.`,
+    href: "/projects/ai-sql-optimizer#workbench",
+  },
+  {
+    title: "Velocity rule over-flags at this traffic rate",
+    body: `Threshold 5 flags ${velocity.flaggedAccounts} of ${fr.dataset.accounts.toLocaleString("en-US")} accounts (precision ${velocity.precision.toFixed(2)}). The sweep's best F1 is ${bestVelocity.f1.toFixed(2)} at threshold ${bestVelocity.threshold}.`,
+    href: "/projects/fraud-signals#thresholds",
+  },
+  {
+    title: "Churn mart is degenerate on synthetic data",
+    body: `The generator draws a new MSISDN per record, so all ${churnHigh.toLocaleString("en-US")} callers appear once and classify as high churn risk.`,
+    href: "/projects/telecom-lakehouse#medallion",
+  },
+  {
+    title: "Great Expectations contract isn't enforced",
+    body: `The ${transformDag?.tasks[0]?.id ?? "GE"} task loads the GE context and prints; it doesn't run a checkpoint, so the 10 expectations are defined but not blocking.`,
+    href: "/projects/telecom-lakehouse#contracts",
+  },
+  {
+    title: "Fraud detectors run in batch, not in the stream",
+    body: "The Spark consumer writes raw events to Delta; detectors run over the JSONL evaluation set. Streaming latency is therefore not measured.",
+    href: "/projects/fraud-signals#detectors",
+  },
+];
+
+const steps = [
+  { k: "01", t: "make targets", d: "test · benchmark · eval · demo · dbt build — the projects' own commands" },
+  { k: "02", t: "Transcripts", d: "ANSI-stripped output saved to src/data/measurements/" },
+  { k: "03", t: "Exporters", d: "scripts/artifacts/*.py re-derive each value; mismatches fail the run" },
+  { k: "04", t: "measured.json", d: "values + methods + caveats, labels rendered from a spec" },
+  { k: "05", t: "The page", d: "MetricTiles and charts read only from that file" },
+];
+
+const kindLabel = (m: MeasuredMetric) => ({ measured: "Measured", count: "Test run", defined: "Defined" })[m.kind];
+---
+
+<BaseLayout
+  title="Evidence ledger"
+  description="Where every number on alexhuggler.com comes from: the make targets, transcripts, cross-checks, environment, and the limitations the data exposes."
+>
+  <section class="relative overflow-hidden border-b border-border">
+    <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+    <div class="container-page relative py-16 md:py-20">
+      <p class="kicker">Evidence ledger</p>
+      <h1 class="display-2 mt-4 max-w-[20ch]">Every number on this site, with its method.</h1>
+      <p class="lede mt-5">
+        Demo metrics are produced by one recorder that runs each project's own
+        <code class="font-mono text-[0.9em]">make</code> targets, keeps the transcript, and
+        refuses to write a value that doesn't match what the command printed. Career
+        figures from AT&amp;T are résumé-reported and live on the About page, never here.
+      </p>
+
+      <ol class="mt-10 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-5">
+        {steps.map((s, i) => (
+          <li class="relative bg-surface p-5">
+            <p class="font-mono text-[11px] text-accent-fg">{s.k}</p>
+            <p class="mt-2 font-semibold tracking-tight">{s.t}</p>
+            <p class="mt-1 text-xs leading-relaxed text-muted">{s.d}</p>
+            {i < steps.length - 1 && (
+              <span class="absolute right-3 top-5 hidden font-mono text-muted lg:block" aria-hidden="true">→</span>
+            )}
+          </li>
+        ))}
+      </ol>
+
+      <dl class="spec card mt-6 p-5 sm:grid-cols-[auto_1fr_auto_1fr]">
+        <dt>Measured</dt><dd class="font-mono text-[13px]">{measured.measuredOn}</dd>
+        <dt>Seed</dt><dd class="font-mono text-[13px]">42 (all generators)</dd>
+        <dt>CPU</dt><dd class="font-mono text-[13px]">{env.cpus} vCPU · {env.cpu}</dd>
+        <dt>Runtime</dt><dd class="font-mono text-[13px]">Python {env.python} · {env.uv}</dd>
+        <dt>OS</dt><dd class="font-mono text-[13px] break-all">{env.os}</dd>
+        <dt>Re-run</dt><dd class="font-mono text-[13px]">npm run measure</dd>
+      </dl>
+    </div>
+  </section>
+
+  <section id="ledger" class="container-page scroll-mt-20 py-20">
+    <SectionHeader index="01" eyebrow="Ledger" title="All measured metrics" description="Anchored by id — metric tiles across the site link straight to their row." />
+    <div class="space-y-10">
+      {byProject.map(({ slug, metrics }) => (
+        <div>
+          <h3 class="mb-3 flex items-baseline justify-between gap-4 text-lg font-semibold tracking-tight">
+            <a href={`/projects/${slug}`} class="hover:text-accent-fg">{projectTitles[slug]}</a>
+            <span class="font-mono text-[11px] font-normal text-muted">{measured.evaluations[slug as keyof typeof measured.evaluations].method}</span>
+          </h3>
+          <div class="card overflow-x-auto">
+            <table class="ledger w-full text-left text-sm">
+              <thead>
+                <tr>
+                  <th scope="col">Value</th>
+                  <th scope="col">What it is</th>
+                  <th scope="col">Kind</th>
+                  <th scope="col">Method</th>
+                </tr>
+              </thead>
+              <tbody>
+                {metrics.map((m) => (
+                  <tr id={`m-${m.id}`}>
+                    <td class="whitespace-nowrap font-mono font-semibold">{m.value}</td>
+                    <td>
+                      <p>{m.label}</p>
+                      <p class="mt-0.5 font-mono text-[11px] text-muted">{m.sublabel}</p>
+                      {m.caveat && <p class="mt-1.5 text-xs text-warn">Caveat: {m.caveat}</p>}
+                    </td>
+                    <td><span class="status-chip" data-status={m.kind}>{kindLabel(m)}</span></td>
+                    <td class="font-mono text-[11px] text-muted">{m.method}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      ))}
+      {siteOnly.length > 0 && (
+        <div>
+          <h3 class="mb-3 text-lg font-semibold tracking-tight">Site-wide</h3>
+          <div class="card overflow-x-auto">
+            <table class="ledger w-full text-left text-sm">
+              <thead><tr><th scope="col">Value</th><th scope="col">What it is</th><th scope="col">Kind</th><th scope="col">Method</th></tr></thead>
+              <tbody>
+                {siteOnly.map((m) => (
+                  <tr id={`m-${m.id}`}>
+                    <td class="whitespace-nowrap font-mono font-semibold">{m.value}</td>
+                    <td><p>{m.label}</p><p class="mt-0.5 font-mono text-[11px] text-muted">{m.sublabel}</p></td>
+                    <td><span class="status-chip" data-status={m.kind}>{kindLabel(m)}</span></td>
+                    <td class="font-mono text-[11px] text-muted">{m.method}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+    </div>
+  </section>
+
+  <section id="limitations" class="container-page scroll-mt-20 pb-20">
+    <SectionHeader
+      index="02"
+      eyebrow="Known limitations"
+      title="What the data itself exposes"
+      description="Found while re-measuring. Each is fixable in the project code; until then the site labels the affected numbers instead of hiding them."
+    />
+    <ul class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {limitations.map((l) => (
+        <li class="card card-pad reveal flex flex-col">
+          <span class="status-chip self-start" data-status="stub">Limitation</span>
+          <h3 class="mt-3 font-semibold tracking-tight">{l.title}</h3>
+          <p class="mt-2 flex-1 text-sm leading-relaxed text-muted">{l.body}</p>
+          <a href={l.href} class="link mt-4 self-start font-mono text-[11px]">See it on the page →</a>
+        </li>
+      ))}
+    </ul>
+  </section>
+
+  <section id="not-measured" class="container-page scroll-mt-20 pb-20">
+    <SectionHeader index="03" eyebrow="Not measured" title="Deliberately left unclaimed" description="Things a reviewer might expect a number for. They need infrastructure or work that doesn't exist yet, so there is no number." />
+    <div class="grid gap-4 md:grid-cols-3">
+      {order.map((slug) => (
+        <div class="card card-pad">
+          <h3 class="font-semibold tracking-tight">{projectTitles[slug]}</h3>
+          <ul class="mt-3 space-y-2">
+            {(measured.notMeasured[slug] ?? []).map((item) => (
+              <li class="flex gap-2 text-sm text-muted">
+                <span class="status-chip mt-0.5 shrink-0" data-status="planned">Planned</span>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <section id="transcripts" class="container-page scroll-mt-20 pb-20">
+    <SectionHeader index="04" eyebrow="Transcripts" title="Raw command output" description="Exactly what the make targets printed during the last measurement run." />
+    <div class="space-y-3">
+      {transcripts.map((t) => (
+        <details class="card group overflow-hidden">
+          <summary class="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4">
+            <span class="font-mono text-sm">{t.title}</span>
+            <svg class="h-3.5 w-3.5 text-muted transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+          </summary>
+          <div class="border-t border-border" data-code-copy>
+            <pre class="max-h-[480px] overflow-auto bg-surface-2 p-5 font-mono text-[11.5px] leading-relaxed text-fg/90">{t.text}</pre>
+          </div>
+        </details>
+      ))}
+    </div>
+  </section>
+
+  <section id="reproduce" class="container-page scroll-mt-20 pb-8">
+    <SectionHeader index="05" eyebrow="Reproduce" title="Run it yourself" />
+    <div class="card overflow-hidden" data-code-copy>
+      <pre class="overflow-x-auto bg-surface-2 p-5 font-mono text-[12.5px] leading-relaxed"><code>git clone https://github.com/AlexHuggler/Huggler-portfolio
+cd Huggler-portfolio/portfolio-site
+npm ci
+npm run measure        # installs, tests and measures all three projects (needs uv)
+npm run build          # the site re-renders from the new measured.json</code></pre>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ledger th {
+    @apply border-b border-border bg-surface-2 px-4 py-2.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-muted;
+  }
+  .ledger td {
+    @apply border-b border-border px-4 py-3 align-top;
+  }
+  .ledger tr:last-child td {
+    @apply border-b-0;
+  }
+  .ledger tr:target td {
+    background: rgb(var(--color-accent) / 0.08);
+  }
+  .ledger tr:target td:first-child {
+    box-shadow: inset 2px 0 0 rgb(var(--color-accent));
+  }
+  details > summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

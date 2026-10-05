@@ -153,3 +153,31 @@
 [data-motion="paused"] * {
   animation-play-state: paused !important;
 }
+
+@layer components {
+  .code-copy-wrap {
+    @apply relative;
+  }
+  .code-copy-btn {
+    @apply absolute right-2 top-2 rounded-md border border-border bg-surface px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted opacity-0;
+    transition: opacity var(--dur-2) ease, color var(--dur-2) ease;
+  }
+  .code-copy-wrap:hover .code-copy-btn,
+  .code-copy-btn:focus-visible {
+    @apply opacity-100;
+  }
+  .code-copy-btn:hover {
+    @apply text-fg;
+  }
+  @media (hover: none) {
+    .code-copy-btn { @apply opacity-100; }
+  }
+  .heading-anchor {
+    @apply ml-2 inline-block rounded-sm font-mono text-[0.8em] font-normal text-muted no-underline opacity-0;
+    transition: opacity var(--dur-2) ease;
+  }
+  :is(h2, h3):hover > .heading-anchor,
+  .heading-anchor:focus-visible {
+    @apply opacity-100;
+  }
+}

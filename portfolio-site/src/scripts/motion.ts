@@ -3,7 +3,7 @@
  * [data-motion] get data-motion="paused" while off-screen or while the tab is
  * hidden; CSS pauses their animations with animation-play-state. A
  * [data-motion-toggle="<id>"] button pauses/resumes the element with that id
- * and keeps aria-pressed in sync. Re-binds after view-transition swaps.
+ * and swaps its visible label between Pause and Play. Re-binds after view-transition swaps.
  */
 function bind(): void {
   const els = Array.from(document.querySelectorAll<HTMLElement>("[data-motion]"));
@@ -38,7 +38,6 @@ function bind(): void {
     if (reduce) userPaused.add(id);
     const sync = () => {
       const paused = userPaused.has(id);
-      btn.setAttribute("aria-pressed", String(paused));
       btn.querySelector("[data-label]")!.textContent = paused ? "Play" : "Pause";
       const el = document.getElementById(id);
       if (el) apply(el, el.dataset.onscreen === "1");

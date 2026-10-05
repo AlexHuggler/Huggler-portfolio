@@ -1,13 +1,13 @@
 ---
 title: "Telecom Billing Lakehouse"
-tagline: "Medallion (Bronze/Silver/Gold) lakehouse over synthetic CDR data: Airflow, MinIO/S3, Iceberg, a Great Expectations contract, and 8 dbt models."
+tagline: "Medallion (Bronze/Silver/Gold) lakehouse over synthetic CDR data: three Airflow DAGs, a Great Expectations contract, 8 dbt models, and Terraform for AWS."
 order: 2
 stack:
   - "Apache Airflow"
-  - "Apache Iceberg"
-  - "MinIO / S3"
-  - "Great Expectations"
   - "dbt"
+  - "Great Expectations"
+  - "DuckDB"
+  - "MinIO / S3"
   - "Terraform"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-telecom-lakehouse"
 problem: "Builds a single source of truth for revenue, ARPU, and churn signals over high-volume Call Detail Record data."
@@ -43,11 +43,12 @@ re-ingesting from upstream. Silver is where typing, validity filters, and
 rating (billable minutes and megabytes) happen. Gold is the only layer BI
 tools read.
 
-**Iceberg vs Delta.** Both work. Iceberg's hidden partitioning and partition
-evolution make schema migrations less painful, and it keeps the tables
-portable to Trino or Athena. In a Spark-only shop Delta is an equally good
-choice; for a batch-first billing workload read by several engines, Iceberg
-is the cleaner fit.
+**Iceberg as the target, Parquet today.** Iceberg's hidden partitioning and
+partition evolution make schema migrations less painful, and it keeps tables
+portable to Trino or Athena, so it is the design target for a batch-first
+billing workload read by several engines. The runnable demo writes plain
+Parquet through DuckDB and the Terraform Glue table is Hive-style Parquet;
+moving to Iceberg tables is the documented next step, not a claim.
 
 **A contract at Bronze, tests at Silver and Gold.** The Great Expectations
 suite specifies what may enter the lake — exact column set, non-null keys, the
