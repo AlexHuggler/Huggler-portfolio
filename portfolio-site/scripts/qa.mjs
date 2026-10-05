@@ -14,11 +14,13 @@
  * - print: /resume fits in two pages;
  * - optional screenshots at 375/768/1280/1440 in both themes.
  *
- * Uses playwright-core with the system Chromium (PLAYWRIGHT_BROWSERS_PATH or
- * /opt/pw-browsers/chromium). Exits 1 on any failure.
+ * Browser: CHROMIUM_PATH (a Chromium executable) wins; otherwise a
+ * preinstalled /opt/pw-browsers/chromium is used when present; otherwise
+ * playwright-core resolves its own install (`npx playwright install chromium`,
+ * honouring PLAYWRIGHT_BROWSERS_PATH). Exits 1 on any failure.
  */
 import { createRequire } from "node:module";
-import { mkdirSync } from "node:fs";
+import { existsSync, mkdirSync } from "node:fs";
 import { chromium } from "playwright-core";
 
 const require = createRequire(import.meta.url);
@@ -29,7 +31,8 @@ const arg = (name, fallback) => {
 };
 const BASE = arg("--base", "http://localhost:4321");
 const SHOTS = arg("--shots", null);
-const EXEC = process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium";
+const PREINSTALLED = "/opt/pw-browsers/chromium";
+const EXEC = process.env.CHROMIUM_PATH || (existsSync(PREINSTALLED) ? PREINSTALLED : undefined);
 
 const ROUTES = [
   "/",
