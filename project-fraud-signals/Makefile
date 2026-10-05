@@ -1,4 +1,4 @@
-.PHONY: install test lint format run run-producer run-stream run-dashboard demo eval clean
+.PHONY: install test lint format run run-producer run-stream run-dashboard demo eval dbt-build clean
 
 UV ?= uv
 PY ?= $(UV) run python
@@ -44,6 +44,9 @@ eval:
 	@echo ""
 	@echo "==> Scoring detectors against the embedded ground-truth labels"
 	$(PY) -m anomaly.evaluate data/eval_events.jsonl
+
+dbt-build:
+	cd dbt_fraud && $(UV) run --extra dbt dbt deps && $(UV) run --extra dbt dbt build
 
 clean:
 	rm -rf data/events.jsonl checkpoints/ spark-warehouse/ .pytest_cache .ruff_cache dist build *.egg-info

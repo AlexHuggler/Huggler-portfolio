@@ -6,7 +6,9 @@ sources:
     schema: main
     tables:
       - name: tx_events
-        description: "Append-only stream of transaction events from Kafka -> Spark -> Delta"
+        description: "Append-only stream of transaction events from Kafka -> Spark -> Delta. The local duckdb target reads the JSONL written by `make demo` instead."
+        meta:
+          external_location: "read_json_auto('../data/events.jsonl')"
         columns:
           - name: event_id
             tests: [unique, not_null]

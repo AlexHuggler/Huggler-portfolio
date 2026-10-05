@@ -17,6 +17,8 @@ uv.lock
 
 data/
 *.parquet
+*.duckdb
+*.duckdb.wal
 *.jsonl
 *.delta/
 spark-warehouse/
