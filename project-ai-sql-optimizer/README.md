@@ -72,6 +72,12 @@ sql-optimizer analyze <file.sql> [--dry-run] [--dialect spark|snowflake]
 sql-optimizer benchmark [--dry-run] [--limit 50]
 ```
 
+`analyze` and `benchmark` pick the parse dialect the same way:
+`--dialect` if given (`analyze` only), else the file's
+`-- engine: spark|snowflake` header comment (first five lines), else a
+keyword heuristic (`QUALIFY`, `ILIKE`, `FLATTEN(` mean Snowflake;
+anything else is read as Spark).
+
 ## Methodology
 
 Five categories, one fully specified query per category:
@@ -98,7 +104,7 @@ with one command.
 | Avg keyword overlap vs ground truth (heuristics only) | 0.67 across 5 queries |
 | Findings hit rate (>= 1 correct finding per query) | 4 of 5 queries (0.80) |
 | Benchmark wall clock | 0.34 s for the corpus (~68 ms per query) |
-| Unit tests | 18 passed |
+| Unit tests | 32 passed |
 
 ![sql-optimizer benchmark --dry-run: per-category keyword overlap and findings hit rate](docs/img/benchmark.png)
 

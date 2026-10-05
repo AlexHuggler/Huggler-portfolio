@@ -34,6 +34,14 @@ def test_cli_analyze_dry_run(runner: CliRunner, tmp_path: Path):
     assert "missing_partition_predicate" in result.output
 
 
+def test_cli_analyze_uses_engine_header(runner: CliRunner, tmp_path: Path):
+    sql_file = tmp_path / "q.sql"
+    sql_file.write_text("-- engine: snowflake\nSELECT id FROM events")
+    result = runner.invoke(app, ["analyze", str(sql_file), "--dry-run"])
+    assert result.exit_code == 0, result.output
+    assert "Analyzer findings (snowflake)" in result.output
+
+
 def test_cli_analyze_missing_file_errors(runner: CliRunner, tmp_path: Path):
     result = runner.invoke(app, ["analyze", str(tmp_path / "nope.sql"), "--dry-run"])
     assert result.exit_code != 0

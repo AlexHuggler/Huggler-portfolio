@@ -12,6 +12,7 @@ from pathlib import Path
 import yaml
 
 from .analyzer import analyze
+from .dialect import detect_dialect
 
 
 @dataclass
@@ -57,13 +58,6 @@ def _query_id(path: Path) -> str:
     return path.stem
 
 
-def _detect_dialect(sql: str) -> str:
-    upper = sql.upper()
-    if "QUALIFY " in upper or "FLATTEN(" in upper:
-        return "snowflake"
-    return "spark"
-
-
 def _score(
     sql: str,
     findings: list[str],
@@ -95,7 +89,7 @@ def run_benchmark(
         sql = sql_path.read_text(encoding="utf-8")
         if sql.strip().startswith("-- TODO"):
             continue
-        analysis = analyze(sql, dialect=_detect_dialect(sql))
+        analysis = analyze(sql, dialect=detect_dialect(sql))
         finding_msgs = [f.message for f in analysis.findings]
         overlap, hit = _score(sql, finding_msgs, truth.get(qid))
         evaluations.append(

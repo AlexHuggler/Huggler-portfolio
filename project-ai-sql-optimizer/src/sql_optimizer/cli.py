@@ -13,6 +13,7 @@ from rich.table import Table
 from .analyzer import Severity, analyze
 from .benchmark import run_benchmark
 from .client import AnthropicClient
+from .dialect import detect_dialect
 
 app = typer.Typer(help="AI-assisted SQL optimizer", add_completion=False)
 console = Console()
@@ -29,15 +30,6 @@ def _read_sql(path: Path) -> str:
     if not path.exists():
         raise typer.BadParameter(f"SQL file not found: {path}")
     return path.read_text(encoding="utf-8")
-
-
-def _detect_dialect(sql: str, override: str | None) -> str:
-    if override:
-        return override
-    upper = sql.upper()
-    if "QUALIFY " in upper or "ILIKE " in upper or "FLATTEN(" in upper:
-        return "snowflake"
-    return "spark"
 
 
 @app.command(name="analyze")
@@ -57,7 +49,7 @@ def analyze_command(
 ) -> None:
     """Analyze a single SQL file and (unless --dry-run) ask Claude for a rewrite."""
     sql = _read_sql(sql_file)
-    used_dialect = _detect_dialect(sql, dialect or None)
+    used_dialect = detect_dialect(sql, dialect or None)
     cols = {c.strip() for c in partition_columns.split(",") if c.strip()}
 
     result = analyze(sql, dialect=used_dialect, partition_columns=cols)
