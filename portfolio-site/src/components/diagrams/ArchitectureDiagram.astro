@@ -40,7 +40,7 @@ const isPath = (f?: string) =>
       <ol class="arch-flow">
         {lane.nodes.map((n) => (
           <li class="arch-node" data-status={n.status ?? lane.status}>
-            <p class="flex items-center gap-2 text-sm font-semibold tracking-tight">
+            <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold tracking-tight">
               {n.label}
               {n.status && n.status !== lane.status && (
                 <span class="status-chip" data-status={n.status}>{statusLabel[n.status]}</span>

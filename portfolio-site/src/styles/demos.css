@@ -181,3 +181,15 @@
     @apply opacity-100;
   }
 }
+
+@layer components {
+  .feed-row {
+    animation: demo-fade-in 320ms ease-out both;
+  }
+  .feed-row-labeled td:first-child {
+    box-shadow: inset 2px 0 0 rgb(var(--color-warn));
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .feed-row { animation: none; }
+  }
+}
