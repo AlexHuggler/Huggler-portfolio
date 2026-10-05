@@ -2,6 +2,17 @@
 
 All notable changes to the portfolio site. Versions follow `package.json`.
 
+## Unreleased
+
+- **SQL optimizer keyword overlap is 0.33, not 0.67.** `benchmark._score`
+  searched the input query text as well as the findings; it now scores tool
+  output only (PR #11, reconciled with PR #16's live mode). Re-measured with
+  `npm run measure`. The "upper bound" label, its caveat and the separate
+  findings-only re-score are gone — the benchmark figure is now the strict one.
+- Re-measured alongside: SQL optimizer tests 43 → 45, all-project tests
+  69 → 71; detector throughput ~172k/s → ~154k/s and analyzer latency
+  0.7 ms → 0.9 ms moved run to run.
+
 ## 0.2.1 — 2026-10-05
 
 Follows the SQL optimizer's live benchmark and EXPLAIN step (PR #16).
