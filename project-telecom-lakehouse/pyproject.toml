@@ -25,7 +25,11 @@ airflow = [
     "apache-airflow>=2.9,<3",
 ]
 quality = [
-    "great-expectations>=0.18,<0.19",
+    # Some early 0.18.x (e.g. 0.18.8) leave numpy unbounded, and the resolver picked
+    # one with numpy 2, which GE 0.18 doesn't support; 0.18.22 is the last 0.18
+    # release and caps numpy<2. GE 0.18 also predates pandas 3.
+    "great-expectations>=0.18.22,<0.19",
+    "pandas<3",
 ]
 storage = [
     "boto3>=1.34",

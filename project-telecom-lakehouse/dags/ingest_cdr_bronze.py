@@ -4,6 +4,10 @@ Wired with PythonOperator so the same code path exercised by ``make demo``
 (``lakehouse.transform.raw_to_bronze``) is what runs in Airflow. The DAG itself
 imports cleanly (``airflow dags list``) without Airflow being installed at
 discovery time, since the ``airflow`` import is wrapped.
+
+This is the only clock-driven DAG in the pipeline. ``raw_to_bronze`` declares
+the Bronze Dataset as an outlet, so each successful run triggers
+``transform_silver``.
 """
 
 from __future__ import annotations
@@ -37,6 +41,8 @@ def ingest_to_bronze() -> None:
 
 
 if AIRFLOW_AVAILABLE:
+    from dags.lakehouse_datasets import BRONZE_CDR
+
     with DAG(
         dag_id="ingest_cdr_bronze",
         description="Ingest raw CDR parquet into the Bronze Iceberg table",
@@ -44,9 +50,11 @@ if AIRFLOW_AVAILABLE:
         start_date=datetime(2026, 1, 1),
         schedule="@hourly",
         catchup=False,
+        max_active_runs=1,
         tags=["telecom", "bronze", "ingest"],
     ) as dag:
         ingest = PythonOperator(
             task_id="raw_to_bronze",
             python_callable=ingest_to_bronze,
+            outlets=[BRONZE_CDR],
         )

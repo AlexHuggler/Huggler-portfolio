@@ -8,13 +8,14 @@ in the README; this doc fills in the parts a reviewer asks about second.
 ```mermaid
 flowchart LR
   G[data_generator/generate_cdrs.py\nFaker + Pyarrow] -->|parquet| R[(Raw S3/MinIO\ningest_date= partition)]
-  R -->|Airflow ingest_cdr_bronze| BR[(Bronze Iceberg\ntyped, validated)]
-  BR -->|GE cdr_bronze_suite| GE{contract\npass?}
-  GE -- yes --> SI[(Silver Iceberg\nbillable_minutes, billable_mb)]
-  GE -- no --> X[Quarantine + alert]
-  SI -->|dbt run gold| GO1[(revenue_by_market)]
-  SI -->|dbt run gold| GO2[(arpu_monthly)]
-  SI -->|dbt run gold| GO3[(churn_signals)]
+  R -->|Airflow ingest_cdr_bronze\n@hourly| BR[(Bronze Iceberg\ntyped)]
+  BR -.->|Bronze Dataset event\ntriggers transform_silver| GE{GE checkpoint\ncdr_bronze_suite\npass?}
+  GE -- yes: bronze_to_silver --> SI[(Silver Iceberg\nbillable_minutes, billable_mb)]
+  GE -- no --> X[Task fails\nSilver + Gold do not run]
+  SI -.->|Silver Dataset event\ntriggers build_gold_marts| D[dbt run + dbt test]
+  D --> GO1[(revenue_by_market)]
+  D --> GO2[(arpu_monthly)]
+  D --> GO3[(churn_signals)]
   GO1 --> BI[BI / Athena / dashboards]
   GO2 --> BI
   GO3 --> BI
@@ -40,7 +41,22 @@ The `cdr_bronze_suite` (in `great_expectations/expectations/`) requires:
 - `market` in `{NORTH, SOUTH, EAST, WEST, CENTRAL}`.
 - `duration_sec` between 0 and 86400.
 
-A failed expectation fails the Airflow task, which blocks the Silver build.
+The `transform_silver` DAG runs the suite through the `cdr_bronze_checkpoint`
+(`great_expectations/checkpoints/`, driven by `src/lakehouse/contract.py`) before
+`bronze_to_silver`. A failed expectation raises `DataContractError` and fails the
+`great_expectations_bronze` task. `bronze_to_silver` is then `upstream_failed`,
+no Silver Dataset event fires, and `build_gold_marts` does not run. A missing
+`great_expectations` install is a task failure too; the only bypass is
+`LAKEHOUSE_ENFORCE_CONTRACT=false`, which logs a warning on every run.
+
+## Orchestration
+
+The DAGs are linked by Airflow Datasets (`dags/lakehouse_datasets.py`), not
+separate clocks: `ingest_cdr_bronze` runs `@hourly` and emits the Bronze Dataset;
+`transform_silver` is scheduled on Bronze and emits the Silver Dataset;
+`build_gold_marts` is scheduled on Silver. Each DAG has `max_active_runs=1`
+because each rewrites a single output file. `tests/test_dag_integrity.py` parses
+the DAG folder with Airflow and asserts this wiring.
 
 ## Local vs production
 
