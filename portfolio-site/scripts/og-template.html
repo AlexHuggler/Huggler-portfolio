@@ -61,15 +61,16 @@
       h1 {
         margin-top: 22px;
         font-family: "Space Grotesk Variable", "Space Grotesk", "Inter", sans-serif;
-        font-size: 96px;
+        font-size: 60px;
         font-weight: 650;
-        letter-spacing: -0.02em;
-        line-height: 1.02;
+        letter-spacing: -0.03em;
+        line-height: 1.05;
+        max-width: 700px;
       }
       .value {
         margin-top: 26px;
-        max-width: 720px;
-        font-size: 30px;
+        max-width: 640px;
+        font-size: 25px;
         line-height: 1.45;
         color: var(--muted);
       }
@@ -102,9 +103,9 @@
       }
       .hp-node { fill: rgba(17, 17, 20, 0.85); stroke: var(--border-strong); }
       .hp-label { font-family: "JetBrains Mono", monospace; font-size: 11px; fill: var(--muted); }
-      .hp-bronze { fill: rgba(251, 191, 36, 0.14); stroke: rgba(251, 191, 36, 0.4); }
-      .hp-silver { fill: rgba(161, 161, 170, 0.14); stroke: rgba(161, 161, 170, 0.4); }
-      .hp-gold { fill: rgba(251, 191, 36, 0.26); stroke: rgba(251, 191, 36, 0.6); }
+      .hp-bronze { fill: rgba(217, 145, 92, 0.14); stroke: rgba(217, 145, 92, 0.45); }
+      .hp-silver { fill: rgba(163, 173, 189, 0.14); stroke: rgba(163, 173, 189, 0.45); }
+      .hp-gold { fill: rgba(234, 179, 8, 0.16); stroke: rgba(234, 179, 8, 0.5); }
       .hp-layer-label { font-family: "JetBrains Mono", monospace; font-size: 10px; font-weight: 600; letter-spacing: 0.6px; }
     </style>
     <link rel="stylesheet" href="../node_modules/@fontsource-variable/inter/index.css" />
@@ -138,11 +139,11 @@
       <text x="184" y="70" class="hp-label" fill="#ededf0">stream compute</text>
       <text x="184" y="90" class="hp-label" font-size="9">exactly-once</text>
       <rect x="372" y="30" width="112" height="26" rx="6" class="hp-bronze" />
-      <text x="384" y="47" class="hp-layer-label" fill="rgba(251,191,36,0.9)">BRONZE</text>
+      <text x="384" y="47" class="hp-layer-label" fill="#d9915c">BRONZE</text>
       <rect x="372" y="66" width="112" height="26" rx="6" class="hp-silver" />
-      <text x="384" y="83" class="hp-layer-label" fill="#a1a1aa">SILVER</text>
+      <text x="384" y="83" class="hp-layer-label" fill="#a3adbd">SILVER</text>
       <rect x="372" y="102" width="112" height="26" rx="6" class="hp-gold" />
-      <text x="384" y="119" class="hp-layer-label" fill="#fbbf24">GOLD</text>
+      <text x="384" y="119" class="hp-layer-label" fill="#eab308">GOLD</text>
       <rect x="212" y="212" width="156" height="104" rx="10" class="hp-node" stroke-width="1.2" />
       <text x="228" y="240" class="hp-label" fill="#ededf0">analytics</text>
       <rect x="228" y="284" width="10" height="18" rx="2" fill="rgba(59,130,246,0.6)" />
@@ -153,11 +154,11 @@
     </svg>
     <div class="content">
       <div>
-        <p class="kicker">Senior Data Engineer · Analytics Engineering</p>
-        <h1>Alex Huggler</h1>
+        <p class="kicker">Alex Huggler · Senior Data Engineer</p>
+        <h1>I build the data platforms fraud and revenue teams run on.</h1>
         <p class="value">
-          Production-grade data platforms: streaming pipelines, lakehouse
-          architecture, and analytics that hold up in review.
+          Six years on PySpark, Databricks and Delta Lake at AT&amp;T.
+          Every number on the site is measured.
         </p>
       </div>
       <div class="rule"></div>

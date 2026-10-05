@@ -2,66 +2,101 @@
 
 Static portfolio for [Alex Huggler](https://github.com/alexhuggler) built with
 Astro 5, Tailwind CSS, MDX, React islands, and TypeScript. Deploys to
-GitHub Pages, fronted by Cloudflare for HTTPS, analytics, and (optionally)
-a Worker that runs the SQL optimizer demo against the live Anthropic API.
+GitHub Pages, fronted by Cloudflare for HTTPS and analytics. See
+[CHANGELOG.md](CHANGELOG.md) for what changed in each version.
 
 ## Stack
 
-- Astro 5.x with View Transitions API
-- React 19 islands (hydrated `client:visible`) for interactive demos
-- Tailwind CSS (custom dark/light palette)
-- TypeScript (strict mode, no `any`)
-- Inter (body) + JetBrains Mono (code/pills) via `@fontsource`
-- Mermaid for inline architecture diagrams
-- ECharts (dashboards + charts), React Flow (DAG/lineage), Framer Motion
-  (motion), Monaco editor + react-diff-viewer-continued (SQL demo)
+- Astro 5 with view transitions (`ClientRouter`)
+- React 19 islands, hydrated `client:visible`, only where state is needed
+- Tailwind CSS 3 mapped onto CSS-variable design tokens (`src/styles/global.css`)
+- TypeScript strict
+- Space Grotesk (display), Inter (body), JetBrains Mono (code, labels) via `@fontsource-variable`
+- Apache ECharts 5, tree-shaken through `src/components/viz/EChart.tsx`
+- Shiki with a CSS-variables theme, so code blocks follow light and dark mode
 
 ## Getting started
 
 ```bash
 npm install
-npm run dev
+npm run dev        # http://localhost:4321
 ```
 
-Site runs at http://localhost:4321.
+| Script | What it does |
+| --- | --- |
+| `npm run build` | Production build to `./dist` |
+| `npm run preview` | Serve the production build |
+| `npm run check` | `astro check` (types and templates) |
+| `npm run validate` | Guardrail: no hard-coded colours, no banned claims, every metric id resolves, data files agree |
+| `npm run data:check` | Regenerates the telecom scenario in memory and fails if `src/data/viz/telecom.json` drifts |
+| `npm run data:viz` | Regenerates `src/data/viz/telecom.json` |
+| `npm run measure` | Re-runs every project's make targets and rewrites `measured.json` (needs `uv` and PyPI access) |
+| `npm run measure:render` | Re-renders metric labels from the stored evaluations only |
+| `npm run qa` | Release QA against `npm run preview`: axe (WCAG 2.2 AA) in both themes at 1280 and 375 wide, keyboard flows, reduced motion, console errors, third-party requests, CLS, two-page résumé print. `--shots <dir>` also saves screenshots at four widths. Needs Chromium: `npx playwright install chromium`, or point `CHROMIUM_PATH` at an existing Chromium |
 
-```bash
-npm run build      # production build to ./dist
-npm run preview    # preview the production build
-```
+CI (`.github/workflows/site-ci.yml`) runs `check`, `validate`, `data:check` and
+`build` on every pull request that touches the site.
+
+## Where the numbers come from
+
+Every figure on the site traces to one of three sources, and the site says
+which:
+
+1. **Measured** — `src/data/measured.json`, written only by
+   `scripts/measure.py`. It runs each project's own make targets, keeps the
+   raw transcripts in `src/data/measurements/`, and cross-checks the
+   exporters against them. Components read it through `src/data/measured.ts`
+   (`metric(id)`, `projectMetrics()`, `evaluation()`). Never hand-edit it.
+2. **Exported artifacts** — `scripts/artifacts/{sqlopt,fraud,telecom}.py`
+   export the real corpus, evaluation set, DAGs, dbt graph and sample rows
+   into `src/data/{sqlopt,fraud,lakehouse}/`. Each has `--check`.
+3. **Scenario** — `scripts/generate_viz_data.py` simulates a year of telecom
+   traffic with the lakehouse's dbt pricing and churn rules (seed 42). Charts
+   built on it carry a "Scenario" chip.
+
+Career figures from AT&T appear only on narrative pages (Home, About,
+Résumé) and are kept visibly apart from the reproducible numbers. The
+`/evidence` page lists every metric, its method, its transcript, and what is
+not measured.
 
 ## Editing content
 
 | To change | Edit |
 | --- | --- |
-| Hero, stats, focus areas | `src/pages/index.astro` |
-| Site name, links, resume path | `src/site.config.ts` |
-| Fraud-signals project page | `src/pages/projects/fraud-signals.astro` + `src/components/fraud/*` |
-| Lakehouse project page | `src/pages/projects/telecom-lakehouse.astro` + `src/components/lakehouse/*` |
-| SQL optimizer project page | `src/pages/projects/ai-sql-optimizer.astro` + `src/components/sqlopt/*` |
-| Project metadata (titles, taglines, repo URLs) | `src/content/projects/*.mdx` |
-| Static demo data | `src/data/*.json` |
-| About page | `src/pages/about.astro` |
-| Resume PDF | `public/Alexandre_Huggler_Resume.pdf` (path set in `src/site.config.ts`) |
-| OG image | regenerate with `node scripts/generate-og.mjs` → `public/og-image.png` |
-| Theme palette | `tailwind.config.mjs` |
+| Site name, links, résumé path | `src/site.config.ts` |
+| Homepage sections | `src/pages/index.astro` + `src/components/home/*` |
+| Experience, credentials, stack, principles | `src/data/{experience,credentials,stack,principles}.ts` |
+| Project copy and narrative | `src/content/projects/*.mdx` |
+| Case-study pages | `src/pages/projects/*.astro` + `src/components/{sqlopt,fraud,lakehouse}/*` |
+| Architecture diagrams | `src/data/architecture.ts` |
+| Capability matrix | `src/data/capability-matrix.ts` |
+| Command-palette index | `src/data/search-index.ts` |
+| SQL reference rewrites | `src/data/sqlopt/rewrites/*.sql` + `rewrite-notes.ts` |
+| Dashboards | `src/pages/visualizations.astro` + `src/components/viz/*` |
+| Résumé PDF | `public/Alexandre_Huggler_Resume.pdf` |
+| OG image | edit `scripts/og-template.html`, then `node scripts/generate-og.mjs` |
+| Favicons | `node scripts/generate-icons.mjs` |
+| Colours, type, spacing | tokens in `src/styles/global.css` (Tailwind maps them in `tailwind.config.mjs`) |
 
-The interactive project pages own their routes directly and render the
-long-form narrative from each project's MDX entry.
+## Interactive surfaces
 
-## Project demos
+- **Command palette** (⌘K, Ctrl+K or `/`): pages, case-study sections,
+  dashboard tabs and metrics, plus quick actions. Vanilla script, no React.
+- **SQL optimizer:** a query workbench over the five corpus queries with the
+  analyzer's real findings, a labelled reference rewrite with a diff, and the
+  exact payload Claude would receive.
+- **Fraud signals:** a replay of the real evaluation feed with verdicts, the
+  real detector source, and a precision/recall threshold explorer.
+- **Telecom lakehouse:** medallion tiers with real schemas and masked rows,
+  the three Airflow DAGs, a clickable dbt lineage graph, and the data-contract
+  surface.
+- **Dashboards:** tabbed and hash-linked. Every chart has a computed takeaway,
+  a provenance chip, a data table, CSV export, full-screen view and a copy-link
+  action; the telecom dashboard cross-filters by market.
 
-Each of the three project pages is an interactive recruiter-facing
-showcase, not a static README dump. Components live under
-`src/components/<project>/`:
-
-- `fraud/` — animated pipeline canvas, scrolling synthetic feed, throughput chart, anomaly pattern cards.
-- `lakehouse/` — Medallion diagram, layer drill-down tabs, animated Airflow DAG, data-quality scorecard, dbt lineage preview.
-- `sqlopt/` — query selector, side-by-side Monaco editors with typing animation, inline diff, reasoning panel, benchmark chart.
-
-All animations honor `prefers-reduced-motion` and have keyboard-reachable
-controls. Charts include a visually-hidden `<table>` fallback for
-screen readers.
+All motion follows one policy (`src/scripts/motion.ts`,
+`src/hooks/usePausable.ts`): it respects `prefers-reduced-motion`, pauses
+off-screen and in hidden tabs, and every animation has a pause control.
 
 ## Environment
 
@@ -69,10 +104,9 @@ Copy `.env.example` to `.env` (gitignored) and set:
 
 ```
 PUBLIC_CF_ANALYTICS_TOKEN=...   # optional; Cloudflare Web Analytics beacon
-PUBLIC_LIVE_DEMO_URL=...        # optional; Worker URL for SQL optimizer live mode
 ```
 
-Both are optional. The site builds and runs without either.
+The site builds and runs without it.
 
 ## Deploying to Cloudflare-fronted GitHub Pages
 
@@ -132,9 +166,10 @@ that handshake.
 
 ### 5. Optional: deploy the SQL optimizer Worker
 
-The Worker at `src/workers/sql-optimizer-proxy/` lets the optimizer
-demo run against the live Anthropic API without exposing keys. Off by
-default; only deploy if you want live mode.
+The Worker at `src/workers/sql-optimizer-proxy/` proxies the Anthropic
+API without exposing keys. **The site does not call it as of 0.2.0**: the
+SQL workbench shows the exact payload Claude would receive instead of a
+live response. The Worker is kept for a future live mode.
 
 ```bash
 cd src/workers/sql-optimizer-proxy
@@ -148,9 +183,7 @@ wrangler deploy
 ```
 
 Then in Cloudflare → Workers Routes, bind the Worker to
-`your-domain.com/api/sql-optimize/*`. Set
-`PUBLIC_LIVE_DEMO_URL=https://your-domain.com/api/sql-optimize` in the
-portfolio's `.env` and rebuild.
+`your-domain.com/api/sql-optimize/*`.
 
 See `src/workers/sql-optimizer-proxy/README.md` for the full Worker
 setup, response schema, rate-limit knobs, and security checklist.
@@ -195,11 +228,11 @@ hosting to Cloudflare Pages directly, the file becomes authoritative.
 ## Conventions
 
 - No third-party tracking scripts. Cloudflare Web Analytics is cookieless and is the only analytics permitted.
-- No emojis in code, copy, or icons. lucide-react icons throughout.
-- No invented benchmark numbers presented as real — all demo charts use clearly-labeled illustrative placeholders.
+- No emojis in code, copy, or icons.
+- No hard-coded colours in components; read tokens (`npm run validate` enforces it).
+- No number in copy that isn't in `measured.json` or computed from an exported artifact. Simulated data always carries a chip.
 - No real API keys committed. The optional Worker is the only path to live API calls.
-- TypeScript strict; React islands hydrate `client:visible` to keep the initial paint fast.
-- Use `[TODO: ...]` markers in MDX for any metric you have not measured personally.
+- Every chart has a table view; every animation has a pause control.
 
 ## Performance budget
 

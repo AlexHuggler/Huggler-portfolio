@@ -1,0 +1,58 @@
+---
+/**
+ * Toast region — one polite live region shared by every page. Listens for
+ * the `site:toast` DOM event (src/scripts/toast.ts) so Astro scripts and
+ * React islands can announce "Copied" etc. without importing UI code.
+ */
+---
+
+<div id="toast-region" class="toast-region" role="status" aria-live="polite" transition:persist></div>
+
+<script>
+  import { TOAST_EVENT, type ToastDetail } from "../../scripts/toast";
+
+  const region = document.getElementById("toast-region");
+  if (region && !region.dataset.bound) {
+    region.dataset.bound = "1";
+    document.addEventListener(TOAST_EVENT, (e) => {
+      const { message, tone } = (e as CustomEvent<ToastDetail>).detail;
+      const el = document.createElement("div");
+      el.className = "toast";
+      el.dataset.tone = tone ?? "default";
+      el.textContent = message;
+      region.replaceChildren(el);
+      setTimeout(() => el.classList.add("toast-out"), 2400);
+      setTimeout(() => el.remove(), 2800);
+    });
+  }
+</script>
+
+<style is:global>
+  .toast-region {
+    @apply pointer-events-none fixed inset-x-0 bottom-5 z-[60] flex justify-center px-4;
+  }
+  .toast {
+    @apply pointer-events-auto inline-flex items-center gap-2 rounded-full border border-border-strong bg-surface px-4 py-2 text-sm text-fg;
+    box-shadow: var(--shadow-3), var(--highlight);
+    animation: toast-in var(--dur-2) var(--ease-out);
+    transition: opacity var(--dur-2) ease, transform var(--dur-2) ease;
+  }
+  .toast::before {
+    content: "";
+    @apply h-1.5 w-1.5 rounded-full bg-accent;
+  }
+  .toast[data-tone="success"]::before {
+    @apply bg-success;
+  }
+  .toast-out {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  @keyframes toast-in {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .toast { animation: none; transition: none; }
+  }
+</style>

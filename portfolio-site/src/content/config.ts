@@ -1,5 +1,8 @@
 import { defineCollection, z } from "astro:content";
 
+/** Status vocabulary shared with the .status-chip styles. */
+export const capabilityStatus = z.enum(["measured", "implemented", "stub", "needs-infra", "planned"]);
+
 const projects = defineCollection({
   type: "content",
   schema: z.object({
@@ -16,10 +19,14 @@ const projects = defineCollection({
     demonstrates: z.array(z.string()).default([]),
     /** Filename under src/assets/projects/ used as the card preview. */
     screenshot: z.string().optional(),
-    role: z.string().optional(),
-    period: z.string().optional(),
-    results: z.array(z.string()).default([]),
-    featured: z.boolean().default(true),
+    /** The one command that reproduces the headline results. */
+    runCommand: z.string(),
+    /** Repo-relative docs worth reading, in order. */
+    docs: z.array(z.object({ label: z.string(), path: z.string() })).default([]),
+    /** What exists, honestly: measured / implemented / stub / needs-infra / planned. */
+    capabilities: z
+      .array(z.object({ name: z.string(), status: capabilityStatus, note: z.string().optional() }))
+      .default([]),
   }),
 });
 

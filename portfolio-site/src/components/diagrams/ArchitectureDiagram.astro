@@ -1,0 +1,129 @@
+---
+/**
+ * ArchitectureDiagram — lanes of status-coded nodes, pure HTML/CSS (no
+ * Mermaid runtime, no hard-coded colors). Each lane is an ordered list, so
+ * the diagram reads correctly to screen readers and collapses to a vertical
+ * flow on narrow screens. Node and lane status use the site's status chips.
+ */
+import { architecture, type LaneStatus } from "../../data/architecture";
+
+interface Props {
+  project: string;
+  repoUrl: string;
+}
+const { project, repoUrl } = Astro.props;
+const lanes = architecture[project] ?? [];
+const blobBase = repoUrl.replace("/tree/main/", "/blob/main/");
+
+const statusLabel: Record<LaneStatus, string> = {
+  measured: "Measured",
+  implemented: "Implemented",
+  stub: "Stub",
+  "needs-infra": "Needs infra",
+  planned: "Planned",
+};
+// Link only real repo paths; generated outputs under data/ aren't committed.
+const isPath = (f?: string) =>
+  !!f && /^(src|dags|dbt_\w+|great_expectations|terraform|corpus|data_generator)\//.test(f);
+---
+
+<div class="arch space-y-4">
+  {lanes.map((lane) => (
+    <section class="arch-lane card" data-status={lane.status} aria-labelledby={`lane-${project}-${lane.id}`}>
+      <header class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border px-5 py-3.5">
+        <div class="flex flex-wrap items-center gap-3">
+          <h3 id={`lane-${project}-${lane.id}`} class="text-[15px] font-semibold tracking-tight">{lane.title}</h3>
+          <span class="status-chip" data-status={lane.status}>{statusLabel[lane.status]}</span>
+        </div>
+        <p class="font-mono text-[11px] text-muted">{lane.note}</p>
+      </header>
+      <ol class="arch-flow">
+        {lane.nodes.map((n) => (
+          <li class="arch-node" data-status={n.status ?? lane.status}>
+            <p class="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm font-semibold tracking-tight">
+              {n.label}
+              {n.status && n.status !== lane.status && (
+                <span class="status-chip" data-status={n.status}>{statusLabel[n.status]}</span>
+              )}
+            </p>
+            {n.detail && <p class="mt-1 text-xs leading-relaxed text-muted">{n.detail}</p>}
+            {n.file && (
+              isPath(n.file) ? (
+                <a
+                  href={`${blobBase}/${n.file.replace(/\/$/, "")}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="mt-2 inline-block max-w-full truncate font-mono text-[10.5px] text-accent-fg hover:underline"
+                  title={n.file}
+                >
+                  {n.file.replace(/\/$/, "").split("/").pop()}{n.file.endsWith("/") ? "/" : ""}<span class="sr-only"> — {n.file} (opens in new tab)</span>
+                </a>
+              ) : (
+                <p class="mt-2 truncate font-mono text-[10.5px] text-muted">{n.file}</p>
+              )
+            )}
+          </li>
+        ))}
+      </ol>
+    </section>
+  ))}
+</div>
+
+<style>
+  .arch-flow {
+    @apply flex flex-col gap-3 p-4 md:flex-row md:items-stretch md:gap-0;
+  }
+  .arch-node {
+    @apply relative min-w-0 flex-1 rounded-lg border border-border bg-surface-2 p-3.5;
+  }
+  .arch-node[data-status="planned"] {
+    @apply border-dashed bg-transparent;
+  }
+  .arch-node[data-status="stub"] {
+    border-color: rgb(var(--color-warn) / 0.4);
+  }
+  /* connectors: ↓ on mobile, → between columns on md+ */
+  .arch-node + .arch-node::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: -0.75rem;
+    width: 1px;
+    height: 0.75rem;
+    background: rgb(var(--color-border-strong));
+  }
+  @media (min-width: 768px) {
+    .arch-node + .arch-node {
+      margin-left: 1.75rem;
+    }
+    .arch-node + .arch-node::before {
+      left: -1.75rem;
+      top: 50%;
+      width: 1.75rem;
+      height: 1px;
+    }
+    .arch-node + .arch-node::after {
+      content: "";
+      position: absolute;
+      left: -0.45rem;
+      top: calc(50% - 4px);
+      border: 4px solid transparent;
+      border-left: 5px solid rgb(var(--color-border-strong));
+    }
+  }
+  .arch-lane[data-status="measured"] {
+    box-shadow: var(--shadow-1), var(--highlight), inset 3px 0 0 rgb(var(--color-success) / 0.7);
+  }
+  .arch-lane[data-status="needs-infra"] {
+    box-shadow: var(--shadow-1), var(--highlight), inset 3px 0 0 rgb(var(--color-accent-2-fg) / 0.7);
+  }
+  .arch-lane[data-status="implemented"] {
+    box-shadow: var(--shadow-1), var(--highlight), inset 3px 0 0 rgb(var(--color-accent-fg) / 0.7);
+  }
+  .arch-lane[data-status="stub"] {
+    box-shadow: var(--shadow-1), var(--highlight), inset 3px 0 0 rgb(var(--color-warn) / 0.7);
+  }
+  .arch-lane[data-status="planned"] {
+    @apply border-dashed;
+  }
+</style>

@@ -4,6 +4,10 @@ import Nav from "../components/Nav.astro";
 import Footer from "../components/Footer.astro";
 import { siteConfig } from "../site.config";
 import { ClientRouter } from "astro:transitions";
+import CommandPalette from "../components/chrome/CommandPalette.astro";
+import Toast from "../components/chrome/Toast.astro";
+import interWoff2 from "@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url";
+import groteskWoff2 from "@fontsource-variable/space-grotesk/files/space-grotesk-latin-wght-normal.woff2?url";
 
 interface Props {
   title: string;
@@ -32,7 +36,7 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN as
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-email={siteConfig.email}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -40,7 +44,10 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN as
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/site.webmanifest" />
-    <meta name="theme-color" content="#0a0a0c" />
+    <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0a0a0c" media="(prefers-color-scheme: dark)" />
+    <link rel="preload" href={interWoff2} as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href={groteskWoff2} as="font" type="font/woff2" crossorigin />
     <link rel="canonical" href={ogUrl} />
     <meta name="generator" content={Astro.generator} />
     <title>{fullTitle}</title>
@@ -68,7 +75,12 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN as
       // view transition because the incoming <html> carries no theme class.
       (() => {
         const applyTheme = () => {
-          const stored = localStorage.getItem("theme");
+          let stored = null;
+          try {
+            stored = localStorage.getItem("theme");
+          } catch (e) {
+            /* storage blocked */
+          }
           const prefersDark = window.matchMedia(
             "(prefers-color-scheme: dark)",
           ).matches;
@@ -91,14 +103,22 @@ const cfAnalyticsToken = import.meta.env.PUBLIC_CF_ANALYTICS_TOKEN as
   <body class="min-h-screen flex flex-col">
     <a
       href="#main-content"
-      class="sr-only focus:not-sr-only focus:fixed focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-accent focus:px-3 focus:py-2 focus:text-white"
+      class="skip-link sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[70] focus:rounded-md focus:bg-accent-solid focus:px-3 focus:py-2 focus:text-white"
     >
       Skip to content
     </a>
     <Nav />
-    <main id="main-content" class="flex-1 w-full">
+    <main id="main-content" class="flex-1 w-full" tabindex="-1">
       <slot />
     </main>
     <Footer />
+    <CommandPalette />
+    <Toast />
+    <script>
+      import "../scripts/motion";
+      import "../scripts/reveal";
+      import "../scripts/copy";
+      import "../scripts/tabs";
+    </script>
   </body>
 </html>

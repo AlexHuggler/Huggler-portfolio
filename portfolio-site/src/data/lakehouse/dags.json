@@ -1,0 +1,128 @@
+{
+  "_meta": {
+    "synthetic": false,
+    "generatedBy": "portfolio-site/scripts/artifacts/telecom.py",
+    "source": "project-telecom-lakehouse/dags",
+    "sourceDigest": "3c90e8e109d6",
+    "note": "Parsed statically from the DAG files. The three DAGs run on independent schedules; there are no cross-DAG sensors or Datasets linking them."
+  },
+  "dags": [
+    {
+      "id": "build_gold_marts",
+      "description": "Run dbt to build Gold marts and dbt test to validate them",
+      "schedule": "@daily",
+      "startDate": "2026-01-01",
+      "catchup": false,
+      "tags": [
+        "telecom",
+        "gold",
+        "dbt"
+      ],
+      "doc": "Airflow DAG: build Gold marts via dbt run + dbt test.",
+      "defaultArgs": {
+        "owner": "data-platform",
+        "retries": 1,
+        "retry_delay": {
+          "timedelta": {
+            "minutes": 2
+          }
+        }
+      },
+      "tasks": [
+        {
+          "id": "dbt_run_gold",
+          "operator": "BashOperator",
+          "command": "cd /opt/airflow/dbt_telecom && dbt run --profiles-dir /opt/airflow/dbt_telecom --select gold"
+        },
+        {
+          "id": "dbt_test_gold",
+          "operator": "BashOperator",
+          "command": "cd /opt/airflow/dbt_telecom && dbt test --profiles-dir /opt/airflow/dbt_telecom --select gold"
+        }
+      ],
+      "edges": [
+        [
+          "dbt_run_gold",
+          "dbt_test_gold"
+        ]
+      ],
+      "file": "project-telecom-lakehouse/dags/build_gold_marts.py"
+    },
+    {
+      "id": "ingest_cdr_bronze",
+      "description": "Ingest raw CDR parquet into the Bronze Iceberg table",
+      "schedule": "@hourly",
+      "startDate": "2026-01-01",
+      "catchup": false,
+      "tags": [
+        "telecom",
+        "bronze",
+        "ingest"
+      ],
+      "doc": "Airflow DAG: ingest raw CDR parquet from MinIO/S3 into the Bronze Iceberg table.",
+      "defaultArgs": {
+        "owner": "data-platform",
+        "retries": 2,
+        "retry_delay": {
+          "timedelta": {
+            "minutes": 5
+          }
+        },
+        "depends_on_past": false
+      },
+      "tasks": [
+        {
+          "id": "raw_to_bronze",
+          "operator": "PythonOperator",
+          "callable": "ingest_to_bronze",
+          "doc": "Run the raw->bronze parquet transform."
+        }
+      ],
+      "edges": [],
+      "file": "project-telecom-lakehouse/dags/ingest_cdr_bronze.py"
+    },
+    {
+      "id": "transform_silver",
+      "description": "Bronze -> Silver normalization with GE data contracts",
+      "schedule": "@hourly",
+      "startDate": "2026-01-01",
+      "catchup": false,
+      "tags": [
+        "telecom",
+        "silver",
+        "transform"
+      ],
+      "doc": "Airflow DAG: Bronze -> Silver normalization with a Great Expectations checkpoint.",
+      "defaultArgs": {
+        "owner": "data-platform",
+        "retries": 1,
+        "retry_delay": {
+          "timedelta": {
+            "minutes": 2
+          }
+        }
+      },
+      "tasks": [
+        {
+          "id": "great_expectations_bronze",
+          "operator": "PythonOperator",
+          "callable": "run_great_expectations",
+          "doc": "Validate the Bronze cdr file against the GE expectations suite."
+        },
+        {
+          "id": "bronze_to_silver",
+          "operator": "PythonOperator",
+          "callable": "run_bronze_to_silver",
+          "doc": ""
+        }
+      ],
+      "edges": [
+        [
+          "great_expectations_bronze",
+          "bronze_to_silver"
+        ]
+      ],
+      "file": "project-telecom-lakehouse/dags/transform_silver.py"
+    }
+  ]
+}

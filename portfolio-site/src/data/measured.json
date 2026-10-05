@@ -1,116 +1,557 @@
 {
-  "measuredAt": "2026-07",
+  "schemaVersion": 2,
+  "measuredAt": "2026-10",
+  "measuredOn": "2026-10-05",
   "environment": "Linux container, single process, no-infra demo paths; all data synthetic (seed 42)",
+  "environmentDetail": {
+    "os": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
+    "python": "3.11.15",
+    "uv": "uv 0.8.17",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz",
+    "cpus": 4
+  },
+  "evaluations": {
+    "ai-sql-optimizer": {
+      "method": "make benchmark (dry run) over corpus/queries/*.sql vs corpus/ground_truth.yaml",
+      "transcript": "src/data/measurements/ai-sql-optimizer.txt",
+      "tests": {
+        "passed": 18,
+        "skipped": 0
+      },
+      "summary": {
+        "queries": 5,
+        "meanKeywordOverlap": 0.6667,
+        "meanKeywordOverlapFindingsOnly": 0.3333,
+        "queriesWithFindings": 4,
+        "rulesFired": [
+          "consider_broadcast",
+          "correlated_subquery",
+          "many_ctes",
+          "select_star"
+        ],
+        "rulesNeverFired": [
+          "cross_join",
+          "missing_partition_predicate",
+          "parse_error"
+        ]
+      },
+      "byCategory": [
+        {
+          "category": "join_optimization",
+          "keywordOverlap": 1.0,
+          "findingsHitRate": 1.0
+        },
+        {
+          "category": "aggregation_rewrite",
+          "keywordOverlap": 0.6667,
+          "findingsHitRate": 1.0
+        },
+        {
+          "category": "cte_flattening",
+          "keywordOverlap": 0.0,
+          "findingsHitRate": 1.0
+        },
+        {
+          "category": "partition_pruning",
+          "keywordOverlap": 0.6667,
+          "findingsHitRate": 0.0
+        },
+        {
+          "category": "broadcast_join",
+          "keywordOverlap": 1.0,
+          "findingsHitRate": 1.0
+        }
+      ],
+      "analyzerLatencyMs": {
+        "median": 1.33,
+        "p95": 5.08,
+        "samples": 200
+      }
+    },
+    "fraud-signals": {
+      "method": "make eval: producer seed 42, 1,000 accounts, 50 ev/s × 300 s; account-level P/R",
+      "transcript": "src/data/measurements/fraud-signals.txt",
+      "tests": {
+        "passed": 18,
+        "skipped": 1
+      },
+      "dataset": {
+        "events": 16664,
+        "accounts": 1000,
+        "ratePerSec": 50,
+        "durationSec": 300,
+        "producerFraudRate": 0.05,
+        "labeledEvents": 2419,
+        "labeledEventShare": 0.1452,
+        "labelCounts": {
+          "normal": 14245,
+          "velocity_burst": 1650,
+          "impossible_travel": 540,
+          "amount_outlier": 229
+        },
+        "seed": 42
+      },
+      "scores": [
+        {
+          "kind": "velocity",
+          "label": "velocity_burst",
+          "trueAccounts": 226,
+          "flaggedAccounts": 865,
+          "truePositives": 226,
+          "precision": 0.2613,
+          "recall": 1.0,
+          "f1": 0.4143
+        },
+        {
+          "kind": "geo",
+          "label": "impossible_travel",
+          "trueAccounts": 240,
+          "flaggedAccounts": 240,
+          "truePositives": 240,
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0
+        },
+        {
+          "kind": "amount",
+          "label": "amount_outlier",
+          "trueAccounts": 200,
+          "flaggedAccounts": 121,
+          "truePositives": 117,
+          "precision": 0.9669,
+          "recall": 0.585,
+          "f1": 0.729
+        }
+      ],
+      "sweeps": {
+        "velocity": [
+          {
+            "threshold": 3,
+            "precision": 0.2262,
+            "recall": 1.0,
+            "f1": 0.369,
+            "flaggedAccounts": 999
+          },
+          {
+            "threshold": 4,
+            "precision": 0.2311,
+            "recall": 1.0,
+            "f1": 0.3754,
+            "flaggedAccounts": 978
+          },
+          {
+            "threshold": 5,
+            "precision": 0.2613,
+            "recall": 1.0,
+            "f1": 0.4143,
+            "flaggedAccounts": 865
+          },
+          {
+            "threshold": 6,
+            "precision": 0.3247,
+            "recall": 1.0,
+            "f1": 0.4902,
+            "flaggedAccounts": 696
+          },
+          {
+            "threshold": 7,
+            "precision": 0.4487,
+            "recall": 0.9867,
+            "f1": 0.6169,
+            "flaggedAccounts": 497
+          },
+          {
+            "threshold": 8,
+            "precision": 0.6088,
+            "recall": 0.9159,
+            "f1": 0.7314,
+            "flaggedAccounts": 340
+          },
+          {
+            "threshold": 9,
+            "precision": 0.7835,
+            "recall": 0.8009,
+            "f1": 0.7921,
+            "flaggedAccounts": 231
+          },
+          {
+            "threshold": 10,
+            "precision": 0.8976,
+            "recall": 0.6593,
+            "f1": 0.7602,
+            "flaggedAccounts": 166
+          }
+        ],
+        "amount": [
+          {
+            "threshold": 2.0,
+            "precision": 0.3723,
+            "recall": 0.94,
+            "f1": 0.5333,
+            "flaggedAccounts": 505
+          },
+          {
+            "threshold": 2.5,
+            "precision": 0.659,
+            "recall": 0.715,
+            "f1": 0.6859,
+            "flaggedAccounts": 217
+          },
+          {
+            "threshold": 3.0,
+            "precision": 0.9669,
+            "recall": 0.585,
+            "f1": 0.729,
+            "flaggedAccounts": 121
+          },
+          {
+            "threshold": 3.5,
+            "precision": 1.0,
+            "recall": 0.215,
+            "f1": 0.3539,
+            "flaggedAccounts": 43
+          },
+          {
+            "threshold": 4.0,
+            "precision": 1.0,
+            "recall": 0.02,
+            "f1": 0.0392,
+            "flaggedAccounts": 4
+          },
+          {
+            "threshold": 4.5,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "flaggedAccounts": 0
+          },
+          {
+            "threshold": 5.0,
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "flaggedAccounts": 0
+          }
+        ]
+      },
+      "throughput": {
+        "events": 16664,
+        "secondsMedian": 0.1667,
+        "eventsPerSec": 99943,
+        "runs": 5
+      }
+    },
+    "telecom-lakehouse": {
+      "method": "make demo (seed 42) → DuckDB medallion transform; dbt build over the same raw parquet",
+      "transcript": "src/data/measurements/telecom-lakehouse.txt",
+      "tests": {
+        "passed": 8,
+        "skipped": 0
+      },
+      "dbt": {
+        "models": 8,
+        "tests": 41,
+        "testsPassed": 41
+      },
+      "dags": 3,
+      "models": 8,
+      "dbtTestsDeclared": 41,
+      "geExpectations": 10,
+      "rowCounts": {
+        "bronze": 49998,
+        "silver": 49998,
+        "gold.revenue_by_market": 15,
+        "gold.arpu_monthly": 5,
+        "gold.churn_signals": 49998
+      },
+      "partitions": 3,
+      "transform": {
+        "secondsMedian": 0.324,
+        "runs": 5
+      }
+    }
+  },
   "site": [
     {
-      "value": "50k rows",
-      "label": "raw to Gold in 0.53s",
-      "sublabel": "medallion transform, single process",
-      "method": "telecom-lakehouse: make demo"
+      "value": "0.32s",
+      "label": "raw → Gold, 49,998 CDRs",
+      "sublabel": "median of 5 in-process runs · DuckDB",
+      "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
+      "kind": "measured",
+      "id": "telecom.transform"
     },
     {
       "value": "41/41",
       "label": "dbt tests passing",
-      "sublabel": "unique, not_null, relationships, expressions",
-      "method": "telecom-lakehouse: make dbt-test"
+      "sublabel": "8 models · bronze → gold",
+      "method": "dbt build (dbt-duckdb, scratch profile) over make demo output",
+      "kind": "measured",
+      "id": "telecom.dbt"
     },
     {
-      "value": "~110k",
-      "label": "events/sec fraud-scored",
-      "sublabel": "labeled eval set, ground-truth P/R published",
-      "method": "fraud-signals: make eval"
+      "value": "~100k/s",
+      "label": "events scored by 3 detectors",
+      "sublabel": "16,664 events · single process · median of 5",
+      "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
+      "kind": "measured",
+      "id": "fraud.throughput"
     },
     {
       "value": "44",
-      "label": "unit tests green",
-      "sublabel": "pytest across all three projects",
-      "method": "make test x3"
+      "label": "unit tests passing",
+      "sublabel": "pytest across 3 projects · 1 skipped",
+      "method": "make test ×3",
+      "kind": "count",
+      "id": "site.tests"
     }
   ],
   "projects": {
     "fraud-signals": {
       "metrics": [
         {
-          "value": "~110k/s",
-          "label": "detector throughput",
-          "sublabel": "16,664 events scored in 0.15s",
-          "method": "make eval (seed 42)"
+          "value": "~100k/s",
+          "label": "events scored by 3 detectors",
+          "sublabel": "16,664 events · single process · median of 5",
+          "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
+          "kind": "measured",
+          "id": "fraud.throughput"
         },
         {
           "value": "1.00 / 1.00",
-          "label": "impossible-travel P/R",
+          "label": "impossible-travel precision / recall",
           "sublabel": "account-level vs seeded ground truth",
-          "method": "make eval"
+          "method": "make eval (anomaly.evaluate)",
+          "kind": "measured",
+          "id": "fraud.geo.pr"
         },
         {
-          "value": "0.97",
-          "label": "amount Z-score precision",
-          "sublabel": "recall 0.58 on seeded ground truth",
-          "method": "make eval"
+          "value": "0.97 / 0.58",
+          "label": "amount z-score precision / recall",
+          "sublabel": "117 of 200 outlier accounts caught",
+          "method": "make eval (anomaly.evaluate)",
+          "kind": "measured",
+          "id": "fraud.amount.pr"
         },
         {
-          "value": "18",
-          "label": "unit tests passing",
-          "sublabel": "1 Spark-only skip",
-          "method": "make test"
+          "value": "0.26 / 1.00",
+          "label": "velocity precision / recall",
+          "sublabel": "865 of 1,000 accounts flagged at threshold 5",
+          "method": "make eval (anomaly.evaluate)",
+          "kind": "measured",
+          "caveat": "A fixed 5-events-in-60s rule fires on ordinary traffic at this simulated rate; the sweep peaks at F1 0.79 with threshold 9.",
+          "id": "fraud.velocity.pr"
         }
       ]
     },
     "telecom-lakehouse": {
       "metrics": [
         {
-          "value": "0.53s",
-          "label": "raw to Gold, 49,998 rows",
-          "sublabel": "~94k rows/sec, single process",
-          "method": "make demo"
+          "value": "0.32s",
+          "label": "raw → Gold, 49,998 CDRs",
+          "sublabel": "median of 5 in-process runs · DuckDB",
+          "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
+          "kind": "measured",
+          "id": "telecom.transform"
         },
         {
           "value": "41/41",
           "label": "dbt tests passing",
-          "sublabel": "8 models, bronze to gold",
-          "method": "make dbt-test"
+          "sublabel": "8 models · bronze → gold",
+          "method": "dbt build (dbt-duckdb, scratch profile) over make demo output",
+          "kind": "measured",
+          "id": "telecom.dbt"
         },
         {
           "value": "10",
           "label": "Bronze contract expectations",
-          "sublabel": "types, nulls, ranges, MSISDN regex",
-          "method": "cdr_bronze_suite.json"
+          "sublabel": "types · nulls · ranges · MSISDN regex",
+          "method": "count of great_expectations/expectations/cdr_bronze_suite.json",
+          "kind": "defined",
+          "caveat": "Defined in the suite; the transform_silver DAG's checkpoint task is a stub, so the contract is not enforced at runtime yet.",
+          "id": "telecom.ge"
         },
         {
           "value": "8",
           "label": "unit tests passing",
-          "sublabel": "generator + transform",
-          "method": "make test"
+          "sublabel": "generator + transforms",
+          "method": "make test",
+          "kind": "count",
+          "id": "telecom.tests"
         }
       ]
     },
     "ai-sql-optimizer": {
       "metrics": [
         {
-          "value": "0.67",
-          "label": "keyword overlap vs ground truth",
-          "sublabel": "heuristics only, no API",
-          "method": "make benchmark --dry-run"
-        },
-        {
           "value": "4 / 5",
-          "label": "queries with correct findings",
-          "sublabel": "seeded 5-category corpus",
-          "method": "make benchmark"
+          "label": "queries with ≥1 analyzer finding",
+          "sublabel": "real corpus · heuristics only, no API",
+          "method": "make benchmark (dry run)",
+          "kind": "measured",
+          "caveat": "Any finding counts as a hit; whether the finding is the right one is not scored.",
+          "id": "sqlopt.findings"
         },
         {
-          "value": "68ms",
+          "value": "0.67",
+          "label": "benchmark keyword overlap (upper bound)",
+          "sublabel": "0.33 when scored on findings alone",
+          "method": "make benchmark (dry run); findings-only re-score by scripts/artifacts/sqlopt.py",
+          "kind": "measured",
+          "caveat": "benchmark._score searches the query text — including its explanatory comments — as well as the findings, which inflates the score.",
+          "id": "sqlopt.overlap"
+        },
+        {
+          "value": "1.3 ms",
           "label": "analyzer latency per query",
-          "sublabel": "sqlglot AST + heuristics",
-          "method": "time make benchmark"
+          "sublabel": "in-process median, warm · n=200",
+          "method": "scripts/artifacts/sqlopt.py times analyze() over the 5 corpus queries ×40",
+          "kind": "measured",
+          "id": "sqlopt.latency"
         },
         {
           "value": "18",
           "label": "unit tests passing",
-          "sublabel": "analyzer, benchmark, CLI",
-          "method": "make test"
+          "sublabel": "analyzer, benchmark, CLI, client",
+          "method": "make test",
+          "kind": "count",
+          "id": "sqlopt.tests"
         }
       ]
     }
+  },
+  "metrics": {
+    "telecom.transform": {
+      "value": "0.32s",
+      "label": "raw → Gold, 49,998 CDRs",
+      "sublabel": "median of 5 in-process runs · DuckDB",
+      "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
+      "kind": "measured",
+      "id": "telecom.transform"
+    },
+    "telecom.dbt": {
+      "value": "41/41",
+      "label": "dbt tests passing",
+      "sublabel": "8 models · bronze → gold",
+      "method": "dbt build (dbt-duckdb, scratch profile) over make demo output",
+      "kind": "measured",
+      "id": "telecom.dbt"
+    },
+    "telecom.ge": {
+      "value": "10",
+      "label": "Bronze contract expectations",
+      "sublabel": "types · nulls · ranges · MSISDN regex",
+      "method": "count of great_expectations/expectations/cdr_bronze_suite.json",
+      "kind": "defined",
+      "caveat": "Defined in the suite; the transform_silver DAG's checkpoint task is a stub, so the contract is not enforced at runtime yet.",
+      "id": "telecom.ge"
+    },
+    "telecom.tests": {
+      "value": "8",
+      "label": "unit tests passing",
+      "sublabel": "generator + transforms",
+      "method": "make test",
+      "kind": "count",
+      "id": "telecom.tests"
+    },
+    "fraud.throughput": {
+      "value": "~100k/s",
+      "label": "events scored by 3 detectors",
+      "sublabel": "16,664 events · single process · median of 5",
+      "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
+      "kind": "measured",
+      "id": "fraud.throughput"
+    },
+    "fraud.geo.pr": {
+      "value": "1.00 / 1.00",
+      "label": "impossible-travel precision / recall",
+      "sublabel": "account-level vs seeded ground truth",
+      "method": "make eval (anomaly.evaluate)",
+      "kind": "measured",
+      "id": "fraud.geo.pr"
+    },
+    "fraud.amount.pr": {
+      "value": "0.97 / 0.58",
+      "label": "amount z-score precision / recall",
+      "sublabel": "117 of 200 outlier accounts caught",
+      "method": "make eval (anomaly.evaluate)",
+      "kind": "measured",
+      "id": "fraud.amount.pr"
+    },
+    "fraud.velocity.pr": {
+      "value": "0.26 / 1.00",
+      "label": "velocity precision / recall",
+      "sublabel": "865 of 1,000 accounts flagged at threshold 5",
+      "method": "make eval (anomaly.evaluate)",
+      "kind": "measured",
+      "caveat": "A fixed 5-events-in-60s rule fires on ordinary traffic at this simulated rate; the sweep peaks at F1 0.79 with threshold 9.",
+      "id": "fraud.velocity.pr"
+    },
+    "fraud.tests": {
+      "value": "18",
+      "label": "unit tests passing",
+      "sublabel": "1 Spark-only skip",
+      "method": "make test",
+      "kind": "count",
+      "id": "fraud.tests"
+    },
+    "sqlopt.findings": {
+      "value": "4 / 5",
+      "label": "queries with ≥1 analyzer finding",
+      "sublabel": "real corpus · heuristics only, no API",
+      "method": "make benchmark (dry run)",
+      "kind": "measured",
+      "caveat": "Any finding counts as a hit; whether the finding is the right one is not scored.",
+      "id": "sqlopt.findings"
+    },
+    "sqlopt.overlap": {
+      "value": "0.67",
+      "label": "benchmark keyword overlap (upper bound)",
+      "sublabel": "0.33 when scored on findings alone",
+      "method": "make benchmark (dry run); findings-only re-score by scripts/artifacts/sqlopt.py",
+      "kind": "measured",
+      "caveat": "benchmark._score searches the query text — including its explanatory comments — as well as the findings, which inflates the score.",
+      "id": "sqlopt.overlap"
+    },
+    "sqlopt.latency": {
+      "value": "1.3 ms",
+      "label": "analyzer latency per query",
+      "sublabel": "in-process median, warm · n=200",
+      "method": "scripts/artifacts/sqlopt.py times analyze() over the 5 corpus queries ×40",
+      "kind": "measured",
+      "id": "sqlopt.latency"
+    },
+    "sqlopt.tests": {
+      "value": "18",
+      "label": "unit tests passing",
+      "sublabel": "analyzer, benchmark, CLI, client",
+      "method": "make test",
+      "kind": "count",
+      "id": "sqlopt.tests"
+    },
+    "site.tests": {
+      "value": "44",
+      "label": "unit tests passing",
+      "sublabel": "pytest across 3 projects · 1 skipped",
+      "method": "make test ×3",
+      "kind": "count",
+      "id": "site.tests"
+    }
+  },
+  "notMeasured": {
+    "ai-sql-optimizer": [
+      "Claude rewrite quality — `benchmark --no-dry-run` does not call the API yet",
+      "EXPLAIN cost delta — no EXPLAIN runner is implemented",
+      "Human acceptance rate of suggestions"
+    ],
+    "fraud-signals": [
+      "Sustained Spark Structured Streaming throughput",
+      "End-to-end latency p50 / p95 / p99 (needs the Kafka + Spark stack)",
+      "Data loss on restart from checkpoint"
+    ],
+    "telecom-lakehouse": [
+      "Great Expectations enforcement — the checkpoint task is a stub",
+      "Airflow end-to-end run timing (needs the docker compose stack)",
+      "Iceberg / Athena query performance on AWS"
+    ]
   }
 }

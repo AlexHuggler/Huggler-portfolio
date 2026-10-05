@@ -1,80 +1,104 @@
 ---
 title: "Telecom Billing Lakehouse"
-tagline: "Medallion (Bronze/Silver/Gold) lakehouse over synthetic CDR data. Airflow + MinIO + Iceberg + Great Expectations + dbt."
+tagline: "Medallion (Bronze/Silver/Gold) lakehouse over synthetic CDR data: three Airflow DAGs, a Great Expectations contract, 8 dbt models, and Terraform for AWS."
 order: 2
 stack:
   - "Apache Airflow"
-  - "Apache Iceberg"
-  - "MinIO / S3"
-  - "Great Expectations"
   - "dbt"
+  - "Great Expectations"
+  - "DuckDB"
+  - "MinIO / S3"
   - "Terraform"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-telecom-lakehouse"
 problem: "Builds a single source of truth for revenue, ARPU, and churn signals over high-volume Call Detail Record data."
-approach: "Airflow -> MinIO/S3 -> Iceberg Bronze/Silver/Gold -> Great Expectations contracts -> dbt marts, with Terraform for the AWS variant."
+approach: "Three Airflow DAGs move raw CDR parquet through Bronze and Silver; dbt builds the Gold marts with 41 tests; Terraform provisions the AWS variant."
 demonstrates:
   - "Medallion lakehouse design"
   - "Data contracts at the boundary"
   - "dbt modeling for BI"
   - "Orchestration + IaC"
 screenshot: "telecom-pipeline-run.svg"
-results:
-  - "49,998 CDRs raw to Gold in 0.53s (~94k rows/sec single process, measured via make demo)"
-  - "41 of 41 dbt tests passing across 8 bronze/silver/gold models (measured via make dbt-test)"
-  - "10-expectation Great Expectations data contract specified at the Bronze boundary"
+runCommand: "make install && make demo"
+docs:
+  - { label: "README", path: "README.md" }
+  - { label: "Architecture", path: "docs/architecture.md" }
+  - { label: "Terraform", path: "terraform/README.md" }
+capabilities:
+  - { name: "CDR generator → partitioned Parquet", status: "implemented", note: "49,998 rows across 3 day partitions" }
+  - { name: "Medallion transform (DuckDB)", status: "measured", note: "raw → Gold timed in-process" }
+  - { name: "8 dbt models with 41 tests", status: "measured", note: "dbt build, dbt-duckdb" }
+  - { name: "Great Expectations Bronze contract", status: "stub", note: "10 expectations defined; checkpoint stubbed" }
+  - { name: "Three Airflow DAGs (hourly, hourly, daily)", status: "needs-infra", note: "docker compose: Airflow + MinIO" }
+  - { name: "Terraform: S3 buckets + Glue catalog", status: "implemented", note: "terraform validate + fmt in CI" }
+  - { name: "Iceberg tables", status: "planned", note: "target format; demo writes Parquet" }
+  - { name: "Churn signals mart", status: "implemented", note: "degenerate on current synthetic data" }
 ---
+
+import { metric, evaluation } from "../../data/measured";
+export const ev = evaluation("telecom-lakehouse");
 
 ## Problem
 
 Telecom billing teams sit on enormous CDR (Call Detail Record) volumes and
 need a single source of truth for revenue, ARPU, and churn signals. The
-Medallion pattern (Bronze raw, Silver normalized, Gold dimensional) keeps
-late-arriving data and corrections tractable while exposing clean marts to
-BI. This project is an end-to-end implementation: synthetic CDR generation,
-Airflow orchestration, Iceberg storage on S3-compatible object storage, data
-contracts via Great Expectations, and dbt for the analytics layer - all
-runnable locally with no AWS account.
+Medallion pattern — Bronze raw, Silver cleaned and rated, Gold
+consumption-ready — keeps late-arriving data and vendor corrections
+replayable while exposing only clean marts to BI. This project implements
+the whole path: a synthetic CDR generator, three Airflow DAGs, S3-compatible
+storage, a Great Expectations contract at the Bronze boundary, eight dbt
+models, and Terraform for the AWS variant — all runnable locally without an
+AWS account.
 
 ## Judgment calls
 
-**Why medallion over a single table?** Telecom CDR volumes are huge and
-lossy. Keeping a Bronze append-only layer means a schema change, a parsing
-bug, or a vendor-side correction can be replayed without re-ingesting from
-upstream. Silver is where validation happens but rows are never dropped -
-bad rows are flagged so analysts can audit them. Gold is the only layer BI
-tools see.
+**Why medallion over a single table?** Keeping Bronze append-only means a
+schema change, a parsing bug, or a vendor correction can be replayed without
+re-ingesting from upstream. Silver is where typing, validity filters, and
+rating (billable minutes and megabytes) happen. Gold is the only layer BI
+tools read.
 
-**Iceberg vs Delta.** Both work. Iceberg's hidden partitioning and partition
-evolution make schema migrations far less painful than rewrite-on-write
-tables, and it gives engine portability if a downstream consumer wants Trino
-or Athena instead of Spark. Delta would be a fine choice in a Spark-mostly
-shop; for a batch-first billing workload, Iceberg is the cleaner fit.
+**Iceberg as the target, Parquet today.** Iceberg's hidden partitioning and
+partition evolution make schema migrations less painful, and it keeps tables
+portable to Trino or Athena, so it is the design target for a batch-first
+billing workload read by several engines. The runnable demo writes plain
+Parquet through DuckDB and the Terraform Glue table is Hive-style Parquet;
+moving to Iceberg tables is the documented next step, not a claim.
 
-**Great Expectations at Bronze, dbt tests at Silver/Gold.** GE specifies the
-contract before bad data enters the lake - schema, null rates, ranges, the
-`+1NNNNNNNNNN` MSISDN regex; dbt tests catch the bad relationships
-afterward - uniqueness, referential integrity, accepted values. The two
-cover complementary failure modes. Honest caveat: the bundled demo DAG wires
-the GE checkpoint as a demonstrative stub, so blocking enforcement requires
-the full Airflow + GE stack; the 10-expectation contract itself lives in
-version control either way.
+**A contract at Bronze, tests at Silver and Gold.** The Great Expectations
+suite specifies what may enter the lake — exact column set, non-null keys, the
+`^\+1[0-9]{10}$` MSISDN pattern, accepted values, numeric ranges. dbt tests
+then guard what the models produce — uniqueness, accepted values,
+non-negative revenue, and a `relationships` check from Silver back to the
+account register. Honest caveat: the `transform_silver` DAG loads the GE
+context but does not run a checkpoint yet, so the contract is defined and
+version-controlled but not enforced at runtime.
+
+**Independent schedules, on purpose for now.** Ingest and Silver run hourly
+and Gold daily, each as its own DAG with retries. Nothing links them yet;
+production would add Airflow Datasets so Gold rebuilds only when Silver has
+actually changed.
 
 ## Measured results
 
-The no-infra demo path is fully measured and reproducible with three
-commands. `make demo` takes 49,998 synthetic CDRs from raw parquet through
-Bronze, Silver, and three Gold marts in 0.53 s (~94k rows/sec, single
-process). `make dbt-run && make dbt-test` builds all 8 models and passes
-41 of 41 tests - `unique`, `not_null`, `accepted_values`, `relationships`,
-and expression checks across every layer. The dbt project vendors local
-replacements for its two dbt_utils macros, so it runs completely offline
-with no package downloads.
+`make demo` takes {ev.rowCounts.silver.toLocaleString("en-US")} synthetic CDRs across
+{ev.partitions} daily partitions from raw parquet through Bronze, Silver, and three Gold
+marts; the transform itself runs in {metric("telecom.transform").value} (median of
+{ev.transform.runs} in-process runs on DuckDB). `dbt build` over the same raw data builds all
+{ev.dbt.models} models and passes {metric("telecom.dbt").value} tests. The project vendors
+local replacements for its two dbt_utils macros, so it runs completely offline.
+
+One result is a finding rather than a success: the generator draws a fresh
+random MSISDN for every record, so each caller appears exactly once and the
+`churn_signals` mart classifies every caller as high risk. The SQL is right;
+the synthetic data isn't shaped for it. The fix — a fixed subscriber pool —
+belongs in the generator.
 
 ## What I would do differently in production
 
-- Replace the GE 0.18 API with Great Expectations 1.x (or `pandera`) once a
-  stable migration path lands - and wire the checkpoint for real enforcement.
-- Add lineage via OpenLineage emitters on every Airflow task and dbt run.
-- Add cross-column contracts (e.g. roaming flag must match a roaming-eligible plan).
+- Run the GE checkpoint for real (or move to GE 1.x / `pandera`) so a broken
+  contract blocks the Silver build.
+- Link the DAGs with Airflow Datasets and emit OpenLineage from every task
+  and dbt run.
+- Add cross-column contracts (e.g. roaming only on roaming-eligible plans).
 - Replace LocalExecutor with KubernetesExecutor for scale-out.
-- Add an Iceberg compaction DAG to keep Bronze partition file counts bounded.
+- Add an Iceberg compaction DAG to keep Bronze file counts bounded.

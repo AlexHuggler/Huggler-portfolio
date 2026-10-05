@@ -1,110 +1,109 @@
 ---
 import CaseStudyLayout from "../../layouts/CaseStudyLayout.astro";
-import MermaidBlock from "../../components/MermaidBlock.astro";
-import SectionHeader from "../../components/shared/SectionHeader.astro";
-import MedallionDiagram from "../../components/lakehouse/MedallionDiagram.tsx";
-import LayerDrillDown from "../../components/lakehouse/LayerDrillDown.tsx";
-import AirflowDagViewer from "../../components/lakehouse/AirflowDagViewer.tsx";
-import DataQualityScorecard from "../../components/lakehouse/DataQualityScorecard.tsx";
-import DbtLineagePreview from "../../components/lakehouse/DbtLineagePreview.tsx";
+import TerminalFrame from "../../components/shared/TerminalFrame.astro";
+import MedallionExplorer from "../../components/lakehouse/MedallionExplorer.astro";
+import GoldRevenueChart from "../../components/lakehouse/GoldRevenueChart.tsx";
+import DagExplorer from "../../components/lakehouse/DagExplorer.astro";
+import LineageExplorer from "../../components/lakehouse/LineageExplorer.astro";
+import ContractSurface from "../../components/lakehouse/ContractSurface.astro";
+import transcript from "../../data/measurements/telecom-lakehouse.txt?raw";
+import { measuredLabel } from "../../data/measured";
+
+// `make demo` output exactly as captured (generator line + medallion table).
+const demoStart = transcript.indexOf("$ make demo");
+const demoEnd = transcript.indexOf("$ dbt build");
+const demoOutput = transcript
+  .slice(demoStart, demoEnd)
+  .split("\n")
+  .slice(1)
+  .filter((l) => !l.startsWith("uv run") && !l.startsWith("==>") && l.trim() !== "")
+  .join("\n")
+  .trim();
 
 const stack = [
-  {
-    label: "Apache Airflow",
-    rationale: "Orchestrates ingest/transform/dbt with retries and SLAs.",
-  },
-  {
-    label: "Apache Iceberg",
-    rationale: "Partition evolution, hidden partitioning, engine portability.",
-  },
-  {
-    label: "MinIO / S3",
-    rationale: "Local object storage with the production API surface.",
-  },
-  {
-    label: "Great Expectations",
-    rationale: "Column-level data contracts at Bronze.",
-  },
-  {
-    label: "dbt",
-    rationale: "Silver-to-Gold transforms with tests on every model.",
-  },
-  {
-    label: "Terraform",
-    rationale: "Provisions the AWS variant when deploying for real.",
-  },
+  { label: "Apache Airflow 2.9", rationale: "Three DAGs (hourly ingest, hourly Silver, daily Gold) with retries; LocalExecutor in docker compose." },
+  { label: "DuckDB", rationale: "Runs the same Bronze → Silver → Gold SQL locally in well under a second — no cluster." },
+  { label: "dbt (dbt-duckdb)", rationale: "Eight models and 41 tests; dbt_utils macros vendored so it builds fully offline." },
+  { label: "Great Expectations", rationale: "Bronze data contract: column set, nulls, MSISDN regex, accepted values, ranges." },
+  { label: "MinIO / S3", rationale: "S3-compatible landing zone locally; the same paths map to real buckets on AWS." },
+  { label: "Terraform", rationale: "Four encrypted, versioned, private S3 buckets plus a Glue catalog; validated in CI." },
 ];
 ---
 
 <CaseStudyLayout
   slug="telecom-lakehouse"
-  eyebrow="Project 02 · Lakehouse + orchestration"
-  heroDescription="Bronze, Silver, and Gold tiers built over synthetic Call Detail Records. Airflow orchestrates ingestion onto Iceberg-on-S3, Great Expectations specifies contracts at the boundary, and dbt models analyst-ready marts on top."
+  eyebrow="Project 02 · Lakehouse & analytics engineering"
+  heroDescription="A medallion lakehouse over synthetic Call Detail Records: partitioned Parquet in, Bronze/Silver/Gold out, three Airflow DAGs, a Great Expectations contract at the boundary, and eight dbt models with 41 tests — all runnable on a laptop."
   heroLinks={[
-    { href: "#drill-down", label: "Explore the tiers" },
-    { href: "#architecture", label: "Architecture deep-dive" },
+    { href: "#medallion", label: "Explore the layers" },
+    { href: "#lineage", label: "Trace the lineage" },
   ]}
   stack={stack}
+  sections={[
+    { id: "medallion", label: "Medallion layers" },
+    { id: "orchestration", label: "Orchestration" },
+    { id: "lineage", label: "dbt lineage" },
+    { id: "contracts", label: "Contracts & tests" },
+  ]}
 >
-  <div slot="hero-visual" class="mt-8 demo-card relative overflow-hidden">
-    <MedallionDiagram client:visible scrollTargetId="drill-down" />
-  </div>
+  <TerminalFrame
+    slot="hero-visual"
+    class="mt-10 max-w-2xl"
+    command="make demo"
+    output={demoOutput}
+    caption={`Captured by scripts/measure.py · ${measuredLabel()} · seed 42`}
+  />
 
-  <!-- Layer drill-down -->
-  <section class="demo-section" id="drill-down">
-    <SectionHeader
-      eyebrow="Tier drill-down"
-      title="Bronze, Silver, Gold — what changes between them"
-      description="Click a tier above or use the tabs below to see the schema, sample rows, transformations, and data-quality checks at each stage of the medallion."
-    />
-    <LayerDrillDown client:visible />
+  <section id="medallion" class="cs-section" aria-labelledby="medallion-title">
+    <p class="kicker">Medallion layers</p>
+    <h2 id="medallion-title" class="heading-1 mt-3">Bronze, Silver, Gold — from the real run</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      Row counts, schemas and sample rows come straight from the Parquet that
+      <code class="font-mono text-[0.9em]">make demo</code> wrote, read back with DuckDB. Pick a layer to
+      see what it does and what guards it.
+    </p>
+    <div class="mt-8 space-y-5">
+      <MedallionExplorer />
+      <GoldRevenueChart client:visible />
+    </div>
   </section>
 
-  <!-- Airflow DAG -->
-  <section class="demo-section" id="orchestration">
-    <SectionHeader
-      eyebrow="Orchestration"
-      title="Daily Airflow DAG"
-      description="A linear pipeline that generates synthetic CDR data, lands it on Bronze, validates with Great Expectations, normalizes into Silver, builds Gold marts via dbt, and notifies on completion."
-    />
-    <AirflowDagViewer client:visible />
+  <section id="orchestration" class="cs-section" aria-labelledby="orchestration-title">
+    <p class="kicker">Orchestration</p>
+    <h2 id="orchestration-title" class="heading-1 mt-3">Three DAGs, parsed from the repo</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      Schedules, retries and tasks are read from the DAG files at build time. The
+      Python tasks call the same functions <code class="font-mono text-[0.9em]">make demo</code> runs, so
+      the local path and the orchestrated path can't drift apart.
+    </p>
+    <div class="mt-8">
+      <DagExplorer />
+    </div>
   </section>
 
-  <!-- Data quality scorecard -->
-  <section class="demo-section" id="data-quality">
-    <SectionHeader
-      eyebrow="Data quality"
-      title="Scorecard across the four pillars"
-      description="Completeness, validity, uniqueness, and freshness — measured by the dbt + Great Expectations test surface and surfaced into a simple scorecard."
-    />
-    <DataQualityScorecard client:visible />
+  <section id="lineage" class="cs-section" aria-labelledby="lineage-title">
+    <p class="kicker">dbt lineage</p>
+    <h2 id="lineage-title" class="heading-1 mt-3">Trace any model upstream and down</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      The graph is built from the models' own <code class="font-mono text-[0.9em]">ref()</code> and
+      <code class="font-mono text-[0.9em]">source()</code> calls. Select a model to light up its
+      lineage and read its SQL; press Esc to clear.
+    </p>
+    <div class="mt-8">
+      <LineageExplorer />
+    </div>
   </section>
 
-  <!-- dbt lineage -->
-  <section class="demo-section" id="lineage">
-    <SectionHeader
-      eyebrow="dbt lineage"
-      title="From sources to marts"
-      description="Hover or focus a model to see its source file. The graph mirrors the dbt project's actual model layout — 8 models, 41 passing tests."
-    />
-    <DbtLineagePreview client:visible />
-  </section>
-
-  <!-- Architecture -->
-  <section class="demo-section" id="architecture">
-    <SectionHeader
-      eyebrow="Architecture"
-      title="From producer to BI"
-      description="The full pipeline from synthetic generator to BI consumers. The engineering narrative below covers the trade-offs reviewers ask about."
-    />
-    <div class="demo-card">
-      <MermaidBlock code={`flowchart LR
-        G[Synthetic CDR generator] -->|parquet| R[(MinIO/S3 raw zone)]
-        R -->|Airflow ingest DAG| BR[(Iceberg Bronze)]
-        BR -->|Airflow transform DAG\nGE checks| SI[(Iceberg Silver)]
-        SI -->|dbt run| GO[(Gold marts\nrevenue_by_market, arpu_monthly, churn_signals)]
-        GO --> BI[BI / consumers]
-      `} />
+  <section id="contracts" class="cs-section" aria-labelledby="contracts-title">
+    <p class="kicker">Contracts &amp; tests</p>
+    <h2 id="contracts-title" class="heading-1 mt-3">What's checked, and where</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      dbt tests guard every model and all pass in the measured run. The Great
+      Expectations suite specifies the Bronze contract; wiring its checkpoint so a
+      failure blocks Silver is the open item.
+    </p>
+    <div class="mt-8">
+      <ContractSurface />
     </div>
   </section>
 </CaseStudyLayout>

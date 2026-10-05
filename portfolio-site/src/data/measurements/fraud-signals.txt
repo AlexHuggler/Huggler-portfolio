@@ -1,0 +1,21 @@
+$ make test
+uv run pytest
+..................s                                                                                                                                                                              [100%]
+18 passed, 1 skipped in 0.15s
+
+$ make eval
+==> Generating a labeled evaluation set (seed 42, ~17k simulated events)
+uv run python -m producer.generate --sink jsonl --rate 50 --duration 300 --accounts 1000 --out data/eval_events.jsonl
+Wrote 16664 events to data/eval_events.jsonl in 0.3s
+
+==> Scoring detectors against the embedded ground-truth labels
+uv run python -m anomaly.evaluate data/eval_events.jsonl
+                             Detector evaluation over 16664 labeled events                              
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━┳━━━━━━┓
+┃ Detector ┃ Ground-truth pattern ┃ Accounts w/ pattern ┃ Accounts flagged ┃ Precision ┃ Recall ┃   F1 ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━╇━━━━━━┩
+│ velocity │ velocity_burst       │                 226 │              865 │      0.26 │   1.00 │ 0.41 │
+│ geo      │ impossible_travel    │                 240 │              240 │      1.00 │   1.00 │ 1.00 │
+│ amount   │ amount_outlier       │                 200 │              121 │      0.97 │   0.58 │ 0.73 │
+└──────────┴──────────────────────┴─────────────────────┴──────────────────┴───────────┴────────┴──────┘
+Scored 16664 events in 0.18s (91,731 events/sec, single process)

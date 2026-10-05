@@ -2,107 +2,118 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { siteConfig } from "../site.config";
 
-const inputClass =
-  "mt-2 w-full rounded-md border border-border bg-surface px-3 py-2 text-fg placeholder-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
+const field =
+  "mt-2 w-full rounded-lg border border-border bg-bg px-3 py-2.5 text-sm text-fg placeholder:text-muted transition-colors hover:border-border-strong focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30";
+
+const reasons = [
+  { k: "Hiring", v: "Data engineering, analytics engineering and BI roles" },
+  { k: "Collaboration", v: "Pipelines, lakehouse modelling, dashboards" },
+  { k: "Questions", v: "About any project, number or method on this site" },
+];
 ---
 
 <BaseLayout
   title="Contact"
-  description={`Get in touch with ${siteConfig.name} — hiring, collaboration, or speaking inquiries.`}
+  description={`Get in touch with ${siteConfig.name} — hiring, collaboration, or questions about the work.`}
 >
-  <section class="mx-auto max-w-page px-6 pt-16 pb-24">
-    <div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
-      <div>
-        <p class="font-mono text-xs uppercase tracking-widest text-muted">Contact</p>
-        <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
-          Send me a message
-        </h1>
-        <p class="mt-6 max-w-prose text-muted leading-relaxed">
-          Best for hiring inquiries, collaboration on data engineering or
-          analytics work, and speaking opportunities. I read every message
-          and reply within a few business days.
-        </p>
+  <section class="border-b border-border">
+    <div class="container-page py-16 md:py-20">
+      <p class="kicker">Contact</p>
+      <h1 class="display-2 mt-4 max-w-[20ch]">Let's talk about the data you need to trust.</h1>
+      <p class="lede mt-5">
+        I read every message and reply within a few business days. Email is
+        fastest; the form below sends to the same inbox.
+      </p>
+    </div>
+  </section>
 
-        <div class="mt-8 space-y-3">
-          <div class="rounded-lg border border-border bg-surface p-4">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-muted">
-              Email directly
-            </p>
-            <a
-              class="mt-1 inline-block text-sm text-accent-fg hover:opacity-80 rounded-sm"
-              href={`mailto:${siteConfig.email}`}
+  <section class="container-page py-12 md:py-16">
+    <div class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.35fr)] lg:gap-12">
+      <aside class="space-y-4">
+        <div class="card card-pad">
+          <p class="kicker">Email directly</p>
+          <div class="mt-3 flex flex-wrap items-center gap-2">
+            <a class="link font-mono text-sm" href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a>
+            <button
+              type="button"
+              class="btn btn-sm btn-ghost"
+              data-copy={siteConfig.email}
+              data-copy-label="Email address copied"
             >
-              {siteConfig.email}
-            </a>
-          </div>
-          <div class="rounded-lg border border-border bg-surface p-4">
-            <p class="font-mono text-[10px] uppercase tracking-widest text-muted">
-              Elsewhere
-            </p>
-            <p class="mt-1 space-x-4 text-sm">
-              <a
-                class="text-accent-fg hover:opacity-80 rounded-sm"
-                href={siteConfig.linkedin}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Alex's LinkedIn profile (opens in new tab)"
-              >
-                LinkedIn <span aria-hidden="true">↗</span>
-              </a>
-              <a
-                class="text-accent-fg hover:opacity-80 rounded-sm"
-                href={siteConfig.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                aria-label="Alex's GitHub profile (opens in new tab)"
-              >
-                GitHub <span aria-hidden="true">↗</span>
-              </a>
-            </p>
+              Copy
+            </button>
           </div>
         </div>
-      </div>
+        <div class="card card-pad">
+          <p class="kicker">Elsewhere</p>
+          <ul class="mt-3 space-y-2 text-sm">
+            <li>
+              <a class="link" href={siteConfig.linkedin} target="_blank" rel="noopener noreferrer" aria-label="LinkedIn profile (opens in new tab)">
+                LinkedIn <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+            <li>
+              <a class="link" href={siteConfig.github} target="_blank" rel="noopener noreferrer" aria-label="GitHub profile (opens in new tab)">
+                GitHub <span aria-hidden="true">↗</span>
+              </a>
+            </li>
+            <li><a class="link" href="/resume">Résumé</a></li>
+          </ul>
+        </div>
+        <dl class="card card-pad space-y-3">
+          {reasons.map((r) => (
+            <div>
+              <dt class="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">{r.k}</dt>
+              <dd class="mt-0.5 text-sm">{r.v}</dd>
+            </div>
+          ))}
+          <div>
+            <dt class="font-mono text-[11px] uppercase tracking-[0.14em] text-muted">Based in</dt>
+            <dd class="mt-0.5 text-sm">{siteConfig.location}</dd>
+          </div>
+        </dl>
+      </aside>
 
-      <div class="rounded-lg border border-border bg-surface p-6 md:p-8">
-        <form
-          action={siteConfig.contactFormEndpoint}
-          method="POST"
-          class="space-y-6"
-        >
-          <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="position:absolute; left:-10000px; top:auto; width:1px; height:1px; overflow:hidden;" />
+      <div class="card card-pad md:p-8">
+        <h2 class="heading-2">Send a message</h2>
+        <form action={siteConfig.contactFormEndpoint} method="POST" class="mt-6 space-y-5">
+          <div class="sr-only" aria-hidden="true">
+            <label for="_honey">Leave this field empty</label>
+            <input id="_honey" type="text" name="_honey" tabindex="-1" autocomplete="off" />
+          </div>
           <input type="hidden" name="_captcha" value="false" />
           <input type="hidden" name="_subject" value="New message from www.alexhuggler.com" />
           <input type="hidden" name="_template" value="table" />
           <input type="hidden" name="_next" value="https://www.alexhuggler.com/contact/sent" />
 
-          <div class="grid gap-6 sm:grid-cols-2">
+          <div class="grid gap-5 sm:grid-cols-2">
             <div>
               <label for="name" class="block text-sm font-medium">Name</label>
-              <input id="name" name="name" type="text" required autocomplete="name" class={inputClass} />
+              <input id="name" name="name" type="text" required autocomplete="name" class={field} />
             </div>
             <div>
               <label for="email" class="block text-sm font-medium">Email</label>
-              <input id="email" name="email" type="email" required autocomplete="email" class={inputClass} />
+              <input id="email" name="email" type="email" required autocomplete="email" class={field} />
             </div>
           </div>
-
-          <div class="grid gap-6 sm:grid-cols-2">
+          <div class="grid gap-5 sm:grid-cols-2">
             <div>
-              <label for="company" class="block text-sm font-medium">Company <span class="text-muted">(optional)</span></label>
-              <input id="company" name="company" type="text" autocomplete="organization" class={inputClass} />
+              <label for="company" class="block text-sm font-medium">Company <span class="font-normal text-muted">(optional)</span></label>
+              <input id="company" name="company" type="text" autocomplete="organization" class={field} />
             </div>
             <div>
-              <label for="subject" class="block text-sm font-medium">Subject <span class="text-muted">(optional)</span></label>
-              <input id="subject" name="subject" type="text" class={inputClass} />
+              <label for="subject" class="block text-sm font-medium">Subject <span class="font-normal text-muted">(optional)</span></label>
+              <input id="subject" name="subject" type="text" class={field} />
             </div>
           </div>
-
           <div>
             <label for="message" class="block text-sm font-medium">Message</label>
-            <textarea id="message" name="message" rows="6" required class={inputClass}></textarea>
+            <textarea id="message" name="message" rows="6" required class={field}></textarea>
           </div>
-
-          <button type="submit" class="btn btn-primary">Send message</button>
+          <div class="flex flex-wrap items-center justify-between gap-3 pt-1">
+            <p class="text-xs text-muted">Sent through FormSubmit to the inbox above. No tracking.</p>
+            <button type="submit" class="btn btn-primary">Send message</button>
+          </div>
         </form>
       </div>
     </div>

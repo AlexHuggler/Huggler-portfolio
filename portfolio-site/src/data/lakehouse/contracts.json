@@ -1,0 +1,128 @@
+{
+  "_meta": {
+    "synthetic": false,
+    "generatedBy": "portfolio-site/scripts/artifacts/telecom.py",
+    "source": "project-telecom-lakehouse/great_expectations/expectations/cdr_bronze_suite.json",
+    "note": "Expectations are defined in the suite. The transform_silver DAG loads the GE context but does not run a checkpoint, so enforcement is stubbed."
+  },
+  "suite": "cdr_bronze_suite",
+  "description": "Bronze data contract for CDR ingest. Failures should block the silver build.",
+  "expectations": [
+    {
+      "type": "expect_table_columns_to_match_set",
+      "column": null,
+      "rule": "Table has exactly these 11 columns",
+      "kwargs": {
+        "column_set": [
+          "cdr_id",
+          "caller_msisdn",
+          "callee_msisdn",
+          "start_time",
+          "duration_sec",
+          "bytes_used",
+          "call_type",
+          "market",
+          "plan_id",
+          "is_roaming",
+          "ingest_date"
+        ]
+      }
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "column": "cdr_id",
+      "rule": "cdr_id is never null",
+      "kwargs": {
+        "column": "cdr_id"
+      }
+    },
+    {
+      "type": "expect_column_values_to_be_unique",
+      "column": "cdr_id",
+      "rule": "cdr_id is unique",
+      "kwargs": {
+        "column": "cdr_id"
+      }
+    },
+    {
+      "type": "expect_column_values_to_not_be_null",
+      "column": "caller_msisdn",
+      "rule": "caller_msisdn is never null",
+      "kwargs": {
+        "column": "caller_msisdn"
+      }
+    },
+    {
+      "type": "expect_column_values_to_match_regex",
+      "column": "caller_msisdn",
+      "rule": "caller_msisdn matches ^\\+1[0-9]{10}$",
+      "kwargs": {
+        "column": "caller_msisdn",
+        "regex": "^\\+1[0-9]{10}$"
+      }
+    },
+    {
+      "type": "expect_column_values_to_be_in_set",
+      "column": "call_type",
+      "rule": "call_type ∈ {VOICE, SMS, DATA}",
+      "kwargs": {
+        "column": "call_type",
+        "value_set": [
+          "VOICE",
+          "SMS",
+          "DATA"
+        ]
+      }
+    },
+    {
+      "type": "expect_column_values_to_be_in_set",
+      "column": "market",
+      "rule": "market ∈ {NORTH, SOUTH, EAST, WEST, CENTRAL}",
+      "kwargs": {
+        "column": "market",
+        "value_set": [
+          "NORTH",
+          "SOUTH",
+          "EAST",
+          "WEST",
+          "CENTRAL"
+        ]
+      }
+    },
+    {
+      "type": "expect_column_values_to_be_in_set",
+      "column": "plan_id",
+      "rule": "plan_id ∈ {BASIC_5GB, PRO_25GB, UNLIMITED, FAMILY_50GB, PREPAID}",
+      "kwargs": {
+        "column": "plan_id",
+        "value_set": [
+          "BASIC_5GB",
+          "PRO_25GB",
+          "UNLIMITED",
+          "FAMILY_50GB",
+          "PREPAID"
+        ]
+      }
+    },
+    {
+      "type": "expect_column_values_to_be_between",
+      "column": "duration_sec",
+      "rule": "0 ≤ duration_sec ≤ 86,400",
+      "kwargs": {
+        "column": "duration_sec",
+        "min_value": 0,
+        "max_value": 86400
+      }
+    },
+    {
+      "type": "expect_column_values_to_be_between",
+      "column": "bytes_used",
+      "rule": "0 ≤ bytes_used ≤ 100,000,000,000",
+      "kwargs": {
+        "column": "bytes_used",
+        "min_value": 0,
+        "max_value": 100000000000
+      }
+    }
+  ]
+}

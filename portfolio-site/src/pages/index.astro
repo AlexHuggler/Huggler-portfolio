@@ -1,42 +1,31 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import StackPill from "../components/StackPill.astro";
-import FeaturedProjectCard from "../components/FeaturedProjectCard.astro";
-import HeroPipeline from "../components/hero/HeroPipeline.astro";
-import Headshot from "../components/Headshot.astro";
-import Stat from "../components/Stat.astro";
 import { getCollection } from "astro:content";
+import type { ImageMetadata } from "astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import HeroPipeline from "../components/hero/HeroPipeline.astro";
+import SectionHeader from "../components/shared/SectionHeader.astro";
+import EvidenceSplit from "../components/home/EvidenceSplit.astro";
+import WorkRow from "../components/home/WorkRow.astro";
+import Principles from "../components/home/Principles.astro";
+import ExperienceTeaser from "../components/home/ExperienceTeaser.astro";
+import StackExplorer from "../components/home/StackExplorer.astro";
 import { siteConfig } from "../site.config";
-import { measured, projectMetrics } from "../data/measured";
+import { projectMetrics } from "../data/measured";
+import { certifications, education } from "../data/credentials";
+import { yearsOfExperience } from "../data/experience";
 
-const projects = (await getCollection("projects"))
-  .sort((a, b) => a.data.order - b.data.order);
+const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
+const assets = import.meta.glob<{ default: ImageMetadata }>("/src/assets/projects/*.{png,svg}", { eager: true });
+const preview = (file?: string) => (file ? assets[`/src/assets/projects/${file}`]?.default : undefined);
+// Lead each project with its two most telling measured results.
+const leadMetrics: Record<string, string[]> = {
+  "fraud-signals": ["fraud.geo.pr", "fraud.throughput"],
+  "telecom-lakehouse": ["telecom.dbt", "telecom.transform"],
+  "ai-sql-optimizer": ["sqlopt.findings", "sqlopt.latency"],
+};
 
-const focus = [
-  "Streaming + lakehouse architectures",
-  "Cloud data platforms on Azure and AWS",
-  "Analytics engineering with dbt + data contracts",
-  "Applied AI for data engineering productivity",
-];
-
-const stackGroups = [
-  {
-    label: "Streaming & processing",
-    items: ["Apache Kafka", "PySpark", "Delta Lake"],
-  },
-  {
-    label: "Lakehouse & warehousing",
-    items: ["Apache Iceberg", "Databricks", "Snowflake"],
-  },
-  {
-    label: "Orchestration & modeling",
-    items: ["Apache Airflow", "Azure Data Factory", "dbt"],
-  },
-  {
-    label: "Languages & IaC",
-    items: ["Python", "SQL", "Terraform"],
-  },
-];
+const years = yearsOfExperience();
+const masters = education[0];
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -44,277 +33,193 @@ const jsonLd = {
   name: siteConfig.name,
   jobTitle: siteConfig.title,
   url: Astro.site?.toString(),
+  email: `mailto:${siteConfig.email}`,
+  address: { "@type": "PostalAddress", addressLocality: "Dallas", addressRegion: "TX", addressCountry: "US" },
   sameAs: [siteConfig.github, siteConfig.linkedin],
+  alumniOf: education.map((e) => ({ "@type": "CollegeOrUniversity", name: e.school })),
+  hasCredential: certifications.map((c) => ({
+    "@type": "EducationalOccupationalCredential",
+    name: `Microsoft Certified: ${c.name} (${c.code})`,
+  })),
   knowsAbout: [
-    "Data Engineering",
-    "Apache Spark",
-    "Azure Databricks",
-    "PySpark",
-    "dbt",
-    "Apache Airflow",
-    "Snowflake",
-    "Delta Lake",
-    "Apache Iceberg",
-    "Apache Kafka",
+    "Data Engineering", "Apache Spark", "PySpark", "Azure Databricks", "Delta Lake",
+    "dbt", "Apache Airflow", "Spark Structured Streaming", "Data contracts", "Dimensional modeling",
   ],
 };
 ---
 
 <BaseLayout
-  title={`${siteConfig.name} - ${siteConfig.title}`}
+  title={`${siteConfig.name} — ${siteConfig.title}`}
   description={siteConfig.valueProp}
   jsonLd={jsonLd}
 >
   <!-- Hero -->
-  <section id="hero" class="relative">
+  <section id="hero" class="relative overflow-hidden border-b border-border">
     <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
     <div class="hero-glow" aria-hidden="true"></div>
-    <div
-      class="relative mx-auto grid max-w-page items-center gap-10 px-6 pt-16 pb-12 md:pt-20 md:pb-16 lg:grid-cols-[1.1fr_minmax(0,480px)] lg:gap-14"
-    >
+    <div class="grain" aria-hidden="true"></div>
+    <div class="container-page relative grid items-center gap-12 pb-16 pt-14 md:pb-20 md:pt-20 lg:grid-cols-[1.15fr_minmax(0,460px)] lg:gap-16">
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest text-muted">
-          {siteConfig.tagline}
+        <p class="kicker flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span class="text-fg">{siteConfig.name}</span>
+          <span aria-hidden="true">/</span>
+          <span>Senior Data Engineer</span>
+          <span aria-hidden="true">/</span>
+          <span>{siteConfig.location}</span>
         </p>
-        <h1 class="mt-4 text-4xl md:text-6xl font-semibold tracking-tight max-w-prose">
-          {siteConfig.name}
+        <h1 class="display-1 mt-6 max-w-[15ch]">
+          I build the data platforms fraud and revenue teams run on.
         </h1>
-        <p class="mt-5 max-w-prose text-lg text-muted leading-relaxed">
-          {siteConfig.valueProp}
+        <p class="lede mt-6">
+          {years} years at AT&amp;T shipping PySpark and Delta Lake pipelines on Azure
+          Databricks — nationwide fraud investigations, a ~$2.2B forecasting
+          portfolio, daily and intraday SLAs. The three projects below show the
+          same craft in code you can run, and every number on this site comes with
+          its method.
         </p>
         <div class="mt-8 flex flex-wrap items-center gap-3">
-          <a class="btn btn-primary" href="/projects">View projects</a>
-          <a class="btn" href={siteConfig.resumePath}>Download resume</a>
-          <a class="btn" href="/contact">Contact me</a>
-        </div>
-        <div class="mt-4 flex flex-wrap items-center gap-4 text-sm">
-          <a
-            href={siteConfig.github}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-muted hover:text-fg rounded-sm"
-            aria-label="Alex's GitHub profile (opens in new tab)"
-          >
-            GitHub <span aria-hidden="true">↗</span>
+          <a class="btn btn-primary btn-lg" href="#work">
+            See the work <span aria-hidden="true" class="btn-arrow">↓</span>
           </a>
-          <a
-            href={siteConfig.linkedin}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="text-muted hover:text-fg rounded-sm"
-            aria-label="Alex's LinkedIn profile (opens in new tab)"
-          >
-            LinkedIn <span aria-hidden="true">↗</span>
-          </a>
+          <a class="btn btn-lg" href="/resume">Résumé</a>
+          <a class="btn btn-ghost btn-lg" href="/contact">Get in touch</a>
         </div>
+        <ul class="mt-10 flex flex-wrap gap-2" aria-label="Credentials">
+          <li class="pill text-muted"><span class="font-semibold text-fg">{years} yrs</span> AT&amp;T data platforms</li>
+          {certifications.map((c) => (
+            <li class="pill text-muted"><span class="font-semibold text-accent-fg">{c.code}</span> {c.name}</li>
+          ))}
+          <li class="pill text-muted"><span class="font-semibold text-fg">{masters.degree}</span> {masters.field}, UT Dallas</li>
+        </ul>
       </div>
-      <div class="hidden md:block">
+      <div class="mx-auto w-full max-w-[460px]">
         <HeroPipeline />
       </div>
     </div>
+  </section>
 
-    <!-- Measured metrics band -->
-    <div class="relative mx-auto max-w-page px-6 pb-16 md:pb-20">
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {measured.site.map((m) => (
-          <Stat value={m.value} label={m.label} sublabel={m.sublabel} />
-        ))}
+  <!-- 01 Evidence -->
+  <section id="evidence" class="container-page scroll-mt-20 py-20 md:py-24" aria-labelledby="evidence-title">
+    <SectionHeader
+      index="01"
+      eyebrow="Evidence"
+      title="Two kinds of proof, kept apart on purpose"
+      description="Production results from my AT&T roles sit on the left. On the right are numbers anyone can reproduce from the repos, each with its method one click away."
+    />
+    <EvidenceSplit />
+  </section>
+
+  <!-- 02 Work -->
+  <section id="work" class="scroll-mt-20 border-y border-border bg-surface/40 py-20 md:py-24" aria-labelledby="work-title">
+    <div class="container-page">
+      <SectionHeader
+        index="02"
+        eyebrow="Selected work"
+        title="Three systems, built the way I'd build them at work"
+        description="Streaming detection, a medallion lakehouse, and LLM-assisted SQL review. Each runs locally on synthetic data, ships CI, and publishes what it measured and what it hasn't yet."
+        action={{ href: "/projects", label: "Compare all projects" }}
+      />
+      <div class="space-y-20 md:space-y-24">
+        {projects.map((p, i) => {
+          const all = projectMetrics(p.slug);
+          const lead = (leadMetrics[p.slug] ?? []).map((id) => all.find((m) => m.id === id)).filter((m) => m !== undefined);
+          return (
+            <WorkRow
+              slug={p.slug}
+              index={i + 1}
+              title={p.data.title}
+              problem={p.data.problem}
+              approach={p.data.approach}
+              stack={p.data.stack}
+              repoUrl={p.data.repoUrl}
+              metrics={lead}
+              image={preview(p.data.screenshot)}
+              flip={i % 2 === 1}
+            />
+          );
+        })}
       </div>
-      <p class="mt-3 font-mono text-[11px] text-muted">
-        Measured on each project's local demo path, synthetic data, seed 42 —
-        methodology in every repo's Results section.
+      <p class="mt-16 text-sm text-muted">
+        Prefer charts?
+        <a href="/visualizations" class="link">Open the dashboards</a> built from the same pipelines.
       </p>
     </div>
   </section>
 
-  <!-- Featured projects -->
-  <section
-    class="mx-auto max-w-page px-6 pt-4 pb-20 md:pt-6 md:pb-24"
-    aria-labelledby="featured-heading"
-  >
-    <div class="flex items-end justify-between mb-6">
-      <div>
-        <p class="font-mono text-xs uppercase tracking-widest text-muted">
-          Selected work
-        </p>
-        <h2
-          id="featured-heading"
-          class="mt-2 text-xl md:text-2xl font-semibold tracking-tight"
-        >
-          Featured projects
-        </h2>
-      </div>
-      <a
-        href="/projects"
-        class="text-sm text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-        aria-label="View all projects"
-      >
-        All projects
-        <span aria-hidden="true">→</span>
-      </a>
-    </div>
-    <div class="grid gap-5 md:grid-cols-3">
-      {projects.map((p, i) => (
-        <FeaturedProjectCard
-          slug={p.slug}
-          index={i + 1}
-          title={p.data.title}
-          problem={p.data.problem}
-          approach={p.data.approach}
-          demonstrates={p.data.demonstrates}
-          stack={p.data.stack}
-          repoUrl={p.data.repoUrl}
-          metric={projectMetrics(p.slug)[0]}
-        />
-      ))}
-    </div>
-    <p class="mt-6 text-sm text-muted">
-      Prefer charts to code?
-      <a
-        href="/visualizations"
-        class="text-accent-fg underline decoration-accent/40 underline-offset-2 hover:decoration-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-      >
-        Explore the interactive data visualizations
-        <span aria-hidden="true">→</span>
-      </a>
-      built from these same pipelines.
-    </p>
+  <!-- 03 Principles -->
+  <section id="principles" class="container-page scroll-mt-20 py-20 md:py-24">
+    <SectionHeader
+      index="03"
+      eyebrow="How I work"
+      title="Principles that show up in the details"
+      description="Each one links to where it's practised, so none of them is a slogan."
+    />
+    <Principles />
   </section>
 
-  <!-- About + current focus + stack -->
-  <section
-    class="mx-auto max-w-prose px-6 pb-20"
-    aria-labelledby="about-heading"
-  >
-    <div class="flex flex-col-reverse items-start gap-8 sm:flex-row sm:justify-between">
-      <div class="min-w-0">
-        <p class="font-mono text-xs uppercase tracking-widest text-muted">About</p>
-        <h2
-          id="about-heading"
-          class="mt-2 text-xl md:text-2xl font-semibold tracking-tight"
-        >
-          Senior data &amp; analytics engineer
-        </h2>
-        <div class="mt-4 space-y-4 text-muted leading-relaxed">
-          <p>
-            I'm a senior data and analytics engineer with six years at AT&amp;T
-            building production data platforms on Azure and Databricks — PySpark
-            ingestion, dbt analytics models, BI delivery, streaming systems, and
-            data quality. I treat tests, observability, runbooks, and data
-            contracts as part of the deliverable, not as follow-ups.
-          </p>
-          <p>
-            Recent impact includes identifying or enabling
-            <span class="text-fg">$900K+/yr</span> in fraud-loss reduction and
-            supporting analytics for a
-            <span class="text-fg">$2.2B</span> portfolio of revenue and
-            operational data — work that spans streaming detection, lakehouse
-            design, and BI delivery on AT&amp;T's data platform.
-          </p>
-        </div>
-        <p class="mt-4 font-mono text-xs text-muted">
-          {siteConfig.location} · open to senior data / analytics engineering roles
-        </p>
-      </div>
-      <Headshot size={144} class="shrink-0" />
-    </div>
-    <div class="mt-5 flex flex-wrap items-center gap-2">
-      <span class="font-mono text-[11px] uppercase tracking-widest text-muted">
-        Certified
-      </span>
-      <span class="pill"><span class="text-accent-fg">DP-203</span>&nbsp;Azure Data Engineering</span>
-      <span class="pill"><span class="text-accent-fg">DP-100</span>&nbsp;Azure AI Engineering</span>
-    </div>
+  <!-- 04 Experience -->
+  <section id="experience" class="container-page scroll-mt-20 pb-20 md:pb-24">
+    <SectionHeader
+      index="04"
+      eyebrow="Experience"
+      title={`${years} years building data platforms at AT&T`}
+      action={{ href: "/about", label: "About me" }}
+    />
+    <ExperienceTeaser />
+  </section>
 
-    <h3 class="mt-10 text-sm font-mono uppercase tracking-widest text-muted">
-      Current focus
-    </h3>
-    <ul class="mt-3 grid gap-2 sm:grid-cols-2">
-      {focus.map((f) => (
-        <li class="focus-item">{f}</li>
-      ))}
-    </ul>
-
-    <h3 class="mt-10 text-sm font-mono uppercase tracking-widest text-muted">
-      Stack
-    </h3>
-    <div class="mt-3 space-y-4">
-      {stackGroups.map((group) => (
-        <div>
-          <p class="font-mono text-[11px] text-muted">{group.label}</p>
-          <ul class="mt-1.5 flex flex-wrap gap-1.5">
-            {group.items.map((s) => (
-              <li>
-                <StackPill label={s} />
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
+  <!-- 05 Stack -->
+  <section id="stack" class="container-page scroll-mt-20 pb-20 md:pb-24">
+    <SectionHeader
+      index="05"
+      eyebrow="Stack"
+      title="Tools, filtered by evidence"
+      description="Proficiency follows the résumé's own wording. Pick a tool to see whether it's production experience, a portfolio build, or familiarity."
+    />
+    <StackExplorer />
   </section>
 
   <!-- Contact CTA -->
-  <section
-    class="mx-auto max-w-page px-6 pb-24"
-    aria-labelledby="contact-cta-heading"
-  >
-    <div class="card-glow rounded-lg border border-border p-8 md:p-10">
-      <p class="font-mono text-xs uppercase tracking-widest text-muted">
-        Let's talk
-      </p>
-      <h2
-        id="contact-cta-heading"
-        class="mt-2 text-xl md:text-2xl font-semibold tracking-tight max-w-prose"
-      >
-        Interested in data platforms, analytics engineering, or BI automation?
-      </h2>
-      <p class="mt-3 max-w-prose text-muted leading-relaxed">
-        I'm open to senior data engineering, analytics engineering, and data
-        platform consulting conversations.
-      </p>
-      <div class="mt-6 flex flex-wrap gap-3">
-        <a class="btn btn-primary" href="/contact">Contact me</a>
-        <a class="btn" href={siteConfig.resumePath}>View resume</a>
-        <a
-          class="btn"
-          href={siteConfig.github}
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="Alex's GitHub profile (opens in new tab)"
-        >
-          GitHub
-        </a>
+  <section class="container-page pb-8" aria-labelledby="cta-title">
+    <div class="card relative overflow-hidden p-8 md:p-12">
+      <div class="absolute inset-0 grid-bg opacity-60 pointer-events-none" aria-hidden="true"></div>
+      <div class="relative grid items-end gap-8 md:grid-cols-[1fr_auto]">
+        <div>
+          <p class="kicker">Let's talk</p>
+          <h2 id="cta-title" class="heading-1 mt-3 max-w-[22ch]">
+            Hiring for data platforms, analytics engineering, or fraud analytics?
+          </h2>
+          <p class="mt-3 max-w-[60ch] text-muted">
+            I'm open to senior data engineering and analytics engineering roles, remote,
+            hybrid, or onsite in Dallas.
+          </p>
+        </div>
+        <div class="flex flex-wrap gap-3">
+          <a class="btn btn-primary btn-lg" href="/contact">Contact me</a>
+          <a class="btn btn-lg" href={siteConfig.resumePath}>Download résumé</a>
+        </div>
       </div>
     </div>
   </section>
 </BaseLayout>
 
 <script>
-  /**
-   * Cursor-reactive hero glow. Cheap rAF-throttled mouse tracking. The
-   * decorative .hero-node pulses come from CSS; both respect
-   * prefers-reduced-motion.
-   */
+  /** Cursor-reactive hero glow; rAF-throttled, skipped under reduced motion. */
   const bindHeroGlow = () => {
     const hero = document.getElementById("hero");
     if (!hero || hero.dataset.glowBound === "true") return;
-    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reduceMotion) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     hero.dataset.glowBound = "true";
     let frame = 0;
-    hero.addEventListener("mousemove", (e) => {
+    hero.addEventListener("pointermove", (e) => {
       if (frame) return;
       frame = requestAnimationFrame(() => {
         const rect = hero.getBoundingClientRect();
-        const x = (e as MouseEvent).clientX - rect.left;
-        const y = (e as MouseEvent).clientY - rect.top;
-        hero.style.setProperty("--mouse-x", `${x}px`);
-        hero.style.setProperty("--mouse-y", `${y}px`);
+        hero.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+        hero.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
         frame = 0;
       });
     });
   };
-  bindHeroGlow();
-  document.addEventListener("astro:after-swap", bindHeroGlow);
+  document.addEventListener("astro:page-load", bindHeroGlow);
 </script>

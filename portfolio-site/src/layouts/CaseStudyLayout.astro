@@ -1,18 +1,20 @@
 ---
 /**
- * CaseStudyLayout — shared chrome for the three interactive project pages.
- * Owns the hero band (breadcrumb, eyebrow, title, tagline, CTAs), the
- * measured-metrics band, the long-form engineering narrative (rendered from
- * the project's MDX body), the stack section, and the next-project pager.
- * Pages provide the interactive demo sections through the default slot and
- * an optional hero visual through the "hero-visual" slot.
+ * CaseStudyLayout — shared chrome for the three project pages.
+ *
+ * Hero (breadcrumb, title that morphs from the project card, tagline, CTAs,
+ * optional hero visual) → "At a glance" (problem, approach, run command,
+ * docs, capability status) → measured metrics → a two-column body with a
+ * sticky, scroll-spied table of contents beside the page's own sections, the
+ * architecture lanes, the MDX engineering narrative, and the stack → pager.
  */
 import BaseLayout from "./BaseLayout.astro";
 import GitHubBadge from "../components/shared/GitHubBadge.astro";
-import SectionHeader from "../components/shared/SectionHeader.astro";
-import Stat from "../components/Stat.astro";
+import MetricTile from "../components/ui/MetricTile.astro";
+import ArchitectureDiagram from "../components/diagrams/ArchitectureDiagram.astro";
 import { getCollection, render } from "astro:content";
-import { measured, projectMetrics } from "../data/measured";
+import type { MarkdownHeading } from "astro";
+import { measured, projectMetrics, measuredLabel } from "../data/measured";
 
 interface HeroLink {
   href: string;
@@ -25,134 +27,262 @@ interface Props {
   heroDescription: string;
   heroLinks?: HeroLink[];
   stack: { label: string; rationale: string }[];
+  /** The page's own sections, in order, for the table of contents. */
+  sections?: { id: string; label: string }[];
 }
 
-const { slug, eyebrow, heroDescription, heroLinks = [], stack } = Astro.props;
+interface TocItem {
+  id: string;
+  label: string;
+  children?: MarkdownHeading[];
+}
 
-const all = (await getCollection("projects")).sort(
-  (a, b) => a.data.order - b.data.order,
-);
+const { slug, eyebrow, heroDescription, heroLinks = [], stack, sections = [] } = Astro.props;
+
+const all = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
 const index = all.findIndex((p) => p.slug === slug);
 const project = all[index];
 if (!project) throw new Error(`Unknown project slug: ${slug}`);
+const prev = all[(index - 1 + all.length) % all.length];
 const next = all[(index + 1) % all.length];
-const { Content } = await render(project);
+const { Content, headings } = await render(project);
+const d = project.data;
 
 const metrics = projectMetrics(slug);
-const archDocUrl = `${project.data.repoUrl.replace("/tree/main/", "/blob/main/")}/docs/architecture.md`;
+const blobBase = d.repoUrl.replace("/tree/main/", "/blob/main/");
+const projectDir = d.repoUrl.split("/").pop();
+const tests = (measured.evaluations as unknown as Record<string, { tests?: { passed: number; skipped: number } }>)[slug]?.tests;
+
+const statusLabel: Record<string, string> = {
+  measured: "Measured",
+  implemented: "Implemented",
+  stub: "Stub",
+  "needs-infra": "Needs infra",
+  planned: "Planned",
+};
+
+const toc: TocItem[] = [
+  { id: "glance", label: "At a glance" },
+  ...sections,
+  { id: "architecture", label: "Architecture" },
+  { id: "narrative", label: "Engineering narrative", children: headings.filter((h) => h.depth === 2) },
+  { id: "stack", label: "Stack" },
+];
 ---
 
-<BaseLayout title={project.data.title} description={project.data.tagline}>
+<BaseLayout title={d.title} description={d.tagline}>
+  <div class="reading-progress" aria-hidden="true"><span data-reading-progress></span></div>
   <article>
-    <!-- Hero band -->
-    <section class="relative">
+    <!-- Hero -->
+    <section class="relative overflow-hidden border-b border-border">
       <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
-      <div class="relative mx-auto max-w-page px-6 pt-12 pb-10 md:pt-16">
+      <div class="container-page relative pb-12 pt-10 md:pb-14 md:pt-14">
         <nav aria-label="Breadcrumb" class="font-mono text-xs text-muted">
-          <a href="/projects" class="hover:text-fg rounded-sm">Projects</a>
-          <span aria-hidden="true"> / </span>
-          <span aria-current="page" class="text-fg/80">{project.data.title}</span>
+          <ol class="flex items-center gap-2">
+            <li><a href="/projects" class="rounded-sm hover:text-fg">Projects</a></li>
+            <li aria-hidden="true">/</li>
+            <li><span aria-current="page" class="text-fg/80">{d.title}</span></li>
+          </ol>
         </nav>
-        <p class="mt-6 demo-eyebrow">{eyebrow}</p>
-        <h1 class="mt-2 demo-headline">{project.data.title}</h1>
-        <p class="demo-tagline">{heroDescription}</p>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <GitHubBadge href={project.data.repoUrl} />
+        <p class="kicker mt-8">{eyebrow}</p>
+        <h1 class="display-2 mt-3 max-w-[22ch]" transition:name={`project-title-${slug}`}>{d.title}</h1>
+        <p class="lede mt-5">{heroDescription}</p>
+        <div class="mt-7 flex flex-wrap items-center gap-3">
+          <GitHubBadge href={d.repoUrl} />
           {heroLinks.map((link) => (
             <a class="btn" href={link.href}>{link.label}</a>
           ))}
         </div>
-
-        {metrics.length > 0 && (
-          <div class="mt-8">
-            <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-              {metrics.map((m) => (
-                <Stat value={m.value} label={m.label} sublabel={m.sublabel} />
-              ))}
-            </div>
-            <p class="mt-2 font-mono text-[11px] text-muted">
-              Measured {measured.measuredAt} on the local demo path (synthetic
-              data, seed 42) — reproduce via the repo's Results section.
-            </p>
-          </div>
-        )}
-
         <slot name="hero-visual" />
       </div>
     </section>
 
-    <!-- Interactive sections from the page -->
-    <slot />
-
-    <!-- Engineering narrative from the MDX body -->
-    <section class="demo-section" id="narrative">
-      <SectionHeader
-        eyebrow="Engineering narrative"
-        title="Problem, judgment calls, and measured results"
-        description="The write-up a senior reviewer would ask for — why this architecture, what was traded away, and what the numbers actually say."
-      />
-      <div
-        class="prose dark:prose-invert max-w-none text-fg
-          prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-tight
-          prose-h2:text-xl prose-h2:mt-10
-          prose-p:text-muted prose-p:leading-relaxed
-          prose-li:text-muted
-          prose-strong:text-fg
-          prose-a:text-accent-fg
-          prose-code:font-mono prose-code:text-[0.85em]"
-      >
-        <Content />
+    <!-- At a glance -->
+    <section id="glance" class="container-page scroll-mt-24 py-12 md:py-14" aria-labelledby="glance-title">
+      <h2 id="glance-title" class="sr-only">At a glance</h2>
+      <div class="grid gap-5 lg:grid-cols-[1.1fr_1fr]">
+        <div class="card card-pad">
+          <p class="kicker">At a glance</p>
+          <dl class="spec mt-4">
+            <dt>Problem</dt>
+            <dd class="leading-relaxed">{d.problem}</dd>
+            <dt>Approach</dt>
+            <dd class="leading-relaxed">{d.approach}</dd>
+            <dt>Run it</dt>
+            <dd>
+              <span class="inline-flex max-w-full items-center gap-2 rounded-md border border-border bg-surface-2 py-1 pl-2.5 pr-1">
+                <code class="truncate font-mono text-[12px]">cd {projectDir} && {d.runCommand}</code>
+                <button type="button" class="btn btn-ghost btn-sm !px-2" data-copy={`cd ${projectDir} && ${d.runCommand}`} data-copy-label="Command copied">
+                  Copy
+                </button>
+              </span>
+            </dd>
+            {tests && (
+              <>
+                <dt>Tests</dt>
+                <dd class="font-mono text-[13px]">
+                  {tests.passed} passing{tests.skipped ? `, ${tests.skipped} skipped` : ""} · CI on every push
+                </dd>
+              </>
+            )}
+            <dt>Docs</dt>
+            <dd class="flex flex-wrap gap-x-4 gap-y-1">
+              {d.docs.map((doc) => (
+                <a href={`${blobBase}/${doc.path}`} target="_blank" rel="noopener noreferrer" class="link text-sm">
+                  {doc.label}<span class="sr-only"> (opens in new tab)</span>
+                </a>
+              ))}
+            </dd>
+          </dl>
+        </div>
+        <div class="card card-pad">
+          <div class="flex items-center justify-between gap-3">
+            <p class="kicker">What exists — honestly</p>
+            <a href="/evidence#limitations" class="font-mono text-[11px] text-muted hover:text-fg">Status key →</a>
+          </div>
+          <ul class="mt-4 divide-y divide-border">
+            {d.capabilities.map((c) => (
+              <li class="flex items-start justify-between gap-4 py-2.5">
+                <div class="min-w-0">
+                  <p class="text-sm leading-snug">{c.name}</p>
+                  {c.note && <p class="mt-0.5 font-mono text-[11px] leading-relaxed text-muted">{c.note}</p>}
+                </div>
+                <span class="status-chip shrink-0" data-status={c.status}>{statusLabel[c.status]}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
-    </section>
 
-    <!-- Stack -->
-    <section class="demo-section">
-      <SectionHeader eyebrow="Stack" title="What this project uses, and why" />
-      <ul class="flex flex-wrap gap-2">
-        {stack.map((s) => (
-          <li>
-            <span class="pill" title={s.rationale} aria-label={`${s.label}: ${s.rationale}`}>
-              {s.label}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </section>
-
-    <!-- Footer CTA + next-project pager -->
-    <section class="demo-section">
-      <div class="demo-card flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h3 class="text-lg font-semibold tracking-tight">See the full code</h3>
-          <p class="mt-1 text-sm text-muted">
-            The repo runs locally with no cloud account — architecture doc,
-            tests, and reproducible measurements included.
+      {metrics.length > 0 && (
+        <div class="mt-5">
+          <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {metrics.map((m) => <MetricTile metric={m} />)}
+          </div>
+          <p class="mt-3 font-mono text-[11px] text-muted">
+            Re-measured {measuredLabel()} from the project's own make targets on synthetic data (seed 42) —
+            <a href="/evidence" class="link">full ledger and transcripts</a>.
           </p>
         </div>
-        <div class="flex flex-wrap gap-2">
-          <GitHubBadge href={project.data.repoUrl} label="View repository" />
-          <a class="btn" href={archDocUrl} target="_blank" rel="noopener noreferrer">
-            Architecture doc
-          </a>
-        </div>
-      </div>
-      <div class="mt-6 flex items-center justify-between">
-        <a
-          href="/projects"
-          class="text-sm text-muted hover:text-fg rounded-sm"
-        >
-          <span aria-hidden="true">←</span> All projects
-        </a>
-        <a
-          href={`/projects/${next.slug}`}
-          class="group inline-flex items-center gap-2 text-sm text-muted hover:text-fg rounded-sm"
-        >
-          <span>
-            Next: <span class="text-fg/90 group-hover:text-fg">{next.data.title}</span>
-          </span>
-          <span aria-hidden="true">→</span>
-        </a>
-      </div>
+      )}
     </section>
+
+    <div class="container-page grid gap-10 border-t border-border lg:grid-cols-[200px_minmax(0,1fr)] xl:gap-14">
+      <!-- Table of contents -->
+      <aside class="hidden lg:block">
+        <nav class="toc sticky top-24 py-12" aria-label="On this page" data-toc>
+          <p class="kicker">On this page</p>
+          <ol class="mt-4 space-y-1 border-l border-border">
+            {toc.map((item) => (
+              <li>
+                <a href={`#${item.id}`} class="toc-link" data-toc-link={item.id}>{item.label}</a>
+                {item.children && item.children.length > 0 && (
+                  <ol class="mb-1 space-y-0.5">
+                    {item.children.map((h) => (
+                      <li><a href={`#${h.slug}`} class="toc-link toc-link-sub" data-toc-link={h.slug}>{h.text}</a></li>
+                    ))}
+                  </ol>
+                )}
+              </li>
+            ))}
+          </ol>
+          <div class="mt-6 space-y-2 border-t border-border pt-5">
+            <a href={d.repoUrl} target="_blank" rel="noopener noreferrer" class="block font-mono text-[11px] text-muted hover:text-fg">Source on GitHub ↗<span class="sr-only"> (opens in new tab)</span></a>
+            <button type="button" data-cmdk-open class="block font-mono text-[11px] text-muted hover:text-fg">Search ⌘K</button>
+          </div>
+        </nav>
+      </aside>
+
+      <div class="min-w-0">
+        <slot />
+
+        <section id="architecture" class="cs-section" aria-labelledby="architecture-title">
+          <p class="kicker">Architecture</p>
+          <h2 id="architecture-title" class="heading-1 mt-3">What runs where</h2>
+          <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+            Each lane is a path through the system, colour-coded by status. Every node
+            names the file that implements it — click through to the source.
+          </p>
+          <div class="mt-8">
+            <ArchitectureDiagram project={slug} repoUrl={d.repoUrl} />
+          </div>
+        </section>
+
+        <section id="narrative" class="cs-section" aria-labelledby="narrative-title">
+          <p class="kicker">Engineering narrative</p>
+          <h2 id="narrative-title" class="heading-1 mt-3">Problem, judgment calls, and results</h2>
+          <div
+            class="prose mt-8 max-w-none text-fg
+              prose-headings:font-display prose-headings:font-semibold prose-headings:tracking-tight
+              prose-h2:mt-12 prose-h2:scroll-mt-24 prose-h2:text-[1.375rem]
+              prose-p:leading-[1.75] prose-li:leading-[1.7]
+              prose-a:text-accent-fg prose-code:font-mono prose-code:text-[0.85em]"
+            data-anchor-headings
+            data-code-copy
+          >
+            <Content />
+          </div>
+        </section>
+
+        <section id="stack" class="cs-section" aria-labelledby="stack-title">
+          <p class="kicker">Stack</p>
+          <h2 id="stack-title" class="heading-1 mt-3">What it uses, and why</h2>
+          <dl class="mt-8 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2">
+            {stack.map((s) => (
+              <div class="bg-surface p-4">
+                <dt class="font-mono text-[13px] font-semibold">{s.label}</dt>
+                <dd class="mt-1 text-sm leading-relaxed text-muted">{s.rationale}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <nav class="cs-section grid gap-4 md:grid-cols-2" aria-label="More projects">
+          <a href={`/projects/${prev.slug}`} class="card card-interactive group p-5">
+            <p class="font-mono text-[11px] text-muted"><span aria-hidden="true">←</span> Previous</p>
+            <p class="mt-2 font-semibold tracking-tight group-hover:text-accent-fg">{prev.data.title}</p>
+            <p class="mt-1 line-clamp-2 text-sm text-muted">{prev.data.problem}</p>
+          </a>
+          <a href={`/projects/${next.slug}`} class="card card-interactive group p-5 text-right">
+            <p class="font-mono text-[11px] text-muted">Next <span aria-hidden="true">→</span></p>
+            <p class="mt-2 font-semibold tracking-tight group-hover:text-accent-fg">{next.data.title}</p>
+            <p class="mt-1 line-clamp-2 text-sm text-muted">{next.data.problem}</p>
+          </a>
+        </nav>
+      </div>
+    </div>
   </article>
 </BaseLayout>
+
+<script>
+  import "../scripts/toc";
+</script>
+
+<style is:global>
+  .cs-section {
+    @apply scroll-mt-24 border-t border-border py-14 first:border-t-0 md:py-16;
+  }
+  .toc-link {
+    @apply -ml-px block border-l border-transparent py-1 pl-4 text-[13px] leading-snug text-muted;
+    transition: color var(--dur-2) ease, border-color var(--dur-2) ease;
+  }
+  .toc-link:hover {
+    @apply text-fg;
+  }
+  .toc-link-sub {
+    @apply pl-7 text-[12px];
+  }
+  .toc-link[aria-current="location"] {
+    @apply border-accent font-medium text-fg;
+  }
+  .reading-progress {
+    @apply pointer-events-none fixed inset-x-0 top-16 z-30 h-0.5;
+  }
+  .reading-progress > span {
+    @apply block h-full origin-left bg-accent;
+    transform: scaleX(0);
+  }
+  @media print {
+    .reading-progress, .toc { display: none !important; }
+  }
+</style>

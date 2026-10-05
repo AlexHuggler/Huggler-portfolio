@@ -1,94 +1,51 @@
 ---
 /**
- * ThemeToggle
- *
- * Icon-only theme switch. Always announces as "Theme" in the accessible
- * name and updates aria-pressed + an SR-only label as state changes —
- * never reads inconsistently between pages.
+ * ThemeToggle — a toggle button with a stable accessible name ("Dark mode")
+ * whose state is carried by aria-pressed, so assistive tech hears
+ * "Dark mode, toggle button, pressed" rather than a label that changes
+ * meaning under the user. Bound once per page load.
  */
 ---
-<button
-  id="theme-toggle"
-  type="button"
-  aria-label="Theme"
-  aria-pressed="true"
-  class="rounded-md border border-border px-2 py-1.5 hover:bg-fg/5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg"
->
-  <span class="sr-only" data-theme-label>Switch to light theme</span>
-  <svg
-    data-theme-icon-dark
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-  >
-    <circle cx="12" cy="12" r="4"></circle>
-    <path d="M12 2v2"></path>
-    <path d="M12 20v2"></path>
-    <path d="m4.93 4.93 1.41 1.41"></path>
-    <path d="m17.66 17.66 1.41 1.41"></path>
-    <path d="M2 12h2"></path>
-    <path d="M20 12h2"></path>
-    <path d="m6.34 17.66-1.41 1.41"></path>
-    <path d="m19.07 4.93-1.41 1.41"></path>
-  </svg>
-  <svg
-    data-theme-icon-light
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    stroke-width="2"
-    stroke-linecap="round"
-    stroke-linejoin="round"
-    aria-hidden="true"
-    class="hidden"
-  >
+
+<button id="theme-toggle" type="button" class="icon-btn" aria-pressed="true" title="Toggle dark mode">
+  <span class="sr-only">Dark mode</span>
+  <svg data-theme-icon-dark width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
     <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
+  </svg>
+  <svg data-theme-icon-light width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" class="hidden">
+    <circle cx="12" cy="12" r="4"></circle>
+    <path d="M12 2v2M12 20v2m-7.07-17.07 1.41 1.41m11.32 11.32 1.41 1.41M2 12h2m16 0h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"></path>
   </svg>
 </button>
 
-<script is:inline>
-  (() => {
-    const init = () => {
-      const button = document.getElementById("theme-toggle");
-      if (!button) return;
-      if (button.dataset.themeBound !== "true") {
-        button.dataset.themeBound = "true";
-        button.addEventListener("click", () => {
-          const next = !document.documentElement.classList.contains("dark");
-          document.documentElement.classList.toggle("dark", next);
-          localStorage.setItem("theme", next ? "dark" : "light");
-          syncIcons();
-        });
-      }
-      syncIcons();
-    };
+<script>
+  const sync = () => {
+    const button = document.getElementById("theme-toggle");
+    if (!button) return;
+    const isDark = document.documentElement.classList.contains("dark");
+    button.setAttribute("aria-pressed", String(isDark));
+    button.querySelector("[data-theme-icon-dark]")?.classList.toggle("hidden", !isDark);
+    button.querySelector("[data-theme-icon-light]")?.classList.toggle("hidden", isDark);
+    const meta = document.querySelectorAll<HTMLMetaElement>('meta[name="theme-color"]');
+    meta.forEach((m) => m.setAttribute("content", isDark ? "#0a0a0c" : "#fafafa"));
+  };
 
-    const syncIcons = () => {
-      const button = document.getElementById("theme-toggle");
-      if (!button) return;
-      const sun = button.querySelector("[data-theme-icon-dark]");
-      const moon = button.querySelector("[data-theme-icon-light]");
-      const label = button.querySelector("[data-theme-label]");
-      const isDark = document.documentElement.classList.contains("dark");
-      if (sun) sun.classList.toggle("hidden", !isDark);
-      if (moon) moon.classList.toggle("hidden", isDark);
-      button.setAttribute("aria-pressed", String(isDark));
-      if (label) {
-        label.textContent = isDark
-          ? "Switch to light theme"
-          : "Switch to dark theme";
+  const bind = () => {
+    const button = document.getElementById("theme-toggle");
+    if (!button || button.dataset.bound === "1") return sync();
+    button.dataset.bound = "1";
+    button.addEventListener("click", () => {
+      const next = !document.documentElement.classList.contains("dark");
+      document.documentElement.classList.toggle("dark", next);
+      try {
+        localStorage.setItem("theme", next ? "dark" : "light");
+      } catch {
+        /* storage blocked: theme still applies for this page */
       }
-    };
+      sync();
+    });
+    sync();
+  };
 
-    init();
-    document.addEventListener("astro:after-swap", init);
-  })();
+  document.addEventListener("astro:page-load", bind);
 </script>
