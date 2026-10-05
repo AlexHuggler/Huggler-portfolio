@@ -75,10 +75,10 @@ const stack = [
       <KeywordAttributionChart client:visible />
       <RuleCoverage />
       <div class="card card-pad">
-        <p class="kicker">Planned evaluation · not measured</p>
+        <p class="kicker">Evaluation · not measured yet</p>
         <ul class="mt-4 grid gap-3 md:grid-cols-3">
-          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">Claude rewrite quality</p><p class="mt-1 text-muted"><code class="font-mono text-[0.9em]">--no-dry-run</code> doesn't call the API yet, so no model output is scored.</p></li>
-          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">EXPLAIN cost delta</p><p class="mt-1 text-muted">Needs a live Spark or Snowflake engine and the runner described in methodology.md.</p></li>
+          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="implemented">Implemented</span><p class="mt-2 font-medium">Claude rewrite quality</p><p class="mt-1 text-muted"><code class="font-mono text-[0.9em]">--no-dry-run</code> asks Claude to rewrite every query and scores the result, but no live run has been recorded.</p></li>
+          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="needs-infra">Needs infra</span><p class="mt-2 font-medium">EXPLAIN cost delta</p><p class="mt-1 text-muted"><code class="font-mono text-[0.9em]">--explain</code> records estimated bytes scanned before and after, but needs a Spark or Snowflake engine holding the corpus tables.</p></li>
           <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">Human acceptance</p><p class="mt-1 text-muted">Reviewer accept/reject with rationale per suggestion, as the corpus grows.</p></li>
         </ul>
       </div>

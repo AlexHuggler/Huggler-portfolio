@@ -2,6 +2,14 @@
 
 All notable changes to the portfolio site. Versions follow `package.json`.
 
+## Unreleased
+
+- **SQL optimizer status copy.** `benchmark --no-dry-run` now calls Claude
+  and `benchmark --explain` exists in the project, so the site no longer says
+  they are missing. Both read as implemented / needs-infra with no number,
+  because neither has been run: `notMeasured` wording (re-rendered from
+  `measure_spec.py`), case study, visualizations page and architecture lane.
+
 ## 0.2.0 — 2026-10-05
 
 A credibility-first redesign. Every number on the site is re-measured from

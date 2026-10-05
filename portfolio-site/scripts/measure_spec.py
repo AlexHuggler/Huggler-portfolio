@@ -152,8 +152,8 @@ def render(ev: dict) -> tuple[list[dict], dict[str, dict], dict[str, dict]]:
 
 NOT_MEASURED = {
     "ai-sql-optimizer": [
-        "Claude rewrite quality — `benchmark --no-dry-run` does not call the API yet",
-        "EXPLAIN cost delta — no EXPLAIN runner is implemented",
+        "Claude rewrite quality — `benchmark --no-dry-run` is implemented but has not been run (needs ANTHROPIC_API_KEY)",
+        "EXPLAIN cost delta — the `--explain` runner is implemented but has not been run (needs an engine holding the corpus tables)",
         "Human acceptance rate of suggestions",
     ],
     "fraud-signals": [

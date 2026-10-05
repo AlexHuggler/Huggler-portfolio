@@ -148,12 +148,12 @@ export const architecture: Record<string, Lane[]> = {
     {
       id: "verify",
       title: "Verify",
-      status: "planned",
-      note: "designed in docs/methodology.md, not implemented",
+      status: "needs-infra",
+      note: "benchmark --explain spark|snowflake — needs the corpus tables on an engine; not run",
       nodes: [
-        { label: "EXPLAIN original" },
-        { label: "EXPLAIN rewrite" },
-        { label: "Cost delta" },
+        { label: "EXPLAIN original", detail: "Spark EXPLAIN COST · Snowflake EXPLAIN USING JSON", file: "src/sql_optimizer/explain.py" },
+        { label: "EXPLAIN rewrite", detail: "same engine, Claude's rewrite", file: "src/sql_optimizer/explain.py" },
+        { label: "Cost delta", detail: "est. bytes scanned, before vs after", file: "src/sql_optimizer/benchmark.py" },
       ],
     },
   ],

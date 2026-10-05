@@ -104,10 +104,11 @@ const tabs = [
               <KeywordAttributionChart client:visible />
               <RuleCoverage />
               <div class="card card-pad">
-                <p class="kicker">Planned evaluation · not measured</p>
+                <p class="kicker">Evaluation · not measured yet</p>
                 <p class="mt-2 max-w-[72ch] text-sm leading-relaxed text-muted">
-                  Cost reduction needs EXPLAIN on a live Spark or Snowflake engine, and rewrite
-                  quality needs the benchmark to call Claude. Neither exists yet, so neither is
+                  Cost reduction needs the EXPLAIN step run against a Spark or Snowflake engine
+                  holding the corpus tables, and rewrite quality needs a live benchmark run with
+                  an API key. Both code paths exist, but neither has been run, so neither is
                   charted. See the <a class="link" href="/evidence#not-measured">not-measured list</a>.
                 </p>
               </div>
