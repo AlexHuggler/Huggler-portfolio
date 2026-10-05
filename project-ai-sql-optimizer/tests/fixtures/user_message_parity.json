@@ -1,0 +1,43 @@
+{
+  "_comment": "Shared parity fixture for the user message sent to Claude. `expected` is the output of sql_optimizer.client._build_user_message with the dialect resolved by sql_optimizer.cli._detect_dialect. Asserted by tests/test_client.py and by portfolio-site/src/workers/sql-optimizer-proxy/test/optimizer.test.ts, so the Worker and the CLI cannot drift apart. Update both implementations and this file together.",
+  "cases": [
+    {
+      "name": "detected spark, no findings",
+      "sql": "SELECT event_id, amount\nFROM events\nWHERE event_date = DATE '2026-04-01'",
+      "dialect": null,
+      "findings": [],
+      "expected": "## Dialect\nspark\n## SQL\n```sql\nSELECT event_id, amount\nFROM events\nWHERE event_date = DATE '2026-04-01'\n```\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`."
+    },
+    {
+      "name": "detected snowflake (QUALIFY), two findings",
+      "sql": "SELECT *\nFROM orders o\nJOIN customers c ON o.customer_id = c.customer_id\nQUALIFY ROW_NUMBER() OVER (PARTITION BY o.customer_id ORDER BY o.created_at DESC) = 1",
+      "dialect": null,
+      "findings": [
+        {
+          "rule": "select_star",
+          "message": "SELECT * fans out columns and disables column pruning. List columns explicitly.",
+          "severity": "warn"
+        },
+        {
+          "rule": "consider_broadcast",
+          "message": "Join detected without BROADCAST hint. If one side is small (< ~8MB), broadcast it.",
+          "severity": "info"
+        }
+      ],
+      "expected": "## Dialect\nsnowflake\n## SQL\n```sql\nSELECT *\nFROM orders o\nJOIN customers c ON o.customer_id = c.customer_id\nQUALIFY ROW_NUMBER() OVER (PARTITION BY o.customer_id ORDER BY o.created_at DESC) = 1\n```\n## Heuristic findings\n- (warn) select_star: SELECT * fans out columns and disables column pruning. List columns explicitly.\n- (info) consider_broadcast: Join detected without BROADCAST hint. If one side is small (< ~8MB), broadcast it.\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`."
+    },
+    {
+      "name": "explicit ansi override, one finding",
+      "sql": "SELECT a.id, b.label FROM a, b",
+      "dialect": "ansi",
+      "findings": [
+        {
+          "rule": "cross_join",
+          "message": "Cross join (or join without ON) detected. Confirm intent or add a join key.",
+          "severity": "high"
+        }
+      ],
+      "expected": "## Dialect\nansi\n## SQL\n```sql\nSELECT a.id, b.label FROM a, b\n```\n## Heuristic findings\n- (high) cross_join: Cross join (or join without ON) detected. Confirm intent or add a join key.\nReturn your answer as a JSON object with keys `rewrite`, `reasoning`, `confidence`."
+    }
+  ]
+}

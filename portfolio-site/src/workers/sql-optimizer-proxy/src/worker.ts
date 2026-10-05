@@ -5,15 +5,31 @@
  * the portfolio's SQL optimizer demo. Lets visitors run the demo against
  * the live model without ever exposing the API key to the browser.
  *
- * The portfolio site reads PUBLIC_LIVE_DEMO_URL at build time; if it is
- * unset (the default), the demo runs purely from the static fixture and
- * this Worker is not invoked.
+ * As of v0.2.0 the portfolio site does not call this Worker: the demo
+ * replays a static fixture even when PUBLIC_LIVE_DEMO_URL is set.
+ *
+ * The system prompt and user message match the Python CLI: the prompt is
+ * generated from project-ai-sql-optimizer's versioned optimizer_prompt.md
+ * (see scripts/generate-prompt.mjs) and the user message is a port of
+ * client.py::_build_user_message (see src/optimizer.ts).
  *
  * Hard requirements:
  *   - ANTHROPIC_API_KEY must be a Worker secret (never inlined).
  *   - CORS is restricted to the configured allow-list.
  *   - Per-IP rate limiting via Workers KV (default 10 req/min).
  */
+
+import {
+  DIALECTS,
+  SEVERITIES,
+  buildUserMessage,
+  detectDialect,
+  parseSuggestion,
+  type Dialect,
+  type Finding,
+  type Suggestion,
+} from "./optimizer";
+import { OPTIMIZER_PROMPT } from "./prompt.generated";
 
 interface Env {
   ANTHROPIC_API_KEY: string;
@@ -25,41 +41,50 @@ interface Env {
 
 interface OptimizeRequest {
   sql?: unknown;
+  dialect?: unknown;
+  findings?: unknown;
 }
 
-interface ReasoningItem {
-  icon: string;
-  text: string;
-}
-
-interface OptimizeResponse {
-  optimized_sql: string;
-  reasoning: ReasoningItem[];
-  estimated_cost_reduction_pct: number;
+interface OptimizeResponse extends Suggestion {
   model: string;
 }
 
-// Mirror of the optimizer prompt in the project repo
-// (`prompts/optimizer_prompt.md`). Duplicated here so the Worker is
-// self-contained and can be deployed without checkout-out the repo.
-const OPTIMIZER_PROMPT = `You are a senior data engineer reviewing a SQL query for performance.
+const MAX_SQL_CHARS = 4000;
+const MAX_FINDINGS = 20;
+const MAX_FINDING_MESSAGE_CHARS = 500;
+const FINDING_RULE_RE = /^[a-z0-9_]{1,64}$/;
 
-Rewrite the input query so it runs more efficiently on Spark SQL or
-Snowflake while preserving its semantics. Focus on:
+function parseDialect(value: unknown): Dialect | null | undefined {
+  if (value === undefined || value === null || value === "") return null;
+  return (DIALECTS as readonly unknown[]).includes(value)
+    ? (value as Dialect)
+    : undefined;
+}
 
-- Predicate pushdown into joins and CTEs
-- Partition pruning (avoid wrapping partition columns in functions)
-- Replacing exact COUNT(DISTINCT) with APPROX_COUNT_DISTINCT when the metric tolerates ~1.6% error
-- Broadcast-join hints for small dimension tables
-- Flattening pass-through CTEs
-- Promoting LEFT JOIN to INNER when the WHERE clause discards null right-hand rows
-
-Return strict JSON with this shape and NO surrounding prose:
-{
-  "optimized_sql": string,
-  "reasoning": [{ "icon": "Filter|Database|Zap|GitBranch|Gauge|Layers|Sparkles|Calendar", "text": string }],
-  "estimated_cost_reduction_pct": number  // 0..100, your honest estimate; 0 if no rewrite is warranted
-}`;
+// Findings are client-supplied (the Worker does not run the sqlglot
+// analyzer), so keep them to the analyzer's shape and one line each: a
+// newline in a message could otherwise forge its own "## " section.
+function parseFindings(value: unknown): Finding[] | undefined {
+  if (value === undefined || value === null) return [];
+  if (!Array.isArray(value) || value.length > MAX_FINDINGS) return undefined;
+  const findings: Finding[] = [];
+  for (const item of value) {
+    if (typeof item !== "object" || item === null) return undefined;
+    const { rule, message, severity } = item as Record<string, unknown>;
+    if (typeof rule !== "string" || !FINDING_RULE_RE.test(rule)) return undefined;
+    if (
+      typeof message !== "string" ||
+      message.length === 0 ||
+      message.length > MAX_FINDING_MESSAGE_CHARS ||
+      /[\r\n]/.test(message)
+    ) {
+      return undefined;
+    }
+    if (!(SEVERITIES as readonly unknown[]).includes(severity)) return undefined;
+    findings.push({ rule, message, severity: severity as Finding["severity"] });
+  }
+  return findings;
+}
 
 function corsHeaders(origin: string | null, allowed: string[]): HeadersInit {
   const allowOrigin =
@@ -105,7 +130,7 @@ async function checkRateLimit(
 
 async function callAnthropic(
   env: Env,
-  sql: string,
+  userMessage: string,
 ): Promise<OptimizeResponse> {
   const model = env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
   const res = await fetch("https://api.anthropic.com/v1/messages", {
@@ -117,14 +142,9 @@ async function callAnthropic(
     },
     body: JSON.stringify({
       model,
-      max_tokens: 1024,
+      max_tokens: 2048,
       system: OPTIMIZER_PROMPT,
-      messages: [
-        {
-          role: "user",
-          content: `Original query:\n\n\`\`\`sql\n${sql}\n\`\`\`\n\nReturn the JSON now.`,
-        },
-      ],
+      messages: [{ role: "user", content: userMessage }],
     }),
   });
   if (!res.ok) {
@@ -135,11 +155,8 @@ async function callAnthropic(
     content: Array<{ type: string; text?: string }>;
   };
   const data = (await res.json()) as MessagesResponse;
-  const textBlock = data.content.find((b) => b.type === "text");
-  const raw = textBlock?.text ?? "";
-  const trimmed = raw.trim().replace(/^```(?:json)?/, "").replace(/```$/, "").trim();
-  const parsed = JSON.parse(trimmed) as Omit<OptimizeResponse, "model">;
-  return { ...parsed, model };
+  const text = data.content.map((b) => b.text ?? "").join("");
+  return { ...parseSuggestion(text), model };
 }
 
 export default {
@@ -184,15 +201,28 @@ export default {
     if (!sql) {
       return jsonResponse({ error: "missing_sql" }, 400, cors);
     }
-    if (sql.length > 4000) {
+    if (sql.length > MAX_SQL_CHARS) {
       return jsonResponse({ error: "sql_too_long" }, 413, cors);
+    }
+    const dialect = parseDialect(body.dialect);
+    if (dialect === undefined) {
+      return jsonResponse({ error: "invalid_dialect" }, 400, cors);
+    }
+    const findings = parseFindings(body.findings);
+    if (findings === undefined) {
+      return jsonResponse({ error: "invalid_findings" }, 400, cors);
     }
     if (!env.ANTHROPIC_API_KEY) {
       return jsonResponse({ error: "server_misconfigured" }, 500, cors);
     }
 
     try {
-      const result = await callAnthropic(env, sql);
+      const userMessage = buildUserMessage({
+        sql,
+        dialect: detectDialect(sql, dialect),
+        findings,
+      });
+      const result = await callAnthropic(env, userMessage);
       return jsonResponse(result, 200, cors);
     } catch (err) {
       const message = err instanceof Error ? err.message : "unknown";
