@@ -89,23 +89,44 @@ the limitations of these proxies.
 
 ## Results
 
-Measured with `make benchmark` in heuristic-only `--dry-run` mode (no
-API key), seeded 5-category corpus, Linux container, 2026-07. Reproduce
-with one command.
+Re-measured 2026-10-05 by `portfolio-site/scripts/measure.py run`:
+`make test` and `make benchmark` in heuristic-only `--dry-run` mode (no
+API key) over the seeded 5-category corpus. Linux container, single
+process. Transcript:
+[`measurements/ai-sql-optimizer.txt`](../portfolio-site/src/data/measurements/ai-sql-optimizer.txt);
+values: [`measured.json`](../portfolio-site/src/data/measured.json).
 
 | Metric | Measured |
 | --- | --- |
-| Avg keyword overlap vs ground truth (heuristics only) | 0.67 across 5 queries |
-| Findings hit rate (>= 1 correct finding per query) | 4 of 5 queries (0.80) |
-| Benchmark wall clock | 0.34 s for the corpus (~68 ms per query) |
+| Queries with at least one analyzer finding | 4 of 5 (partition_pruning gets none) |
+| Avg keyword overlap vs ground truth (upper bound) | 0.67 across 5 queries; 0.33 when scored on findings alone |
+| Analyzer latency | 0.8 ms per query (in-process median, warm, n=200) |
 | Unit tests | 18 passed |
 
 ![sql-optimizer benchmark --dry-run: per-category keyword overlap and findings hit rate](docs/img/benchmark.png)
 
+How to read these numbers:
+
+- **Findings hit rate counts any finding.** Whether the finding is the
+  right one for the query is not scored.
+- **Keyword overlap is an upper bound.** `benchmark._score` searches the
+  query text, including its explanatory comments, as well as the
+  findings. partition_pruning scores 0.67 with no findings at all, purely
+  from its own text. Re-scored against findings alone
+  (`portfolio-site/scripts/artifacts/sqlopt.py`), the mean is 0.33.
+- **Latency is the analyzer alone.** `analyze()` over the 5 corpus
+  queries x 40, timed in-process and warm by
+  `portfolio-site/scripts/artifacts/sqlopt.py`. It excludes interpreter
+  startup and moves with the host CPU (recorded in `measured.json`).
+
+Reproduce the scores with `make benchmark`; reproduce the latency and the
+transcript with `npm run measure` in `portfolio-site/`.
+
 The cte_flattening query scores 0.00 on keyword overlap in dry-run mode:
-its rewrite vocabulary ("single scan", "CASE") only appears once Claude
-proposes the rewrite - the heuristics alone flag the multi-scan pattern
-but do not name the fix. That gap is exactly what the LLM adds.
+the heuristics flag the multi-scan pattern (`many_ctes`) but do not name
+the fix ("single scan", "case when"). Whether a Claude rewrite closes
+that gap is not measured: `benchmark --no-dry-run` does not call the API
+yet.
 
 ### Planned evaluation (needs an engine and/or reviewers - not run here)
 
