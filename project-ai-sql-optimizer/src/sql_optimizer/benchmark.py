@@ -13,7 +13,6 @@ is recorded before and after. A value the engine did not produce stays
 
 from __future__ import annotations
 
-import re
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
 from typing import Any, Protocol
@@ -22,6 +21,7 @@ import yaml
 
 from .analyzer import AnalysisResult, analyze
 from .client import AnthropicClient, Suggestion
+from .dialect import detect_dialect, engine_tag
 from .explain import ExplainEngine
 
 
@@ -115,19 +115,6 @@ def _query_id(path: Path) -> str:
     return path.stem
 
 
-def _engine_tag(sql: str) -> str | None:
-    """The ``-- engine: <name>`` header a corpus query declares, if any."""
-    match = re.search(r"^--\s*engine:\s*(\w+)", sql, flags=re.MULTILINE | re.IGNORECASE)
-    return match.group(1).lower() if match else None
-
-
-def _detect_dialect(sql: str) -> str:
-    upper = sql.upper()
-    if "QUALIFY " in upper or "FLATTEN(" in upper:
-        return "snowflake"
-    return "spark"
-
-
 def _score(
     findings: list[str],
     truth: GroundTruthEntry | None,
@@ -160,7 +147,7 @@ def describe_error(err: Exception) -> str:
 
 def _compare_cost(engine: ExplainEngine, sql: str, suggestion: Suggestion | None) -> CostComparison:
     cmp = CostComparison(engine=engine.name, metric=engine.metric)
-    tag = _engine_tag(sql)
+    tag = engine_tag(sql)
     if tag is not None and tag != engine.name:
         cmp.skipped = True
         cmp.note = f"skipped: query tagged engine: {tag}"
@@ -237,7 +224,7 @@ def run_benchmark(
         sql = sql_path.read_text(encoding="utf-8")
         if sql.strip().startswith("-- TODO"):
             continue
-        analysis = analyze(sql, dialect=_detect_dialect(sql))
+        analysis = analyze(sql, dialect=detect_dialect(sql))
         finding_msgs = [f.message for f in analysis.findings]
         entry = truth.get(qid)
         overlap, hit = _score(finding_msgs, entry)

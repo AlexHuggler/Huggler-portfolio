@@ -77,6 +77,13 @@ sql-optimizer benchmark [--dry-run | --no-dry-run] [--limit 50] \
     [--explain spark|snowflake] [--explain-setup setup.sql] [--output results.json]
 ```
 
+`analyze` and `benchmark` pick the parse dialect the same way:
+`--dialect` if given (`analyze` only), else the file's
+`-- engine: spark|snowflake` header comment (first five lines), else a
+keyword heuristic (`QUALIFY`, `ILIKE`, `FLATTEN(` mean Snowflake;
+anything else is read as Spark). The `--explain` step reads the same
+header to decide which queries an engine explains.
+
 ### Live benchmark and EXPLAIN cost step
 
 `benchmark --no-dry-run` (or `make benchmark-live`) asks Claude to rewrite
@@ -143,7 +150,7 @@ from 2026-07. Reproduce with one command.
 | Avg keyword overlap vs ground truth (findings only, heuristics only) | 0.33 across 5 queries |
 | Findings hit rate (>= 1 analyzer finding per query) | 4 of 5 queries (0.80) |
 | Benchmark wall clock | 0.34 s for the corpus (~68 ms per query) |
-| Unit tests | 45 passed (`make test`, 2026-10) |
+| Unit tests | 61 passed (`make test`, 2026-10) |
 
 ![sql-optimizer benchmark --dry-run: per-category keyword overlap and findings hit rate](docs/img/benchmark.png)
 

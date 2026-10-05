@@ -30,6 +30,7 @@ import yaml  # noqa: E402
 from sql_optimizer import benchmark  # noqa: E402
 from sql_optimizer.analyzer import analyze  # noqa: E402
 from sql_optimizer.client import _build_user_message  # noqa: E402
+from sql_optimizer.dialect import detect_dialect  # noqa: E402
 
 PROJECT = project("project-ai-sql-optimizer")
 CORPUS = PROJECT / "corpus" / "queries"
@@ -121,7 +122,7 @@ def main(check: bool) -> int:
         qid = path.stem
         text = path.read_text(encoding="utf-8")
         header, note, body = parse_header(text)
-        parsed_as = benchmark._detect_dialect(text)
+        parsed_as = detect_dialect(text)
         result = analyze(text, dialect=parsed_as)
         for f in result.findings:
             fired.setdefault(f.rule, []).append(qid)
@@ -232,7 +233,7 @@ def main(check: bool) -> int:
 
     # Timing (non-deterministic) goes to stdout for measure.py, never into the fixture.
     texts = [p.read_text(encoding="utf-8") for p in sources]
-    dialects = [benchmark._detect_dialect(t) for t in texts]
+    dialects = [detect_dialect(t) for t in texts]
     samples: list[float] = []
     for _ in range(40):
         for t, d in zip(texts, dialects, strict=True):
