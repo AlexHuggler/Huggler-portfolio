@@ -41,11 +41,6 @@ const transformDag = dags.dags.find((d) => d.id === "transform_silver");
 
 const limitations = [
   {
-    title: "Benchmark keyword overlap is inflated",
-    body: `benchmark._score searches the query text (comments included) as well as the analyzer findings. The published mean is ${sq.summary.meanKeywordOverlap.toFixed(2)}; scored on findings alone it is ${sq.summary.meanKeywordOverlapFindingsOnly.toFixed(2)}.`,
-    href: "/projects/ai-sql-optimizer#benchmark",
-  },
-  {
     title: "Two analyzer rules are never exercised",
     body: `${sq.summary.rulesNeverFired.filter((r) => r !== "parse_error").join(" and ")} don't fire on the corpus — the partition rule needs --partition-columns, which the benchmark doesn't pass.`,
     href: "/projects/ai-sql-optimizer#workbench",

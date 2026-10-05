@@ -5,10 +5,10 @@ import { axisLabel, grid, legend, motion, splitLine, tooltip, withAlpha, type Vi
 import { corpus } from "../../data/artifacts";
 
 /**
- * Where do the benchmark's keyword hits come from? For each real corpus
- * query, ground-truth keywords split into: matched in analyzer findings,
- * matched only because they appear in the query's own text (which the
- * scorer also searches), and missed. Real data from sqlopt.py.
+ * Which ground-truth keywords does the benchmark credit? For each real
+ * corpus query, expected keywords split into: matched in analyzer findings
+ * (credited), present only in the query's own text (not credited - the
+ * scorer never searches the input), and missed. Real data from sqlopt.py.
  */
 
 const ROWS = corpus.queries.map((q) => {
@@ -58,7 +58,7 @@ function buildOption(t: VizTokens, _mode: VizMode, reduced: boolean) {
     },
     series: [
       seg("In findings", "inFindings", t.series[0]),
-      seg("Query text only", "textOnly", t.series[1]),
+      seg("Only in query text (not credited)", "textOnly", t.series[1]),
       seg("Missed", "missed", withAlpha(t.muted, 0.3), true),
     ],
   };
@@ -68,7 +68,7 @@ export default function KeywordAttributionChart(): JSX.Element {
   return (
     <ChartCard
       id="keyword-attribution"
-      title="Ground-truth keywords, by where the scorer found them"
+      title="Ground-truth keywords: credited from findings, or not"
       subtitle="Each bar is one corpus query; segments count its expected keywords."
       provenance={{
         label: "Real corpus · make benchmark",
@@ -77,13 +77,13 @@ export default function KeywordAttributionChart(): JSX.Element {
       }}
       takeaway={
         <>
-          Only {IN_FINDINGS} of {TOTAL} expected keywords come from analyzer findings; {TEXT_ONLY} are
-          matched from the query's own text — why the published overlap is an upper bound.
+          {IN_FINDINGS} of {TOTAL} expected keywords appear in analyzer findings and are credited;
+          {TEXT_ONLY} more appear only in the query's own text, which the scorer does not search.
         </>
       }
       table={{
         caption: "Keyword attribution per corpus query",
-        columns: ["Query", "In findings", "Query text only", "Missed"],
+        columns: ["Query", "In findings", "Only in query text (not credited)", "Missed"],
         rows: ROWS.map((r) => [r.label, r.inFindings, r.textOnly, r.missed]),
       }}
       height={260}
@@ -91,7 +91,7 @@ export default function KeywordAttributionChart(): JSX.Element {
         <EChart
           buildOption={buildOption}
           height={h}
-          ariaLabel={`Stacked bars per corpus query: ${IN_FINDINGS} of ${TOTAL} ground-truth keywords matched in analyzer findings, ${TEXT_ONLY} matched only in query text.`}
+          ariaLabel={`Stacked bars per corpus query: ${IN_FINDINGS} of ${TOTAL} ground-truth keywords credited from analyzer findings, ${TEXT_ONLY} present only in query text and not credited.`}
         />
       )}
     />

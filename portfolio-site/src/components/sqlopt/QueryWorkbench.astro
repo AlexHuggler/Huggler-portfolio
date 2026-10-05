@@ -144,7 +144,7 @@ const severityOf = Object.fromEntries(corpus.rules.map((r) => [r.id, r.severity]
                     {k.inFindings ? (
                       <span class="status-chip" data-status="measured">in findings</span>
                     ) : k.inQueryText ? (
-                      <span class="status-chip" data-status="stub">query text only</span>
+                      <span class="status-chip" data-status="stub">query text only · not credited</span>
                     ) : (
                       <span class="status-chip" data-status="planned">missed</span>
                     )}
@@ -152,7 +152,7 @@ const severityOf = Object.fromEntries(corpus.rules.map((r) => [r.id, r.severity]
                 ))}
               </ul>
               <p class="mt-3 font-mono text-[11px] leading-relaxed text-muted">
-                benchmark score {q.benchmark.keywordOverlap.toFixed(2)} · from findings alone {q.benchmark.keywordOverlapFindingsOnly.toFixed(2)} ({kwInFindings}/{q.keywordHits.length})
+                benchmark score {q.benchmark.keywordOverlap.toFixed(2)} ({kwInFindings}/{q.keywordHits.length} keywords in findings)
               </p>
             </div>
           </div>

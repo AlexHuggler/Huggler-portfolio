@@ -2,6 +2,16 @@
 
 All notable changes to the portfolio site. Versions follow `package.json`.
 
+## Unreleased
+
+- **SQL keyword overlap re-measured.** `benchmark._score` no longer searches
+  the input query, so `npm run measure` records the findings-only figure as
+  the benchmark score itself. The "upper bound" label, the separate
+  findings-only re-score fields (`keywordOverlapFindingsOnly`,
+  `meanKeywordOverlapFindingsOnly`) and the matching `/evidence` limitation
+  are removed. The keyword-attribution chart and query workbench now mark
+  query-text-only keywords as not credited.
+
 ## 0.2.0 — 2026-10-05
 
 A credibility-first redesign. Every number on the site is re-measured from
