@@ -1,6 +1,6 @@
 ---
 title: "AI-Assisted SQL Optimizer"
-tagline: "CLI that uses Claude to suggest Spark/Snowflake query rewrites and partition strategies. Benchmarked against a seeded corpus with explicit ground truth."
+tagline: "A CLI that parses Spark and Snowflake SQL with sqlglot, flags anti-patterns with heuristic rules, and hands structured findings to Claude for a rewrite."
 order: 3
 stack:
   - "Python"
@@ -10,73 +10,80 @@ stack:
   - "pytest"
 repoUrl: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer"
 problem: "Closes the gap between 'a query that runs' and 'a query a senior would ship' for Spark SQL and Snowflake workloads."
-approach: "sqlglot AST + heuristic findings feed a structured Claude prompt; optional EXPLAIN runner scores rewrites against a seeded benchmark corpus."
+approach: "sqlglot AST + six heuristic rules produce structured findings; a versioned prompt sends them to Claude; a 5-query corpus with ground truth scores the analyzer."
 demonstrates:
   - "Applied LLM tooling"
   - "SQL parsing + heuristics"
   - "Benchmark methodology"
   - "Engineer-in-the-loop UX"
 screenshot: "sqlopt-analyze.svg"
-results:
-  - "0.33 avg keyword overlap vs ground truth, scored on analyzer findings only, in heuristic-only dry-run mode (measured via make benchmark)"
-  - "At least one analyzer finding on 4 of 5 corpus queries at ~68ms analyzer latency per query"
-  - "Heuristic analyzer flags select-*, cross joins, missing partition predicates, and broadcast opportunities"
+runCommand: "make install && make benchmark"
+docs:
+  - { label: "README", path: "README.md" }
+  - { label: "Methodology", path: "docs/methodology.md" }
+capabilities:
+  - { name: "sqlglot parse + 6 heuristic rules", status: "measured", note: "4 of 6 rules fire on the corpus" }
+  - { name: "5-query corpus with ground truth", status: "measured", note: "make benchmark (dry run)" }
+  - { name: "Claude rewrite via versioned prompt", status: "implemented", note: "needs ANTHROPIC_API_KEY; not benchmarked" }
+  - { name: "Cloudflare Worker proxy for live mode", status: "stub", note: "wrangler.toml placeholders" }
+  - { name: "Claude in the benchmark (--no-dry-run)", status: "planned" }
+  - { name: "EXPLAIN cost verification", status: "planned" }
+  - { name: "Human acceptance study", status: "planned" }
 ---
+
+import { metric, evaluation } from "../../data/measured";
+export const ev = evaluation("ai-sql-optimizer");
 
 ## Problem
 
-There is a real gap between "junior writes a working query" and "senior knows
-when to broadcast, partition-prune, flatten a CTE, or rewrite a window
-function." This tool closes part of that gap by sending parsed SQL plus
-heuristic findings to Claude with a structured optimizer prompt, then
-optionally verifying the rewrite against a real EXPLAIN plan. It targets
-Spark SQL and Snowflake, the two dialects I work with most.
+There is a real gap between "a query that runs" and "a query a senior would
+ship": knowing when to broadcast, prune partitions, flatten repeated scans,
+or replace correlated subqueries. This tool parses Spark SQL and Snowflake
+queries with sqlglot, runs a small set of heuristic rules over the AST, and
+sends the SQL plus structured findings to Claude with a versioned optimizer
+prompt. Without an API key it runs in a heuristics-only dry-run mode, which
+is what the published benchmark measures.
 
 ## Judgment calls
 
-**Heuristics + LLM, not LLM only.** Sending raw SQL to Claude works, but
-the model spends most of its budget re-deriving facts a parser already
-knows: which columns appear in the projection, where the partition column
-lives, whether the predicate is wrapped in a function. A small sqlglot pass
-extracts those cheaply and ships them as structured findings, leaving the
-model to decide what to do with them - and keeping the offline `--dry-run`
-mode honest.
+**Heuristics + LLM, not LLM only.** Sent raw SQL, a model spends its budget
+re-deriving facts a parser already knows: which columns are projected, which
+joins lack hints, whether a subquery is correlated. A sqlglot pass extracts
+those cheaply and ships them as structured findings, leaving the model to
+decide what to do about them.
 
-**Why EXPLAIN is optional.** EXPLAIN cost numbers are informative, not
-ground truth - they reflect the planner's stale statistics and its own
-broadcast threshold. The CLI treats them as a tiebreaker between candidate
-rewrites, never as the deciding signal.
+**EXPLAIN is the planned verifier, not a claimed one.** Cost estimates
+reflect the planner's statistics and thresholds, so they make a tiebreaker
+rather than ground truth. The EXPLAIN runner is designed in the methodology
+doc but not implemented, and the site says so.
 
-**Prompt sensitivity is a real risk.** Small changes to the optimizer prompt
-materially change suggestion quality. The prompt template is versioned in
-the repo, and corpus tests pin a known prompt version so regressions surface
-in CI rather than in production.
+**Prompt sensitivity is a real risk.** Small prompt edits change suggestion
+quality, so the prompt lives in version control
+(`prompts/optimizer_prompt.md`) next to the code that sends it. Regression
+tests that pin model output against the corpus are the next step.
 
-**A corpus designed to grow.** Five optimization categories, one fully
-specified query per category, each with explicit ground truth in
-`corpus/ground_truth.yaml`. Adding a query is one `.sql` file plus one
-ground-truth entry - the benchmark discovers both automatically. A small
-corpus that matches its documentation beats a padded one.
+**A corpus designed to grow.** Five categories, one fully specified query
+each, with expected keywords and cost direction in `corpus/ground_truth.yaml`.
+Adding a case is one `.sql` file plus one ground-truth entry.
 
 ## Measured results
 
-`make benchmark` in heuristic-only dry-run mode scores 0.33 average keyword
-overlap against ground truth, counting only what the analyzer's findings say -
-never the query text itself. 4 of 5 queries get at least one finding, at
-~68 ms analyzer latency per query. Two categories score 0.00, and both are
-instructive. The cte_flattening query's rewrite vocabulary ("single scan",
-"CASE") only appears once Claude proposes the rewrite - the heuristics flag
-the multi-scan pattern but do not name the fix. That gap is exactly what the
-LLM adds. The partition_pruning query gets no finding at all, because the
-benchmark passes no partition columns to the analyzer.
-Human review and EXPLAIN cost deltas are specified in the methodology but not
-yet run - the README keeps them under "Planned evaluation" rather than
-pretending.
+`make benchmark` (dry run) finds at least one issue in
+{metric("sqlopt.findings").value} queries and averages {metric("sqlopt.overlap").value}
+keyword overlap against ground truth, with the analyzer taking
+{metric("sqlopt.latency").value} per query in process. Read those numbers with the scorer in
+mind: it searches the query text — comments included — as well as the findings, so
+partition_pruning scores
+{ev.byCategory.find((c) => c.category === "partition_pruning")?.keywordOverlap.toFixed(2)} with no findings at all. Scored on findings alone the
+average is {ev.summary.meanKeywordOverlapFindingsOnly.toFixed(2)}. The partition rule never fires
+in the benchmark because it needs partition columns passed in; with
+`--partition-columns ingest_date` it flags query 04 at high severity. Two of six
+rules ({ev.summary.rulesNeverFired.filter((r) => r !== "parse_error").join(" and ")}) are never
+exercised by the corpus — the obvious next corpus additions.
 
 ## Honest limitations
 
-- Claude can hallucinate column or table names that look plausible but do not exist in the schema.
-- EXPLAIN-based scoring is only as good as the optimizer's cost estimates - a "cheaper" plan can still be slower in practice.
-- Dialect drift between Spark SQL and Snowflake catches edge cases (e.g. `QUALIFY`, lateral views).
-- Prompt sensitivity: small changes to the prompt template materially change suggestion quality.
-- Without `ANTHROPIC_API_KEY`, only heuristic dry-run mode is available.
+- `benchmark --no-dry-run` does not call Claude yet, so model rewrite quality is unmeasured.
+- Claude can hallucinate plausible column or table names that are not in the schema.
+- The benchmark ignores each query's `-- engine:` header, so Snowflake queries are parsed as Spark.
+- EXPLAIN cost deltas and human acceptance rate are planned, not run.

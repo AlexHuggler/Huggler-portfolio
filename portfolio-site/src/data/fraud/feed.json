@@ -1,0 +1,2129 @@
+{
+  "_meta": {
+    "synthetic": true,
+    "generatedBy": "portfolio-site/scripts/artifacts/fraud.py",
+    "source": "project-fraud-signals/data/eval_events.jsonl (make eval, seed 42)",
+    "note": "A contiguous slice of the evaluation stream in producer order. Account ids are aliased; 't' is seconds since the slice's first event. 'flags' are event-level detector hits over the full 300 s stream; 'accountFlags' are the account-level verdicts the evaluator scores."
+  },
+  "offset": 500,
+  "events": [
+    {
+      "i": 500,
+      "t": 0.0,
+      "account": "A0601",
+      "amount": 123.54,
+      "category": "online_retail",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 501,
+      "t": 0.02,
+      "account": "A0197",
+      "amount": 261.3,
+      "category": "atm_withdrawal",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 502,
+      "t": 0.04,
+      "account": "A0704",
+      "amount": 207.2,
+      "category": "online_retail",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 503,
+      "t": 0.06,
+      "account": "A0182",
+      "amount": 21.66,
+      "category": "atm_withdrawal",
+      "country": "US",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 504,
+      "t": 0.08,
+      "account": "A0207",
+      "amount": 58.27,
+      "category": "electronics",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 505,
+      "t": 0.1,
+      "account": "A0041",
+      "amount": 191.47,
+      "category": "electronics",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 506,
+      "t": 0.12,
+      "account": "A0656",
+      "amount": 22.5,
+      "category": "travel",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 507,
+      "t": 0.14,
+      "account": "A0208",
+      "amount": 24.74,
+      "category": "electronics",
+      "country": "US",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 508,
+      "t": 0.16,
+      "account": "A0471",
+      "amount": 32.63,
+      "category": "atm_withdrawal",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 509,
+      "t": 0.18,
+      "account": "A0366",
+      "amount": 39.4,
+      "category": "atm_withdrawal",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 510,
+      "t": 0.2,
+      "account": "A0698",
+      "amount": 80.91,
+      "category": "travel",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 511,
+      "t": 0.22,
+      "account": "A0095",
+      "amount": 112.23,
+      "category": "atm_withdrawal",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 512,
+      "t": 0.24,
+      "account": "A0735",
+      "amount": 246.89,
+      "category": "restaurant",
+      "country": "FR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount"
+      ]
+    },
+    {
+      "i": 513,
+      "t": 0.26,
+      "account": "A0332",
+      "amount": 92.23,
+      "category": "electronics",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 514,
+      "t": 0.28,
+      "account": "A0084",
+      "amount": 226.63,
+      "category": "electronics",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 515,
+      "t": 0.3,
+      "account": "A0895",
+      "amount": 196.14,
+      "category": "electronics",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 516,
+      "t": 0.32,
+      "account": "A0419",
+      "amount": 192.06,
+      "category": "gas",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 517,
+      "t": 0.34,
+      "account": "A0757",
+      "amount": 40.24,
+      "category": "travel",
+      "country": "US",
+      "label": "impossible_travel",
+      "flags": [],
+      "accountFlags": [
+        "geo"
+      ]
+    },
+    {
+      "i": 518,
+      "t": 90.34,
+      "account": "A0757",
+      "amount": 56.2,
+      "category": "travel",
+      "country": "CA",
+      "label": "impossible_travel",
+      "flags": [
+        "geo"
+      ],
+      "accountFlags": [
+        "geo"
+      ]
+    },
+    {
+      "i": 519,
+      "t": 0.36,
+      "account": "A0249",
+      "amount": 68.33,
+      "category": "restaurant",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 520,
+      "t": 0.38,
+      "account": "A0701",
+      "amount": 124.86,
+      "category": "restaurant",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 521,
+      "t": 0.4,
+      "account": "A0868",
+      "amount": 100.18,
+      "category": "subscription",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 522,
+      "t": 0.42,
+      "account": "A0792",
+      "amount": 264.44,
+      "category": "gas",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 523,
+      "t": 0.44,
+      "account": "A0331",
+      "amount": 93.32,
+      "category": "restaurant",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 524,
+      "t": 0.46,
+      "account": "A0965",
+      "amount": 52.46,
+      "category": "electronics",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 525,
+      "t": 0.48,
+      "account": "A0345",
+      "amount": 51.25,
+      "category": "atm_withdrawal",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 526,
+      "t": 0.5,
+      "account": "A0904",
+      "amount": 238.37,
+      "category": "atm_withdrawal",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 527,
+      "t": 0.52,
+      "account": "A0361",
+      "amount": 54.79,
+      "category": "subscription",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 528,
+      "t": 0.54,
+      "account": "A0358",
+      "amount": 81.96,
+      "category": "grocery",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 529,
+      "t": 0.56,
+      "account": "A0334",
+      "amount": 137.19,
+      "category": "gas",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 530,
+      "t": 0.58,
+      "account": "A0832",
+      "amount": 169.1,
+      "category": "grocery",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 531,
+      "t": 0.6,
+      "account": "A0441",
+      "amount": 154.76,
+      "category": "atm_withdrawal",
+      "country": "US",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 532,
+      "t": 0.62,
+      "account": "A0411",
+      "amount": 44.08,
+      "category": "online_retail",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 533,
+      "t": 0.64,
+      "account": "A0484",
+      "amount": 105.53,
+      "category": "restaurant",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 534,
+      "t": 0.66,
+      "account": "A0682",
+      "amount": 63.02,
+      "category": "gas",
+      "country": "CA",
+      "label": "normal",
+      "flags": [
+        "geo"
+      ],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 535,
+      "t": 0.68,
+      "account": "A0303",
+      "amount": 210.6,
+      "category": "restaurant",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 536,
+      "t": 0.7,
+      "account": "A0039",
+      "amount": 184.01,
+      "category": "travel",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 537,
+      "t": 0.72,
+      "account": "A0006",
+      "amount": 100.21,
+      "category": "subscription",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 538,
+      "t": 0.74,
+      "account": "A0523",
+      "amount": 137.16,
+      "category": "travel",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 539,
+      "t": 0.76,
+      "account": "A0834",
+      "amount": 200.99,
+      "category": "online_retail",
+      "country": "FR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 540,
+      "t": 0.78,
+      "account": "A0031",
+      "amount": 79.33,
+      "category": "subscription",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 541,
+      "t": 0.8,
+      "account": "A0328",
+      "amount": 214.72,
+      "category": "restaurant",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 542,
+      "t": 0.82,
+      "account": "A0325",
+      "amount": 67.27,
+      "category": "online_retail",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 543,
+      "t": 0.84,
+      "account": "A0331",
+      "amount": 240.44,
+      "category": "grocery",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 544,
+      "t": 0.86,
+      "account": "A0571",
+      "amount": 168.94,
+      "category": "gas",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 545,
+      "t": 0.88,
+      "account": "A0309",
+      "amount": 32.45,
+      "category": "online_retail",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 546,
+      "t": 0.9,
+      "account": "A0856",
+      "amount": 36.91,
+      "category": "travel",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 547,
+      "t": 0.92,
+      "account": "A0579",
+      "amount": 170.24,
+      "category": "gas",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 548,
+      "t": 0.94,
+      "account": "A0684",
+      "amount": 54.83,
+      "category": "electronics",
+      "country": "US",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo"
+      ]
+    },
+    {
+      "i": 549,
+      "t": 0.96,
+      "account": "A0076",
+      "amount": 113.51,
+      "category": "gas",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 550,
+      "t": 0.98,
+      "account": "A0708",
+      "amount": 180.75,
+      "category": "atm_withdrawal",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 551,
+      "t": 1.0,
+      "account": "A0778",
+      "amount": 133.71,
+      "category": "atm_withdrawal",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 552,
+      "t": 1.02,
+      "account": "A0503",
+      "amount": 79.7,
+      "category": "restaurant",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 553,
+      "t": 1.04,
+      "account": "A0653",
+      "amount": 24.18,
+      "category": "restaurant",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 554,
+      "t": 1.06,
+      "account": "A0576",
+      "amount": 148.67,
+      "category": "grocery",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 555,
+      "t": 1.08,
+      "account": "A0203",
+      "amount": 158.81,
+      "category": "atm_withdrawal",
+      "country": "US",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 556,
+      "t": 1.1,
+      "account": "A0771",
+      "amount": 74.09,
+      "category": "subscription",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 557,
+      "t": 1.12,
+      "account": "A0383",
+      "amount": 73.56,
+      "category": "grocery",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 558,
+      "t": 1.14,
+      "account": "A0191",
+      "amount": 297.91,
+      "category": "subscription",
+      "country": "CA",
+      "label": "velocity_burst",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 559,
+      "t": 5.14,
+      "account": "A0191",
+      "amount": 574.38,
+      "category": "gas",
+      "country": "CA",
+      "label": "velocity_burst",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 560,
+      "t": 9.14,
+      "account": "A0191",
+      "amount": 478.83,
+      "category": "grocery",
+      "country": "CA",
+      "label": "velocity_burst",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 561,
+      "t": 13.14,
+      "account": "A0191",
+      "amount": 558.04,
+      "category": "atm_withdrawal",
+      "country": "CA",
+      "label": "velocity_burst",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 562,
+      "t": 17.14,
+      "account": "A0191",
+      "amount": 360.4,
+      "category": "grocery",
+      "country": "CA",
+      "label": "velocity_burst",
+      "flags": [
+        "velocity"
+      ],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 563,
+      "t": 21.14,
+      "account": "A0191",
+      "amount": 612.05,
+      "category": "gas",
+      "country": "CA",
+      "label": "velocity_burst",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 564,
+      "t": 25.14,
+      "account": "A0191",
+      "amount": 610.28,
+      "category": "online_retail",
+      "country": "CA",
+      "label": "velocity_burst",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 565,
+      "t": 1.16,
+      "account": "A0597",
+      "amount": 140.39,
+      "category": "restaurant",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 566,
+      "t": 1.18,
+      "account": "A0857",
+      "amount": 192.38,
+      "category": "travel",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 567,
+      "t": 1.2,
+      "account": "A0918",
+      "amount": 130.51,
+      "category": "restaurant",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 568,
+      "t": 1.22,
+      "account": "A0700",
+      "amount": 44.82,
+      "category": "gas",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 569,
+      "t": 1.24,
+      "account": "A0872",
+      "amount": 117.97,
+      "category": "atm_withdrawal",
+      "country": "FR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo"
+      ]
+    },
+    {
+      "i": 570,
+      "t": 1.26,
+      "account": "A0344",
+      "amount": 352.57,
+      "category": "online_retail",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 571,
+      "t": 1.28,
+      "account": "A0025",
+      "amount": 328.58,
+      "category": "online_retail",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 572,
+      "t": 1.3,
+      "account": "A0653",
+      "amount": 20.51,
+      "category": "atm_withdrawal",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 573,
+      "t": 1.32,
+      "account": "A0059",
+      "amount": 37.32,
+      "category": "gas",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo"
+      ]
+    },
+    {
+      "i": 574,
+      "t": 1.34,
+      "account": "A0998",
+      "amount": 19.87,
+      "category": "subscription",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 575,
+      "t": 1.36,
+      "account": "A0587",
+      "amount": 5.24,
+      "category": "gas",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 576,
+      "t": 1.38,
+      "account": "A0719",
+      "amount": 81.07,
+      "category": "atm_withdrawal",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 577,
+      "t": 1.4,
+      "account": "A0868",
+      "amount": 142.62,
+      "category": "online_retail",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 578,
+      "t": 1.42,
+      "account": "A0593",
+      "amount": 188.38,
+      "category": "restaurant",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 579,
+      "t": 1.44,
+      "account": "A0018",
+      "amount": 111.26,
+      "category": "grocery",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 580,
+      "t": 1.46,
+      "account": "A0394",
+      "amount": 188.36,
+      "category": "restaurant",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 581,
+      "t": 1.48,
+      "account": "A0350",
+      "amount": 205.62,
+      "category": "online_retail",
+      "country": "ES",
+      "label": "impossible_travel",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 582,
+      "t": 91.48,
+      "account": "A0350",
+      "amount": 271.92,
+      "category": "electronics",
+      "country": "US",
+      "label": "impossible_travel",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 583,
+      "t": 1.5,
+      "account": "A0970",
+      "amount": 151.41,
+      "category": "gas",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 584,
+      "t": 1.52,
+      "account": "A0511",
+      "amount": 216.72,
+      "category": "electronics",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 585,
+      "t": 1.54,
+      "account": "A0646",
+      "amount": 61.41,
+      "category": "gas",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 586,
+      "t": 1.56,
+      "account": "A0119",
+      "amount": 178.58,
+      "category": "subscription",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 587,
+      "t": 1.58,
+      "account": "A0264",
+      "amount": 209.5,
+      "category": "gas",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 588,
+      "t": 1.6,
+      "account": "A0799",
+      "amount": 154.98,
+      "category": "gas",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 589,
+      "t": 1.62,
+      "account": "A0281",
+      "amount": 240.33,
+      "category": "electronics",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 590,
+      "t": 1.64,
+      "account": "A0723",
+      "amount": 155.78,
+      "category": "restaurant",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 591,
+      "t": 1.66,
+      "account": "A0245",
+      "amount": 35.06,
+      "category": "restaurant",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 592,
+      "t": 1.68,
+      "account": "A0015",
+      "amount": 86.04,
+      "category": "atm_withdrawal",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 593,
+      "t": 1.7,
+      "account": "A0248",
+      "amount": 209.21,
+      "category": "gas",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 594,
+      "t": 1.72,
+      "account": "A0679",
+      "amount": 205.47,
+      "category": "atm_withdrawal",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 595,
+      "t": 1.74,
+      "account": "A0819",
+      "amount": 81.12,
+      "category": "electronics",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 596,
+      "t": 1.76,
+      "account": "A0310",
+      "amount": 15.57,
+      "category": "grocery",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 597,
+      "t": 1.78,
+      "account": "A0571",
+      "amount": 151.1,
+      "category": "online_retail",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 598,
+      "t": 1.8,
+      "account": "A0730",
+      "amount": 242.4,
+      "category": "online_retail",
+      "country": "FR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 599,
+      "t": 1.82,
+      "account": "A0761",
+      "amount": 66.59,
+      "category": "subscription",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 600,
+      "t": 1.84,
+      "account": "A0401",
+      "amount": 38.97,
+      "category": "travel",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 601,
+      "t": 1.86,
+      "account": "A0065",
+      "amount": 30.9,
+      "category": "atm_withdrawal",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 602,
+      "t": 1.88,
+      "account": "A0417",
+      "amount": 41.03,
+      "category": "gas",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 603,
+      "t": 1.9,
+      "account": "A0073",
+      "amount": 1.0,
+      "category": "electronics",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 604,
+      "t": 1.92,
+      "account": "A0762",
+      "amount": 60.08,
+      "category": "electronics",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 605,
+      "t": 1.94,
+      "account": "A0068",
+      "amount": 189.24,
+      "category": "atm_withdrawal",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 606,
+      "t": 1.96,
+      "account": "A0325",
+      "amount": 118.34,
+      "category": "electronics",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 607,
+      "t": 1.98,
+      "account": "A0212",
+      "amount": 167.82,
+      "category": "restaurant",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 608,
+      "t": 2.0,
+      "account": "A0905",
+      "amount": 14.44,
+      "category": "gas",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 609,
+      "t": 2.02,
+      "account": "A0235",
+      "amount": 22.01,
+      "category": "online_retail",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 610,
+      "t": 2.04,
+      "account": "A0902",
+      "amount": 120.5,
+      "category": "grocery",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 611,
+      "t": 2.06,
+      "account": "A0446",
+      "amount": 80.99,
+      "category": "restaurant",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 612,
+      "t": 2.08,
+      "account": "A0095",
+      "amount": 120.31,
+      "category": "travel",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 613,
+      "t": 2.1,
+      "account": "A0732",
+      "amount": 88.37,
+      "category": "electronics",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 614,
+      "t": 2.12,
+      "account": "A0434",
+      "amount": 254.65,
+      "category": "gas",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo"
+      ]
+    },
+    {
+      "i": 615,
+      "t": 2.14,
+      "account": "A0023",
+      "amount": 85.15,
+      "category": "electronics",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 616,
+      "t": 2.16,
+      "account": "A0234",
+      "amount": 210.31,
+      "category": "subscription",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 617,
+      "t": 2.18,
+      "account": "A0212",
+      "amount": 194.55,
+      "category": "subscription",
+      "country": "CA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 618,
+      "t": 2.2,
+      "account": "A0830",
+      "amount": 132.53,
+      "category": "gas",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 619,
+      "t": 2.22,
+      "account": "A0351",
+      "amount": 1.57,
+      "category": "grocery",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 620,
+      "t": 2.24,
+      "account": "A0902",
+      "amount": 164.19,
+      "category": "grocery",
+      "country": "BR",
+      "label": "impossible_travel",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 621,
+      "t": 92.24,
+      "account": "A0902",
+      "amount": 224.43,
+      "category": "online_retail",
+      "country": "US",
+      "label": "impossible_travel",
+      "flags": [
+        "geo"
+      ],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 622,
+      "t": 2.26,
+      "account": "A0310",
+      "amount": 31.41,
+      "category": "gas",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 623,
+      "t": 2.28,
+      "account": "A0301",
+      "amount": 186.62,
+      "category": "grocery",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 624,
+      "t": 2.3,
+      "account": "A0483",
+      "amount": 312.86,
+      "category": "gas",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 625,
+      "t": 2.32,
+      "account": "A0554",
+      "amount": 39.91,
+      "category": "electronics",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 626,
+      "t": 2.34,
+      "account": "A0338",
+      "amount": 41.03,
+      "category": "electronics",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 627,
+      "t": 2.36,
+      "account": "A0380",
+      "amount": 228.59,
+      "category": "subscription",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 628,
+      "t": 2.38,
+      "account": "A0020",
+      "amount": 223.59,
+      "category": "grocery",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 629,
+      "t": 2.4,
+      "account": "A0169",
+      "amount": 103.17,
+      "category": "travel",
+      "country": "NG",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 630,
+      "t": 2.42,
+      "account": "A0445",
+      "amount": 182.99,
+      "category": "electronics",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 631,
+      "t": 2.44,
+      "account": "A0571",
+      "amount": 141.0,
+      "category": "online_retail",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 632,
+      "t": 2.46,
+      "account": "A0951",
+      "amount": 75.31,
+      "category": "electronics",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 633,
+      "t": 2.48,
+      "account": "A0854",
+      "amount": 85.34,
+      "category": "atm_withdrawal",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 634,
+      "t": 2.5,
+      "account": "A0911",
+      "amount": 99.42,
+      "category": "restaurant",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 635,
+      "t": 2.52,
+      "account": "A0448",
+      "amount": 269.33,
+      "category": "grocery",
+      "country": "US",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 636,
+      "t": 2.54,
+      "account": "A0481",
+      "amount": 214.25,
+      "category": "travel",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 637,
+      "t": 2.56,
+      "account": "A0776",
+      "amount": 260.5,
+      "category": "travel",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 638,
+      "t": 2.58,
+      "account": "A0349",
+      "amount": 48.21,
+      "category": "gas",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 639,
+      "t": 2.6,
+      "account": "A0486",
+      "amount": 88.94,
+      "category": "subscription",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 640,
+      "t": 2.62,
+      "account": "A0007",
+      "amount": 32.21,
+      "category": "subscription",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 641,
+      "t": 2.64,
+      "account": "A0688",
+      "amount": 252.99,
+      "category": "gas",
+      "country": "AU",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 642,
+      "t": 2.66,
+      "account": "A0400",
+      "amount": 60.36,
+      "category": "grocery",
+      "country": "IT",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 643,
+      "t": 2.68,
+      "account": "A0558",
+      "amount": 179.87,
+      "category": "restaurant",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 644,
+      "t": 2.7,
+      "account": "A0025",
+      "amount": 142.14,
+      "category": "electronics",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 645,
+      "t": 2.72,
+      "account": "A0373",
+      "amount": 52.99,
+      "category": "grocery",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 646,
+      "t": 2.74,
+      "account": "A0478",
+      "amount": 180.64,
+      "category": "subscription",
+      "country": "ES",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 647,
+      "t": 2.76,
+      "account": "A0896",
+      "amount": 132.46,
+      "category": "gas",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": []
+    },
+    {
+      "i": 648,
+      "t": 2.78,
+      "account": "A0347",
+      "amount": 99.33,
+      "category": "atm_withdrawal",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 649,
+      "t": 2.8,
+      "account": "A0841",
+      "amount": 156.88,
+      "category": "gas",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 650,
+      "t": 2.82,
+      "account": "A0164",
+      "amount": 69.21,
+      "category": "subscription",
+      "country": "BR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 651,
+      "t": 2.84,
+      "account": "A0139",
+      "amount": 113.25,
+      "category": "travel",
+      "country": "FR",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 652,
+      "t": 2.86,
+      "account": "A0494",
+      "amount": 205.19,
+      "category": "atm_withdrawal",
+      "country": "GB",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 653,
+      "t": 2.88,
+      "account": "A0201",
+      "amount": 393.74,
+      "category": "atm_withdrawal",
+      "country": "DE",
+      "label": "amount_outlier",
+      "flags": [
+        "amount"
+      ],
+      "accountFlags": [
+        "amount",
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 654,
+      "t": 2.9,
+      "account": "A0783",
+      "amount": 120.78,
+      "category": "restaurant",
+      "country": "JP",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 655,
+      "t": 2.92,
+      "account": "A0186",
+      "amount": 178.91,
+      "category": "online_retail",
+      "country": "DE",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "velocity"
+      ]
+    },
+    {
+      "i": 656,
+      "t": 2.94,
+      "account": "A0822",
+      "amount": 198.15,
+      "category": "electronics",
+      "country": "ZA",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "velocity"
+      ]
+    },
+    {
+      "i": 657,
+      "t": 2.96,
+      "account": "A0703",
+      "amount": 176.76,
+      "category": "online_retail",
+      "country": "US",
+      "label": "normal",
+      "flags": [],
+      "accountFlags": [
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 658,
+      "t": 2.98,
+      "account": "A0462",
+      "amount": 43.96,
+      "category": "subscription",
+      "country": "US",
+      "label": "impossible_travel",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "geo",
+        "velocity"
+      ]
+    },
+    {
+      "i": 659,
+      "t": 92.98,
+      "account": "A0462",
+      "amount": 29.47,
+      "category": "travel",
+      "country": "CA",
+      "label": "impossible_travel",
+      "flags": [],
+      "accountFlags": [
+        "amount",
+        "geo",
+        "velocity"
+      ]
+    }
+  ]
+}

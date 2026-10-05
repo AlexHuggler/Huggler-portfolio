@@ -1,4 +1,4 @@
-.PHONY: install test lint format run demo benchmark clean
+.PHONY: install test lint format run demo benchmark benchmark-live clean
 
 UV ?= uv
 PY ?= $(UV) run python
@@ -32,6 +32,14 @@ demo:
 
 benchmark:
 	$(UV) run sql-optimizer benchmark --dry-run
+
+# Calls Claude for every query (needs ANTHROPIC_API_KEY). Add EXPLAIN=spark or
+# EXPLAIN=snowflake (and EXPLAIN_SETUP=path.sql) to record EXPLAIN cost deltas.
+benchmark-live:
+	$(UV) run sql-optimizer benchmark --no-dry-run \
+	  $(if $(EXPLAIN),--explain $(EXPLAIN)) \
+	  $(if $(EXPLAIN_SETUP),--explain-setup $(EXPLAIN_SETUP)) \
+	  --output benchmark_results/live.json
 
 clean:
 	rm -rf .pytest_cache .ruff_cache build dist *.egg-info

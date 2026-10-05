@@ -1,142 +1,87 @@
 ---
 import CaseStudyLayout from "../../layouts/CaseStudyLayout.astro";
-import MermaidBlock from "../../components/MermaidBlock.astro";
-import SectionHeader from "../../components/shared/SectionHeader.astro";
-import SqlOptimizerDemo from "../../components/sqlopt/SqlOptimizerDemo.tsx";
-import SequenceDiagram from "../../components/sqlopt/SequenceDiagram.tsx";
-import BenchmarkChart from "../../components/sqlopt/BenchmarkChart.tsx";
+import TerminalFrame from "../../components/shared/TerminalFrame.astro";
+import QueryWorkbench from "../../components/sqlopt/QueryWorkbench.astro";
+import RuleCoverage from "../../components/sqlopt/RuleCoverage.astro";
+import KeywordAttributionChart from "../../components/sqlopt/KeywordAttributionChart.tsx";
+import transcript from "../../data/measurements/ai-sql-optimizer.txt?raw";
+import { corpus } from "../../data/artifacts";
+import { measuredLabel } from "../../data/measured";
+
+// The benchmark table exactly as `make benchmark` printed it.
+const benchStart = transcript.indexOf("$ make benchmark");
+const benchOutput = transcript
+  .slice(benchStart)
+  .split("\n")
+  .slice(1)
+  .filter((l) => !l.startsWith("uv run"))
+  .join("\n")
+  .trim();
 
 const stack = [
-  { label: "Python",        rationale: "CLI runtime." },
-  { label: "Typer",         rationale: "CLI framework." },
-  { label: "Anthropic SDK", rationale: "Claude API client." },
-  { label: "sqlglot",       rationale: "Multi-dialect SQL parser." },
-  { label: "pytest",        rationale: "Corpus regression tests." },
+  { label: "Python 3.11", rationale: "CLI runtime; typed dataclasses for findings and results." },
+  { label: "sqlglot", rationale: "Dialect-aware SQL parser — the heuristics walk its AST instead of regexes." },
+  { label: "Typer + Rich", rationale: "Ergonomic CLI with readable findings tables." },
+  { label: "Anthropic SDK", rationale: "Claude Messages API with retry/backoff on rate limits and 5xx." },
+  { label: "PyYAML", rationale: "Ground truth for the benchmark lives in reviewable YAML." },
+  { label: "pytest", rationale: "18 tests across analyzer, benchmark, CLI and client (API mocked)." },
 ];
 ---
 
 <CaseStudyLayout
   slug="ai-sql-optimizer"
-  eyebrow="Project 03 · AI-assisted data engineering"
-  heroDescription="A CLI that uses Claude to suggest Spark and Snowflake query rewrites and partition strategies. Benchmarked against a seeded 5-category corpus with sqlglot-driven heuristics and an optional EXPLAIN verifier."
+  eyebrow="Project 03 · Applied AI for data engineering"
+  heroDescription="A CLI that parses Spark and Snowflake SQL with sqlglot, flags anti-patterns with six heuristic rules, and sends the SQL plus structured findings to Claude for a rewrite. Everything below is the real corpus and real analyzer output — no simulated results."
   heroLinks={[
-    { href: "#demo", label: "Try the demo" },
-    { href: "#methodology", label: "Methodology" },
+    { href: "#workbench", label: "Open the workbench" },
+    { href: "#benchmark", label: "Benchmark, honestly" },
   ]}
   stack={stack}
+  sections={[
+    { id: "workbench", label: "Query workbench" },
+    { id: "benchmark", label: "Benchmark" },
+  ]}
 >
-  <div slot="hero-visual" class="mt-8 demo-card relative overflow-hidden">
-    <SequenceDiagram client:visible />
-  </div>
+  <TerminalFrame
+    slot="hero-visual"
+    class="mt-10 max-w-3xl"
+    command="make benchmark"
+    output={benchOutput}
+    caption={`Captured by scripts/measure.py · ${measuredLabel()} · sqlglot ${corpus._meta.sqlglot}`}
+  />
 
-  <!-- Live demo -->
-  <section class="demo-section" id="demo">
-    <SectionHeader
-      eyebrow="Live demo"
-      title="Pick a query, see the rewrite"
-      description="Output is replayed from a static fixture so the page never makes an external API call by default. The repo includes the full CLI plus an optional Cloudflare Worker proxy for self-hosted live mode."
-    />
-    <SqlOptimizerDemo client:visible />
-  </section>
-
-  <!-- Benchmark chart -->
-  <section class="demo-section" id="benchmark">
-    <SectionHeader
-      eyebrow="Corpus"
-      title="Estimated cost reduction across the sample queries"
-      description="Per-query cost-reduction estimates from the seeded benchmark corpus. Each of the five corpus queries is shown here with its ground truth in the repo."
-    />
-    <BenchmarkChart client:visible />
-  </section>
-
-  <!-- Methodology -->
-  <section class="demo-section" id="methodology">
-    <SectionHeader
-      eyebrow="Methodology"
-      title="How the optimizer works, scores, and where it fails"
-      description="Three columns: how it works, how suggestions are scored, and the limitations a senior reviewer would call out."
-    />
-    <div class="grid gap-4 md:grid-cols-3">
-      <article class="demo-card">
-        <h3 class="text-sm font-semibold tracking-tight">How it works</h3>
-        <ul class="mt-3 space-y-2 text-sm text-muted leading-relaxed list-disc pl-5">
-          <li>sqlglot parses the input into an AST and a small heuristic pass collects findings (function-wrapped partition columns, SELECT *, exact COUNT DISTINCT, missing broadcast hints).</li>
-          <li>Findings + raw SQL are sent to the Anthropic Messages API with a structured optimizer prompt. Output is constrained to a JSON envelope of rewrite + reasoning.</li>
-          <li>An optional EXPLAIN runner (Spark or Snowflake) executes both plans against a shadow database and reports the cost delta back to the CLI.</li>
-        </ul>
-      </article>
-      <article class="demo-card">
-        <h3 class="text-sm font-semibold tracking-tight">Scoring rubric</h3>
-        <ul class="mt-3 space-y-2 text-sm text-muted leading-relaxed list-disc pl-5">
-          <li>Keyword overlap with ground-truth labels in <code class="font-mono text-xs">corpus/ground_truth.yaml</code> &mdash; coarse but cheap to run on every change. Measured: 0.33 average in dry-run mode, scored on analyzer findings only.</li>
-          <li>EXPLAIN cost delta when a Spark or Snowflake engine is reachable; treated as approximate, not authoritative.</li>
-          <li>Human review across the corpus as it grows, recorded in the repo with the reviewer&rsquo;s rationale per query.</li>
-        </ul>
-      </article>
-      <article class="demo-card">
-        <h3 class="text-sm font-semibold tracking-tight">Limitations</h3>
-        <ul class="mt-3 space-y-2 text-sm text-muted leading-relaxed list-disc pl-5">
-          <li><strong class="text-fg">Claude can hallucinate column or table names</strong> not in the schema &mdash; especially for novel dialects.</li>
-          <li>EXPLAIN-based scoring is approximate: a "cheaper" plan can still be slower in practice.</li>
-          <li>Dialect drift between Spark SQL and Snowflake catches edge cases (QUALIFY, lateral views, named struct fields).</li>
-          <li>Suggestions require human review before applying to production. The CLI defaults to printing diffs, never auto-rewriting files.</li>
-        </ul>
-      </article>
+  <section id="workbench" class="cs-section" aria-labelledby="workbench-title">
+    <p class="kicker">Query workbench</p>
+    <h2 id="workbench-title" class="heading-1 mt-3">Five real queries, one anti-pattern each</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      Pick a query to see what the analyzer actually reports, which ground-truth
+      keywords it earns, a reference rewrite with its assumptions, and the exact
+      message the CLI would send to Claude. Tabs deep-link (<code class="font-mono text-[0.9em]">#q1</code>–<code class="font-mono text-[0.9em]">#q5</code>).
+    </p>
+    <div class="mt-8">
+      <QueryWorkbench />
     </div>
   </section>
 
-  <!-- Local vs live callout -->
-  <section class="demo-section" id="live-mode">
-    <div class="demo-card">
-      <header class="flex flex-wrap items-baseline justify-between gap-2">
-        <div>
-          <p class="demo-eyebrow">Local vs. live</p>
-          <h3 class="mt-1 text-base font-semibold tracking-tight">
-            Runs locally by default. Claude is optional.
-          </h3>
-        </div>
-        <span class="data-chip" title="The on-page demo replays pre-computed fixtures; no API keys ship to the browser.">No API keys in client code</span>
-      </header>
-      <p class="mt-3 text-sm text-muted leading-relaxed">
-        The on-page demo replays pre-computed responses, so no API keys
-        are bundled into the client and the default build never reaches
-        the network. The repo ships the full CLI with a heuristic /
-        mock-response mode that works offline, plus an optional
-        Cloudflare Worker proxy at
-        <code class="font-mono text-xs">src/workers/sql-optimizer-proxy/</code>
-        for live calls when self-hosted with your own
-        <code class="font-mono text-xs">ANTHROPIC_API_KEY</code>. When
-        you deploy the Worker, set
-        <code class="font-mono text-xs">PUBLIC_LIVE_DEMO_URL</code> at
-        build time and the demo swaps fixture lookup for a Worker fetch.
-      </p>
-    </div>
-  </section>
-
-  <!-- Architecture -->
-  <section class="demo-section" id="architecture">
-    <SectionHeader
-      eyebrow="Architecture"
-      title="How it works under the hood"
-      description="Sequence diagram of the full flow, including the optional EXPLAIN-runner branch. The engineering narrative below covers the judgment calls."
-    />
-    <div class="demo-card">
-      <MermaidBlock code={`sequenceDiagram
-        participant U as User
-        participant CLI as sql-optimizer CLI
-        participant A as Analyzer (sqlglot + heuristics)
-        participant C as Claude API
-        participant E as EXPLAIN runner (optional)
-
-        U->>CLI: analyze query.sql
-        CLI->>A: parse + collect findings
-        A-->>CLI: AST + findings
-        CLI->>C: optimizer_prompt + sql + findings
-        C-->>CLI: rewrite + reasoning
-        CLI->>E: EXPLAIN original / EXPLAIN rewrite
-        E-->>CLI: cost deltas
-        CLI-->>U: markdown diff + cost report
-      `} />
+  <section id="benchmark" class="cs-section" aria-labelledby="benchmark-title">
+    <p class="kicker">Benchmark</p>
+    <h2 id="benchmark-title" class="heading-1 mt-3">What the score does and doesn't measure</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      The dry-run benchmark scores keyword overlap with ground truth and whether
+      any finding fired. Both charts below come straight from the analyzer's output
+      over the corpus, so the score's blind spots are visible rather than footnoted.
+    </p>
+    <div class="mt-8 space-y-5">
+      <KeywordAttributionChart client:visible />
+      <RuleCoverage />
+      <div class="card card-pad">
+        <p class="kicker">Planned evaluation · not measured</p>
+        <ul class="mt-4 grid gap-3 md:grid-cols-3">
+          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">Claude rewrite quality</p><p class="mt-1 text-muted"><code class="font-mono text-[0.9em]">--no-dry-run</code> doesn't call the API yet, so no model output is scored.</p></li>
+          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">EXPLAIN cost delta</p><p class="mt-1 text-muted">Needs a live Spark or Snowflake engine and the runner described in methodology.md.</p></li>
+          <li class="card-inset p-4 text-sm"><span class="status-chip" data-status="planned">Planned</span><p class="mt-2 font-medium">Human acceptance</p><p class="mt-1 text-muted">Reviewer accept/reject with rationale per suggestion, as the corpus grows.</p></li>
+        </ul>
+      </div>
     </div>
   </section>
 </CaseStudyLayout>

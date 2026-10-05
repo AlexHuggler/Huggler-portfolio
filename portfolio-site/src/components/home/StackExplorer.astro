@@ -1,0 +1,154 @@
+---
+/**
+ * Stack explorer — filter the stack by evidence class and select a tool to
+ * see where it's actually used (AT&T production per the résumé, which
+ * portfolio projects, or familiarity only). Server-rendered chips; a small
+ * script handles filtering/selection. Works as a static list without JS.
+ */
+import { stack, stackGroups, projectNames } from "../../data/stack";
+
+const filters = [
+  { id: "all", label: "Everything" },
+  { id: "production", label: "Used in production" },
+  { id: "projects", label: "In portfolio projects" },
+  { id: "familiar", label: "Familiar" },
+];
+---
+
+<div class="stack-explorer card overflow-hidden" data-stack-explorer>
+  <div class="flex flex-wrap items-center justify-between gap-3 border-b border-border p-4">
+    <div class="segmented" role="group" aria-label="Filter stack by evidence">
+      {filters.map((f, i) => (
+        <button type="button" data-filter={f.id} aria-pressed={i === 0 ? "true" : "false"}>
+          {f.label}
+        </button>
+      ))}
+    </div>
+    <p class="font-mono text-[11px] text-muted" data-stack-count role="status" aria-live="polite">
+      {stack.length} tools
+    </p>
+  </div>
+
+  <div class="grid lg:grid-cols-[1fr_320px]">
+    <div class="space-y-5 p-5">
+      {stackGroups.map((group) => (
+        <div data-stack-group>
+          <p class="kicker">{group}</p>
+          <ul class="mt-2.5 flex flex-wrap gap-2">
+            {stack.filter((s) => s.group === group).map((s) => (
+              <li data-stack-item data-production={s.production ? "1" : "0"} data-level={s.level} data-has-projects={s.projects.length ? "1" : "0"}>
+                <button
+                  type="button"
+                  class="chip-toggle"
+                  aria-pressed="false"
+                  data-name={s.name}
+                  data-note={s.note ?? ""}
+                  data-projects={s.projects.join(",")}
+                >
+                  {s.production && <span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true" />}
+                  {!s.production && s.level === "familiar" && <span class="h-1.5 w-1.5 rounded-full border border-muted" aria-hidden="true" />}
+                  {s.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+      <p class="flex flex-wrap gap-x-5 gap-y-1 border-t border-border pt-4 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">
+        <span class="inline-flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true"></span>named in AT&amp;T work</span>
+        <span class="inline-flex items-center gap-1.5"><span class="h-1.5 w-1.5 rounded-full border border-muted" aria-hidden="true"></span>familiar (per résumé)</span>
+      </p>
+    </div>
+
+    <aside class="border-t border-border bg-surface-2 p-5 lg:border-l lg:border-t-0" aria-live="polite" data-stack-detail>
+      <p class="kicker">Where it's used</p>
+      <div data-detail-empty>
+        <p class="mt-3 text-sm leading-relaxed text-muted">
+          Select a tool to see whether it's production experience, a portfolio
+          build, or familiarity — with links to the work.
+        </p>
+      </div>
+      <div data-detail-body hidden>
+        <p class="mt-3 font-display text-xl font-semibold tracking-tight" data-detail-name></p>
+        <ul class="mt-4 space-y-2.5 text-sm" data-detail-list></ul>
+        <p class="mt-4 font-mono text-[11px] leading-relaxed text-muted" data-detail-note></p>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<script is:inline define:vars={{ projectNames }}>
+  const bind = () => {
+    const root = document.querySelector("[data-stack-explorer]");
+    if (!root || root.dataset.bound === "1") return;
+    root.dataset.bound = "1";
+    const items = [...root.querySelectorAll("[data-stack-item]")];
+    const count = root.querySelector("[data-stack-count]");
+    const filterBtns = [...root.querySelectorAll("[data-filter]")];
+    const empty = root.querySelector("[data-detail-empty]");
+    const body = root.querySelector("[data-detail-body]");
+    const nameEl = root.querySelector("[data-detail-name]");
+    const list = root.querySelector("[data-detail-list]");
+    const noteEl = root.querySelector("[data-detail-note]");
+
+    const applyFilter = (id) => {
+      filterBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.filter === id)));
+      let n = 0;
+      items.forEach((li) => {
+        const show =
+          id === "all" ||
+          (id === "production" && li.dataset.production === "1") ||
+          (id === "projects" && li.dataset.hasProjects === "1") ||
+          (id === "familiar" && li.dataset.level === "familiar");
+        li.hidden = !show;
+        if (show) n++;
+      });
+      root.querySelectorAll("[data-stack-group]").forEach((g) => {
+        g.hidden = !g.querySelector("[data-stack-item]:not([hidden])");
+      });
+      count.textContent = `${n} tool${n === 1 ? "" : "s"}`;
+    };
+
+    const row = (label, href) => {
+      const li = document.createElement("li");
+      li.className = "flex items-start gap-2";
+      const dot = document.createElement("span");
+      dot.className = "mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-accent";
+      dot.setAttribute("aria-hidden", "true");
+      li.appendChild(dot);
+      if (href) {
+        const a = document.createElement("a");
+        a.href = href;
+        a.className = "link";
+        a.textContent = label;
+        li.appendChild(a);
+      } else {
+        const span = document.createElement("span");
+        span.textContent = label;
+        li.appendChild(span);
+      }
+      return li;
+    };
+
+    const select = (btn) => {
+      root.querySelectorAll(".chip-toggle").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+      const li = btn.closest("[data-stack-item]");
+      nameEl.textContent = btn.dataset.name;
+      list.replaceChildren();
+      if (li.dataset.production === "1") list.appendChild(row("AT&T production work (résumé)", "/about#experience"));
+      const projects = btn.dataset.projects ? btn.dataset.projects.split(",") : [];
+      projects.forEach((p) => list.appendChild(row(`${projectNames[p]} — portfolio project`, `/projects/${p}`)));
+      if (li.dataset.production !== "1" && projects.length === 0)
+        list.appendChild(row(li.dataset.level === "familiar" ? "Familiar — no public project yet" : "Professional use (résumé skills)", null));
+      noteEl.textContent = btn.dataset.note || (li.dataset.level === "familiar" ? "Listed as “familiar” on the résumé." : "");
+      empty.hidden = true;
+      body.hidden = false;
+    };
+
+    filterBtns.forEach((b) => b.addEventListener("click", () => applyFilter(b.dataset.filter)));
+    root.querySelectorAll(".chip-toggle").forEach((b) => b.addEventListener("click", () => select(b)));
+  };
+  // Inline (define:vars) scripts re-run on every view-transition swap, so a
+  // direct call binds the freshly rendered explorer exactly once.
+  bind();
+</script>

@@ -1,41 +1,35 @@
 ---
+/**
+ * Primary navigation. Desktop: one row — wordmark, links, search, GitHub,
+ * theme. Mobile: wordmark + search + theme + a disclosure menu button
+ * (aria-expanded / aria-controls; Esc and navigation close it and return
+ * focus). The wordmark carries the site's one persistent gradient mark.
+ */
 import ThemeToggle from "./ThemeToggle.astro";
 import { siteConfig } from "../site.config";
 
 const links = [
-  { href: "/", label: "Home" },
   { href: "/projects", label: "Projects" },
-  { href: "/visualizations", label: "Data Visualizations" },
+  { href: "/visualizations", label: "Dashboards" },
+  { href: "/evidence", label: "Evidence" },
   { href: "/about", label: "About" },
-  { href: "/resume", label: "Resume" },
+  { href: "/resume", label: "Résumé" },
   { href: "/contact", label: "Contact" },
 ];
 
-const path = Astro.url.pathname;
-const normalize = (p: string) =>
-  p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p;
-const currentPath = normalize(path);
-const isActive = (href: string) =>
-  href === "/"
-    ? currentPath === "/"
-    : currentPath === href || currentPath.startsWith(`${href}/`);
+const normalize = (p: string) => (p.length > 1 && p.endsWith("/") ? p.slice(0, -1) : p);
+const currentPath = normalize(Astro.url.pathname);
+const isActive = (href: string) => currentPath === href || currentPath.startsWith(`${href}/`);
 ---
 
-<header
-  class="border-b border-border sticky top-0 z-30 backdrop-blur supports-[backdrop-filter]:bg-bg/70"
->
-  <nav
-    class="mx-auto flex max-w-page flex-wrap items-center justify-between gap-3 px-4 md:px-6 py-3 md:py-4"
-    aria-label="Primary"
-  >
-    <a
-      href="/"
-      class="font-display font-semibold tracking-tight focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
-    >
-      <span class="text-gradient-accent" aria-hidden="true">AH·</span>
-      {siteConfig.name}
+<header data-site-header class="site-header sticky top-0 z-40 border-b border-border/80 bg-bg/75 backdrop-blur-xl supports-[backdrop-filter]:bg-bg/65">
+  <nav class="container-page flex h-16 items-center gap-6" aria-label="Primary">
+    <a href="/" class="group mr-auto flex items-center gap-2.5 rounded-md font-display text-[15px] font-semibold tracking-tight lg:mr-0">
+      <span class="wordmark-badge" aria-hidden="true">AH</span>
+      <span>{siteConfig.name}</span>
     </a>
-    <ul class="order-3 md:order-2 flex flex-wrap items-center gap-3 md:gap-6 text-xs md:text-sm w-full md:w-auto">
+
+    <ul class="mx-auto hidden items-center gap-1 lg:flex">
       {links.map((link) => {
         const active = isActive(link.href);
         return (
@@ -43,12 +37,7 @@ const isActive = (href: string) =>
             <a
               href={link.href}
               aria-current={active ? "page" : undefined}
-              class:list={[
-                "nav-link relative inline-flex items-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm",
-                active
-                  ? "text-fg font-medium nav-link-active"
-                  : "text-muted hover:text-fg",
-              ]}
+              class:list={["nav-link", active && "nav-link-active"]}
             >
               {link.label}
             </a>
@@ -56,47 +45,162 @@ const isActive = (href: string) =>
         );
       })}
     </ul>
-    <div class="order-2 md:order-3 flex items-center gap-3">
+
+    <div class="flex items-center gap-2">
+      <button type="button" data-cmdk-open class="search-trigger" aria-label="Search the site (Command K)">
+        <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <span class="hidden md:inline">Search</span>
+        <kbd class="hidden md:inline-flex" aria-hidden="true">⌘K</kbd>
+      </button>
       <a
         href={siteConfig.github}
-        class="hidden sm:inline text-sm text-muted hover:text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg rounded-sm"
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Alex's GitHub profile (opens in new tab)"
+        class="icon-btn hidden sm:inline-flex"
+        aria-label="GitHub profile (opens in new tab)"
       >
-        GitHub
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 .5C5.65.5.5 5.65.5 12c0 5.08 3.29 9.39 7.86 10.91.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.87-1.54-3.87-1.54-.52-1.32-1.27-1.67-1.27-1.67-1.04-.71.08-.7.08-.7 1.15.08 1.76 1.18 1.76 1.18 1.02 1.75 2.69 1.24 3.35.95.1-.74.4-1.24.72-1.52-2.55-.29-5.24-1.27-5.24-5.66 0-1.25.45-2.27 1.18-3.07-.12-.29-.51-1.46.11-3.04 0 0 .96-.31 3.15 1.17a10.94 10.94 0 0 1 5.74 0c2.18-1.48 3.14-1.17 3.14-1.17.62 1.58.23 2.75.11 3.04.74.8 1.18 1.82 1.18 3.07 0 4.4-2.69 5.36-5.26 5.65.41.36.78 1.06.78 2.13 0 1.54-.01 2.78-.01 3.16 0 .31.21.68.8.56C20.71 21.39 24 17.08 24 12 24 5.65 18.85.5 12 .5z"/></svg>
       </a>
       <ThemeToggle />
+      <button
+        type="button"
+        class="icon-btn lg:hidden"
+        aria-expanded="false"
+        aria-controls="mobile-menu"
+        data-menu-button
+      >
+        <span class="sr-only">Menu</span>
+        <svg data-menu-open width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+        <svg data-menu-close class="hidden" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+      </button>
     </div>
   </nav>
+
+  <div id="mobile-menu" class="mobile-menu lg:hidden" hidden>
+    <ul class="container-page grid gap-1 pb-5 pt-2">
+      {links.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            aria-current={isActive(link.href) ? "page" : undefined}
+            class="mobile-link"
+          >
+            {link.label}
+            <span aria-hidden="true">→</span>
+          </a>
+        </li>
+      ))}
+      <li class="mt-2 flex gap-2 border-t border-border pt-3">
+        <a href={siteConfig.github} target="_blank" rel="noopener noreferrer" class="btn btn-sm">GitHub <span class="sr-only">(opens in new tab)</span></a>
+        <a href={siteConfig.linkedin} target="_blank" rel="noopener noreferrer" class="btn btn-sm">LinkedIn <span class="sr-only">(opens in new tab)</span></a>
+        <a href={siteConfig.resumePath} class="btn btn-sm">Résumé PDF</a>
+      </li>
+    </ul>
+  </div>
 </header>
 
+<script>
+  const bindMenu = () => {
+    const button = document.querySelector<HTMLButtonElement>("[data-menu-button]");
+    const menu = document.getElementById("mobile-menu");
+    if (!button || !menu || button.dataset.bound === "1") return;
+    button.dataset.bound = "1";
+
+    const set = (open: boolean, restoreFocus = false) => {
+      button.setAttribute("aria-expanded", String(open));
+      menu.hidden = !open;
+      button.querySelector("[data-menu-open]")?.classList.toggle("hidden", open);
+      button.querySelector("[data-menu-close]")?.classList.toggle("hidden", !open);
+      if (open) menu.querySelector<HTMLAnchorElement>("a")?.focus();
+      else if (restoreFocus) button.focus();
+    };
+
+    const abort = new AbortController();
+    button.addEventListener("click", () => set(button.getAttribute("aria-expanded") !== "true"));
+    document.addEventListener(
+      "keydown",
+      (e) => {
+        if (e.key === "Escape" && button.getAttribute("aria-expanded") === "true") set(false, true);
+      },
+      { signal: abort.signal },
+    );
+    document.addEventListener("astro:before-swap", () => abort.abort(), { once: true });
+    menu.addEventListener("click", (e) => {
+      if ((e.target as HTMLElement).closest("a")) set(false);
+    });
+  };
+
+  // Elevate the header once the page scrolls (hairline → soft shadow).
+  const bindScroll = () => {
+    const header = document.querySelector<HTMLElement>("[data-site-header]");
+    if (!header) return;
+    const onScroll = () => header.classList.toggle("is-scrolled", window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    document.addEventListener("astro:before-swap", () => window.removeEventListener("scroll", onScroll), { once: true });
+  };
+
+  document.addEventListener("astro:page-load", () => {
+    bindMenu();
+    bindScroll();
+  });
+</script>
+
 <style>
-  .nav-link::after {
+  .wordmark-badge {
+    @apply inline-flex h-7 w-7 items-center justify-center rounded-lg font-mono text-[11px] font-bold text-white;
+    background: var(--gradient-accent);
+    box-shadow: var(--highlight), 0 4px 12px -4px rgb(var(--color-accent) / 0.5);
+    letter-spacing: -0.02em;
+  }
+  .site-header {
+    transition: box-shadow var(--dur-2) ease, border-color var(--dur-2) ease;
+  }
+  .site-header.is-scrolled {
+    box-shadow: 0 8px 24px -16px rgb(var(--color-shadow) / 0.35);
+  }
+  .nav-link {
+    @apply relative inline-flex items-center rounded-md px-3 py-1.5 text-sm text-muted;
+    transition: color var(--dur-2) ease, background-color var(--dur-2) ease;
+  }
+  .nav-link:hover {
+    @apply bg-surface-2 text-fg;
+  }
+  .nav-link-active {
+    @apply font-medium text-fg;
+  }
+  .nav-link-active::after {
     content: "";
     position: absolute;
-    left: 0;
-    right: 0;
-    bottom: -4px;
-    height: 1.5px;
-    background: linear-gradient(
-      90deg,
-      rgb(var(--color-accent)),
-      rgb(var(--color-accent-2))
-    );
-    border-radius: 1px;
-    opacity: 0.9;
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform 200ms ease;
+    left: 0.75rem;
+    right: 0.75rem;
+    bottom: -0.95rem;
+    height: 2px;
+    border-radius: 2px;
+    background: rgb(var(--color-accent));
   }
-  .nav-link:hover::after,
-  .nav-link-active::after {
-    transform: scaleX(1);
+  .search-trigger {
+    @apply inline-flex h-9 items-center gap-2 rounded-lg border border-border bg-surface px-2.5 text-sm text-muted;
+    box-shadow: var(--shadow-1), var(--highlight);
+    transition: color var(--dur-2) ease, border-color var(--dur-2) ease;
   }
-  @media (prefers-reduced-motion: reduce) {
-    .nav-link::after {
-      transition: none;
-    }
+  .search-trigger:hover {
+    @apply border-border-strong text-fg;
+  }
+  .search-trigger kbd {
+    @apply ml-3;
+  }
+  .mobile-menu {
+    @apply border-t border-border bg-bg;
+  }
+  .mobile-link {
+    @apply flex items-center justify-between rounded-lg px-3 py-3 text-base text-fg;
+  }
+  .mobile-link:hover,
+  .mobile-link[aria-current="page"] {
+    @apply bg-surface-2;
+  }
+  .mobile-link[aria-current="page"] {
+    box-shadow: inset 2px 0 0 rgb(var(--color-accent));
   }
 </style>

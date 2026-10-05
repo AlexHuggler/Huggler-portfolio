@@ -1,6 +1,6 @@
 {
   "name": "huggler-portfolio-site",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "Alex Huggler's data engineering portfolio site",
@@ -9,7 +9,14 @@
     "start": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "check": "astro check",
+    "astro": "astro",
+    "measure": "python3 scripts/measure.py run",
+    "measure:render": "python3 scripts/measure.py render",
+    "data:check": "python3 scripts/generate_viz_data.py --check",
+    "data:viz": "python3 scripts/generate_viz_data.py",
+    "validate": "node scripts/validate-data.mjs",
+    "qa": "node scripts/qa.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -20,23 +27,21 @@
     "@fontsource-variable/inter": "^5.2.8",
     "@fontsource-variable/jetbrains-mono": "^5.2.8",
     "@fontsource-variable/space-grotesk": "^5.2.10",
-    "@monaco-editor/react": "^4.7.0",
     "@tailwindcss/typography": "^0.5.20",
     "astro": "^5.18.1",
     "clsx": "^2.1.1",
     "echarts": "^5.6.0",
-    "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
-    "mermaid": "^11.4.0",
     "react": "^19.2.6",
-    "react-diff-viewer-continued": "^4.2.2",
     "react-dom": "^19.2.6",
-    "reactflow": "^11.11.4",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.7.2"
   },
   "devDependencies": {
     "@types/react": "^19.2.14",
-    "@types/react-dom": "^19.2.3"
+    "@types/react-dom": "^19.2.3",
+    "axe-core": "^4.13.0",
+    "playwright-core": "^1.56.1",
+    "shiki": "^3.23.0"
   }
 }

@@ -1,72 +1,73 @@
-import type { JSX } from "react";
-import { useEffect, useRef, useState } from "react";
+import type { JSX, ReactNode } from "react";
+import { useEffect, useRef } from "react";
 import * as echarts from "echarts/core";
 import {
   BarChart,
   LineChart,
   PieChart,
   HeatmapChart,
+  ScatterChart,
   TreemapChart,
   GaugeChart,
-  ScatterChart,
 } from "echarts/charts";
 import {
   GridComponent,
   TooltipComponent,
   LegendComponent,
-  TitleComponent,
   VisualMapComponent,
   DataZoomComponent,
   MarkLineComponent,
+  MarkAreaComponent,
+  MarkPointComponent,
+  AriaComponent,
 } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
 import { useReducedMotion } from "../../hooks/useReducedMotion";
 import { getTokens, type VizMode, type VizTokens } from "./theme";
+import { registerChart, useThemeMode } from "./store";
 
 /**
  * Tree-shaken ECharts registration. Only the chart types and components the
- * dashboards actually use are pulled in, and this runs once per module load
- * regardless of how many dashboards import the wrapper.
+ * site actually uses are pulled in, once per module load.
  */
 echarts.use([
   BarChart,
   LineChart,
   PieChart,
   HeatmapChart,
+  ScatterChart,
   TreemapChart,
   GaugeChart,
-  ScatterChart,
   GridComponent,
   TooltipComponent,
   LegendComponent,
-  TitleComponent,
   VisualMapComponent,
   DataZoomComponent,
   MarkLineComponent,
+  MarkAreaComponent,
+  MarkPointComponent,
+  AriaComponent,
   CanvasRenderer,
 ]);
 
-function currentMode(): VizMode {
-  if (typeof document === "undefined") return "dark";
-  return document.documentElement.classList.contains("dark") ? "dark" : "light";
-}
+export type ChartOption = echarts.EChartsCoreOption;
+export type ChartEvents = Record<string, (params: any) => void>;
 
 export interface EChartProps {
   /**
-   * Pure builder for the chart option. Define it at module scope (stable
-   * identity) so it rebuilds only when theme/motion change. Receives the
-   * theme tokens, the current mode, and whether reduced motion is requested.
+   * Pure builder for the chart option. Keep its identity stable (module scope
+   * or useCallback) so it rebuilds only when theme / motion / inputs change.
    */
-  buildOption: (
-    tokens: VizTokens,
-    mode: VizMode,
-    reduced: boolean,
-  ) => echarts.EChartsCoreOption;
+  buildOption: (tokens: VizTokens, mode: VizMode, reduced: boolean) => ChartOption | Record<string, unknown>;
   height?: number;
   ariaLabel: string;
   /** Visually-hidden table fallback for screen readers. */
-  fallbackTable?: React.ReactNode;
+  fallbackTable?: ReactNode;
   className?: string;
+  /** ECharts event handlers, e.g. { click: (p) => ... }. */
+  onEvents?: ChartEvents;
+  /** Charts sharing a group id get linked tooltips/axis pointers. */
+  group?: string;
 }
 
 export default function EChart({
@@ -75,44 +76,64 @@ export default function EChart({
   ariaLabel,
   fallbackTable,
   className,
+  onEvents,
+  group,
 }: EChartProps): JSX.Element {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<echarts.ECharts | null>(null);
-  const [mode, setMode] = useState<VizMode>(currentMode);
+  const eventsRef = useRef<ChartEvents | undefined>(onEvents);
+  eventsRef.current = onEvents;
+  const mode = useThemeMode();
   const reduced = useReducedMotion();
 
-  // Initialise once; tear down on unmount.
+  // Initialise once; tear down on unmount (and on view-transition swaps).
   useEffect(() => {
-    if (!containerRef.current) return;
-    const chart = echarts.init(containerRef.current, undefined, {
-      renderer: "canvas",
-    });
+    const el = containerRef.current;
+    if (!el) return;
+    const chart = echarts.init(el, undefined, { renderer: "canvas" });
     chartRef.current = chart;
-    const ro = new ResizeObserver(() => chart.resize());
-    ro.observe(containerRef.current);
+    const unregister = registerChart(chart);
+    const ro = new ResizeObserver(() => {
+      if (!chart.isDisposed()) chart.resize();
+    });
+    ro.observe(el);
     return () => {
       ro.disconnect();
-      chart.dispose();
+      unregister();
+      if (!chart.isDisposed()) chart.dispose();
       chartRef.current = null;
     };
   }, []);
 
-  // Track the site theme class on <html>; the toggle dispatches no event.
+  // Event handlers proxy through a ref so changing them never rebinds.
   useEffect(() => {
-    const observer = new MutationObserver(() => setMode(currentMode()));
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ["class"],
-    });
-    return () => observer.disconnect();
-  }, []);
+    const chart = chartRef.current;
+    if (!chart) return;
+    const names = Object.keys(onEvents ?? {});
+    names.forEach((name) =>
+      chart.on(name, (p: unknown) => eventsRef.current?.[name]?.(p)),
+    );
+    return () => names.forEach((name) => chart.off(name));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [Object.keys(onEvents ?? {}).join("|")]);
+
+  useEffect(() => {
+    const chart = chartRef.current;
+    if (!chart || !group) return;
+    chart.group = group;
+    echarts.connect(group);
+  }, [group]);
 
   // (Re)apply the option whenever theme, motion, or the builder change.
   useEffect(() => {
     const chart = chartRef.current;
-    if (!chart) return;
-    chart.setOption(buildOption(getTokens(mode), mode, reduced), true);
-  }, [buildOption, mode, reduced]);
+    if (!chart || chart.isDisposed()) return;
+    const option = buildOption(getTokens(mode), mode, reduced);
+    chart.setOption(
+      { aria: { enabled: true, label: { description: ariaLabel } }, ...option } as ChartOption,
+      true,
+    );
+  }, [buildOption, mode, reduced, ariaLabel]);
 
   return (
     <div className={className}>

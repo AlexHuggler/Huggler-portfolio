@@ -1,0 +1,185 @@
+{
+  "_meta": {
+    "synthetic": true,
+    "generatedBy": "portfolio-site/scripts/artifacts/fraud.py",
+    "source": "project-fraud-signals",
+    "sourceDigest": "e0af7cd4bdc7",
+    "note": "Real detector code and account-level evaluation over the make eval set (seed 42)."
+  },
+  "dataset": {
+    "events": 16664,
+    "accounts": 1000,
+    "ratePerSec": 50,
+    "durationSec": 300,
+    "producerFraudRate": 0.05,
+    "labeledEvents": 2419,
+    "labeledEventShare": 0.1452,
+    "labelCounts": {
+      "normal": 14245,
+      "velocity_burst": 1650,
+      "impossible_travel": 540,
+      "amount_outlier": 229
+    },
+    "seed": 42
+  },
+  "constants": {
+    "VELOCITY_WINDOW_SEC": 60,
+    "VELOCITY_THRESHOLD": 5,
+    "IMPOSSIBLE_TRAVEL_MIN_SEC_PER_HOP": 3600,
+    "ZSCORE_THRESHOLD": 3.0
+  },
+  "kindToLabel": {
+    "velocity": "velocity_burst",
+    "geo": "impossible_travel",
+    "amount": "amount_outlier"
+  },
+  "source": {
+    "velocity": "def velocity_anomaly(events: Iterable[dict]) -> list[Anomaly]:\n    \"\"\"Flag accounts with >= VELOCITY_THRESHOLD events in any VELOCITY_WINDOW_SEC window.\"\"\"\n    by_account: dict[str, list[dict]] = defaultdict(list)\n    for e in events:\n        by_account[e[\"account_id\"]].append(e)\n\n    out: list[Anomaly] = []\n    for account_id, evs in by_account.items():\n        evs_sorted = sorted(evs, key=lambda e: _parse_ts(e[\"ts\"]))\n        for i in range(len(evs_sorted)):\n            window_end = _parse_ts(evs_sorted[i][\"ts\"])\n            window_start = window_end.timestamp() - VELOCITY_WINDOW_SEC\n            count = 0\n            for j in range(i, -1, -1):\n                if _parse_ts(evs_sorted[j][\"ts\"]).timestamp() < window_start:\n                    break\n                count += 1\n            if count >= VELOCITY_THRESHOLD:\n                ev = evs_sorted[i]\n                out.append(\n                    Anomaly(\n                        event_id=ev[\"event_id\"],\n                        account_id=account_id,\n                        kind=\"velocity\",\n                        score=float(count),\n                        detail=f\"{count} events in {VELOCITY_WINDOW_SEC}s\",\n                    )\n                )\n                break\n    return out\n",
+    "geo": "def geo_anomaly(events: Iterable[dict]) -> list[Anomaly]:\n    \"\"\"Flag impossible-travel: country change within a window too small for the hop.\"\"\"\n    by_account: dict[str, list[dict]] = defaultdict(list)\n    for e in events:\n        by_account[e[\"account_id\"]].append(e)\n\n    out: list[Anomaly] = []\n    for account_id, evs in by_account.items():\n        evs_sorted = sorted(evs, key=lambda e: _parse_ts(e[\"ts\"]))\n        prev = None\n        for ev in evs_sorted:\n            if prev is None:\n                prev = ev\n                continue\n            if ev[\"country\"] != prev[\"country\"]:\n                delta = (_parse_ts(ev[\"ts\"]) - _parse_ts(prev[\"ts\"])).total_seconds()\n                if delta < IMPOSSIBLE_TRAVEL_MIN_SEC_PER_HOP:\n                    out.append(\n                        Anomaly(\n                            event_id=ev[\"event_id\"],\n                            account_id=account_id,\n                            kind=\"geo\",\n                            score=round(IMPOSSIBLE_TRAVEL_MIN_SEC_PER_HOP / max(delta, 1), 2),\n                            detail=f\"{prev['country']}->{ev['country']} in {int(delta)}s\",\n                        )\n                    )\n            prev = ev\n    return out\n",
+    "amount": "def amount_zscore_anomaly(events: Iterable[dict]) -> list[Anomaly]:\n    \"\"\"Flag events whose amount is > ZSCORE_THRESHOLD stddevs above the account mean.\"\"\"\n    by_account: dict[str, list[dict]] = defaultdict(list)\n    for e in events:\n        by_account[e[\"account_id\"]].append(e)\n\n    out: list[Anomaly] = []\n    for account_id, evs in by_account.items():\n        amounts = [float(e[\"amount\"]) for e in evs]\n        if len(amounts) < 4:\n            continue\n        mean = statistics.fmean(amounts)\n        stdev = statistics.pstdev(amounts) or 1.0\n        for ev in evs:\n            z = (float(ev[\"amount\"]) - mean) / stdev\n            if z >= ZSCORE_THRESHOLD:\n                out.append(\n                    Anomaly(\n                        event_id=ev[\"event_id\"],\n                        account_id=account_id,\n                        kind=\"amount\",\n                        score=round(z, 2),\n                        detail=f\"amount={ev['amount']} z={z:.2f}\",\n                    )\n                )\n    return out\n"
+  },
+  "scores": [
+    {
+      "kind": "velocity",
+      "label": "velocity_burst",
+      "trueAccounts": 226,
+      "flaggedAccounts": 865,
+      "truePositives": 226,
+      "precision": 0.2613,
+      "recall": 1.0,
+      "f1": 0.4143
+    },
+    {
+      "kind": "geo",
+      "label": "impossible_travel",
+      "trueAccounts": 240,
+      "flaggedAccounts": 240,
+      "truePositives": 240,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "kind": "amount",
+      "label": "amount_outlier",
+      "trueAccounts": 200,
+      "flaggedAccounts": 121,
+      "truePositives": 117,
+      "precision": 0.9669,
+      "recall": 0.585,
+      "f1": 0.729
+    }
+  ],
+  "sweeps": {
+    "velocity": [
+      {
+        "threshold": 3,
+        "precision": 0.2262,
+        "recall": 1.0,
+        "f1": 0.369,
+        "flaggedAccounts": 999
+      },
+      {
+        "threshold": 4,
+        "precision": 0.2311,
+        "recall": 1.0,
+        "f1": 0.3754,
+        "flaggedAccounts": 978
+      },
+      {
+        "threshold": 5,
+        "precision": 0.2613,
+        "recall": 1.0,
+        "f1": 0.4143,
+        "flaggedAccounts": 865
+      },
+      {
+        "threshold": 6,
+        "precision": 0.3247,
+        "recall": 1.0,
+        "f1": 0.4902,
+        "flaggedAccounts": 696
+      },
+      {
+        "threshold": 7,
+        "precision": 0.4487,
+        "recall": 0.9867,
+        "f1": 0.6169,
+        "flaggedAccounts": 497
+      },
+      {
+        "threshold": 8,
+        "precision": 0.6088,
+        "recall": 0.9159,
+        "f1": 0.7314,
+        "flaggedAccounts": 340
+      },
+      {
+        "threshold": 9,
+        "precision": 0.7835,
+        "recall": 0.8009,
+        "f1": 0.7921,
+        "flaggedAccounts": 231
+      },
+      {
+        "threshold": 10,
+        "precision": 0.8976,
+        "recall": 0.6593,
+        "f1": 0.7602,
+        "flaggedAccounts": 166
+      }
+    ],
+    "amount": [
+      {
+        "threshold": 2.0,
+        "precision": 0.3723,
+        "recall": 0.94,
+        "f1": 0.5333,
+        "flaggedAccounts": 505
+      },
+      {
+        "threshold": 2.5,
+        "precision": 0.659,
+        "recall": 0.715,
+        "f1": 0.6859,
+        "flaggedAccounts": 217
+      },
+      {
+        "threshold": 3.0,
+        "precision": 0.9669,
+        "recall": 0.585,
+        "f1": 0.729,
+        "flaggedAccounts": 121
+      },
+      {
+        "threshold": 3.5,
+        "precision": 1.0,
+        "recall": 0.215,
+        "f1": 0.3539,
+        "flaggedAccounts": 43
+      },
+      {
+        "threshold": 4.0,
+        "precision": 1.0,
+        "recall": 0.02,
+        "f1": 0.0392,
+        "flaggedAccounts": 4
+      },
+      {
+        "threshold": 4.5,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "flaggedAccounts": 0
+      },
+      {
+        "threshold": 5.0,
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "flaggedAccounts": 0
+      }
+    ]
+  },
+  "normalRatePerAccountPerMin": 2.849
+}

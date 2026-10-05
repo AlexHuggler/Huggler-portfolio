@@ -1,0 +1,98 @@
+---
+/**
+ * DagExplorer — the three real Airflow DAGs, parsed from dags/*.py: schedule,
+ * default args, tasks with operators and what they call, and edges. A 24-hour
+ * strip shows when each would run on its own schedule — making it obvious
+ * that nothing links them yet.
+ */
+import { dags } from "../../data/artifacts";
+
+const order = ["ingest_cdr_bronze", "transform_silver", "build_gold_marts"];
+const list = order.map((id) => dags.dags.find((d) => d.id === id)!).filter(Boolean);
+const runsPerDay = (s: string) => (s === "@hourly" ? 24 : s === "@daily" ? 1 : 0);
+const delay = (d: { timedelta: Record<string, number> } | undefined) =>
+  d ? Object.entries(d.timedelta).map(([k, v]) => `${v} ${k.replace(/s$/, "")}${v === 1 ? "" : "s"}`).join(" ") : "—";
+const isStub = (doc?: string) => !!doc && /great expectations|suite/i.test(doc);
+---
+
+<div class="space-y-5">
+  <div class="grid gap-4 lg:grid-cols-3">
+    {list.map((d, i) => (
+      <article class="card flex flex-col p-5">
+        <div class="flex items-center justify-between gap-2">
+          <p class="font-mono text-[11px] text-muted">DAG {i + 1} of {list.length}</p>
+          <span class="pill font-semibold text-accent-fg">{d.schedule}</span>
+        </div>
+        <h3 class="mt-2 font-mono text-[15px] font-semibold">{d.id}</h3>
+        <p class="mt-1 text-sm text-muted">{d.description}</p>
+        <dl class="spec mt-4 !gap-y-1 text-[13px]">
+          <dt>Owner</dt><dd>{d.defaultArgs.owner}</dd>
+          <dt>Retries</dt><dd>{d.defaultArgs.retries} · {delay(d.defaultArgs.retry_delay)} apart</dd>
+          <dt>Catchup</dt><dd>{String(d.catchup)}</dd>
+        </dl>
+        <ol class="mt-4 flex-1 space-y-2">
+          {d.tasks.map((t, j) => (
+            <li class="relative rounded-lg border border-border bg-surface-2 p-3">
+              {j > 0 && <span class="absolute -top-2 left-5 h-2 w-px bg-border-strong" aria-hidden="true"></span>}
+              <p class="flex flex-wrap items-center gap-2">
+                <code class="font-mono text-[12px] font-semibold">{t.id}</code>
+                <span class="font-mono text-[10px] text-muted">{t.operator}</span>
+                {isStub(t.doc) && <span class="status-chip" data-status="stub">stub</span>}
+              </p>
+              {t.callable && <p class="mt-1 font-mono text-[11px] text-muted">{t.callable}()</p>}
+              {t.command && <p class="mt-1 font-mono text-[11px] text-muted [overflow-wrap:anywhere]">{t.command}</p>}
+              {isStub(t.doc) && (
+                <p class="mt-1.5 text-xs leading-relaxed text-fg/80">Loads the GE context and prints; no checkpoint runs yet.</p>
+              )}
+            </li>
+          ))}
+        </ol>
+        <a href={`https://github.com/AlexHuggler/Huggler-portfolio/blob/main/project-telecom-lakehouse/${d.file.replace(/^project-telecom-lakehouse\//, "")}`} target="_blank" rel="noopener noreferrer" class="mt-4 font-mono text-[11px] text-accent-fg hover:underline">
+          {d.file.replace(/^project-telecom-lakehouse\//, "")} ↗<span class="sr-only"> (opens in new tab)</span>
+        </a>
+      </article>
+    ))}
+  </div>
+
+  <figure class="card p-5">
+    <figcaption class="flex flex-wrap items-baseline justify-between gap-2">
+      <span class="text-[15px] font-semibold tracking-tight">A day of scheduled runs</span>
+      <span class="font-mono text-[11px] text-muted">UTC · each tick = one scheduled run</span>
+    </figcaption>
+    <div class="mt-4 space-y-3" role="list">
+      {list.map((d) => {
+        const n = runsPerDay(d.schedule);
+        return (
+          <div class="grid grid-cols-1 items-center gap-1.5 sm:grid-cols-[180px_1fr] sm:gap-3" role="listitem">
+            <span class="truncate font-mono text-[11px]">{d.id}</span>
+            <div class="relative h-6 rounded-md bg-surface-2" aria-label={`${d.id}: ${n} run${n === 1 ? "" : "s"} per day`} role="img">
+              {Array.from({ length: n }).map((_, h) => (
+                <span class="sched-tick" style={`left: calc(${(h / 24) * 100}% + 2px)`}></span>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]" aria-hidden="true">
+        <span class="hidden sm:block"></span>
+        <div class="flex justify-between font-mono text-[10px] text-muted"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
+      </div>
+    </div>
+    <p class="mt-4 border-t border-border pt-3 text-[13px] leading-relaxed text-fg/90">
+      <span class="mr-1.5 font-mono text-[10px] font-medium uppercase tracking-[0.12em] text-accent-fg">Takeaway</span>
+      The schedules are independent — no sensors or Datasets connect them, so Gold rebuilds at midnight
+      whether or not Silver changed. Airflow Datasets would make that dependency explicit.
+    </p>
+  </figure>
+</div>
+
+<style>
+  .sched-tick {
+    position: absolute;
+    top: 4px;
+    bottom: 4px;
+    width: calc(100% / 24 - 4px);
+    border-radius: 3px;
+    background: rgb(var(--color-accent) / 0.75);
+  }
+</style>

@@ -1,0 +1,17 @@
+$ make test
+uv run pytest
+..................                                                                                                                                                                               [100%]
+18 passed in 1.33s
+
+$ make benchmark
+uv run sql-optimizer benchmark --dry-run
+                  Benchmark over 5 queries (dry_run=True)                  
+┏━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━┓
+┃ Category            ┃ Queries ┃ Avg keyword overlap ┃ Findings hit rate ┃
+┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
+│ join_optimization   │       1 │                1.00 │              1.00 │
+│ aggregation_rewrite │       1 │                0.67 │              1.00 │
+│ cte_flattening      │       1 │                0.00 │              1.00 │
+│ partition_pruning   │       1 │                0.67 │              0.00 │
+│ broadcast_join      │       1 │                1.00 │              1.00 │
+└─────────────────────┴─────────┴─────────────────────┴───────────────────┘

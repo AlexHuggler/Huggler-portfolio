@@ -1,0 +1,74 @@
+---
+/**
+ * DetectorCards — the three real detectors: their constants and source
+ * (read from detect.py by the exporter), account-level precision / recall /
+ * F1 against the producer's labels, and what the numbers mean.
+ */
+import { Code } from "astro:components";
+import { cssVarsTheme } from "../../lib/shiki-theme.mjs";
+import { detectors, type DetectorKind } from "../../data/artifacts";
+
+const c = detectors.constants;
+const meta: Record<DetectorKind, { name: string; rule: string; reading: string }> = {
+  velocity: {
+    name: "Velocity",
+    rule: `≥ ${c.VELOCITY_THRESHOLD} events from one account inside any ${c.VELOCITY_WINDOW_SEC}-second window`,
+    reading: `Catches every seeded burst, but at about ${Math.round(detectors.normalRatePerAccountPerMin)} events per account per minute a fixed count fires on ordinary traffic too. The fix is calibration — see the threshold explorer.`,
+  },
+  geo: {
+    name: "Impossible travel",
+    rule: `country changes with less than ${c.IMPOSSIBLE_TRAVEL_MIN_SEC_PER_HOP / 3600} hour between consecutive events`,
+    reading: "Perfect on this data — and easy here, because the producer's travel pattern hops country within 90 seconds. Real traffic needs geodistance and VPN handling.",
+  },
+  amount: {
+    name: "Amount z-score",
+    rule: `amount ≥ ${c.ZSCORE_THRESHOLD.toFixed(1)} standard deviations above the account's mean`,
+    reading: "Precise but misses accounts whose few events make the mean and stdev unstable; per-account history (or a robust estimator) would lift recall.",
+  },
+};
+const order: DetectorKind[] = ["velocity", "geo", "amount"];
+const pct = (n: number) => `${Math.round(n * 100)}%`;
+---
+
+<div class="grid gap-5 xl:grid-cols-3">
+  {order.map((kind) => {
+    const s = detectors.scores.find((x) => x.kind === kind)!;
+    const m = meta[kind];
+    return (
+      <article class="card flex flex-col overflow-hidden">
+        <header class="p-5">
+          <p class="font-mono text-[11px] text-muted">detect.{kind === "amount" ? "amount_zscore" : kind}_anomaly · catches {detectors.kindToLabel[kind]}</p>
+          <h3 class="mt-2 text-lg font-semibold tracking-tight">{m.name}</h3>
+          <p class="mt-1.5 text-sm leading-relaxed text-fg/85">Flags {m.rule}.</p>
+        </header>
+        <dl class="grid grid-cols-3 border-y border-border">
+          {[
+            ["Precision", s.precision],
+            ["Recall", s.recall],
+            ["F1", s.f1],
+          ].map(([k, v]) => (
+            <div class="flex flex-col border-r border-border p-4 last:border-r-0">
+              <dt class="order-3 mt-1 font-mono text-[10px] uppercase tracking-[0.1em] text-muted">{k}</dt>
+              <dd class="order-1 font-mono text-xl font-semibold">{(v as number).toFixed(2)}</dd>
+              <dd class="order-2 mt-2 h-1 overflow-hidden rounded-full bg-border" aria-hidden="true">
+                <span class="block h-full bg-accent" style={`width:${pct(v as number)}`}></span>
+              </dd>
+            </div>
+          ))}
+        </dl>
+        <p class="px-5 pt-4 font-mono text-[11px] text-muted">
+          {s.truePositives} of {s.trueAccounts} labeled accounts caught · {s.flaggedAccounts} accounts flagged
+        </p>
+        <p class="flex-1 px-5 pb-4 pt-2 text-sm leading-relaxed text-muted">{m.reading}</p>
+        <details class="group border-t border-border">
+          <summary class="flex cursor-pointer list-none items-center justify-between px-5 py-3 text-sm font-medium hover:bg-surface-2">
+            Source <span class="font-mono text-[11px] font-normal text-muted">src/anomaly/detect.py</span>
+          </summary>
+          <div class="code-surface !rounded-none !border-0 !border-t max-h-96 overflow-auto" data-code-copy>
+            <Code code={detectors.source[kind].trim()} lang="python" theme={cssVarsTheme} />
+          </div>
+        </details>
+      </article>
+    );
+  })}
+</div>

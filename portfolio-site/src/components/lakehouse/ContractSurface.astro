@@ -1,0 +1,110 @@
+---
+/**
+ * ContractSurface — everything that guards the data, parsed from the project:
+ * the dbt test matrix (model × test type, 41 tests all passing in the measured
+ * run) and the Great Expectations Bronze suite rendered as readable rules,
+ * honestly marked as defined-but-not-enforced.
+ */
+import { dbt, contracts } from "../../data/artifacts";
+import { metric } from "../../data/measured";
+
+const types = ["not_null", "unique", "accepted_values", "relationships", "expression_is_true"];
+const rows = [
+  { id: dbt.source.id, layer: "source", tests: dbt.source.tests },
+  ...dbt.models.map((m) => ({ id: m.id, layer: m.layer, tests: m.tests })),
+];
+const count = (tests: { type: string }[], t: string) => tests.filter((x) => x.type === t).length;
+const totals = types.map((t) => rows.reduce((a, r) => a + count(r.tests, t), 0));
+const dbtResult = metric("telecom.dbt");
+const dot: Record<string, string> = { source: "bg-border-strong", bronze: "bg-bronze", silver: "bg-silver", gold: "bg-gold" };
+---
+
+<div class="grid gap-5">
+  <figure class="card overflow-hidden">
+    <div class="flex flex-wrap items-start justify-between gap-3 px-5 pt-5">
+      <div>
+        <figcaption class="text-[15px] font-semibold tracking-tight">dbt test surface</figcaption>
+        <p class="mt-0.5 text-xs text-muted">Every declared test by model and type, from the schema.yml files.</p>
+      </div>
+      <span class="status-chip" data-status="measured">{dbtResult.value} passing</span>
+    </div>
+    <div class="overflow-x-auto p-5" tabindex="0" role="region" aria-label="dbt test matrix (scrollable)">
+      <table class="contract-table">
+        <thead>
+          <tr>
+            <th scope="col" class="!text-left">Model</th>
+            {types.map((t) => <th scope="col">{t.replace(/_/g, " ")}</th>)}
+            <th scope="col">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr>
+              <th scope="row" class="whitespace-nowrap !text-left font-normal">
+                <span class:list={["mr-2 inline-block h-2 w-2 rounded-full align-middle", dot[r.layer]]} aria-hidden="true"></span>
+                <code class="font-mono text-[12px]">{r.id}</code>
+              </th>
+              {types.map((t) => {
+                const n = count(r.tests, t);
+                return <td>{n ? <span class="cell-count" style={`--n:${n}`}>{n}</span> : <span class="text-border-strong">·</span>}</td>;
+              })}
+              <td class="font-mono font-semibold">{r.tests.length}</td>
+            </tr>
+          ))}
+        </tbody>
+        <tfoot>
+          <tr>
+            <th scope="row" class="!text-left">All</th>
+            {totals.map((t) => <td class="font-mono font-semibold">{t}</td>)}
+            <td class="font-mono font-semibold text-accent-fg">{dbt.testCount}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </figure>
+
+  <div class="card overflow-hidden">
+    <div class="flex flex-wrap items-start justify-between gap-3 border-b border-border px-5 py-4">
+      <div>
+        <p class="text-[15px] font-semibold tracking-tight">Bronze contract · {contracts.suite}</p>
+        <p class="mt-0.5 text-xs text-muted">{contracts.description}</p>
+      </div>
+      <span class="status-chip" data-status="stub" title={contracts._meta.note}>Defined · not enforced</span>
+    </div>
+    <ol class="grid divide-border md:grid-cols-2 [&>li]:border-b [&>li]:border-border">
+      {contracts.expectations.map((e, i) => (
+        <li class="flex items-start gap-3 px-5 py-2.5">
+          <span class="mt-0.5 font-mono text-[10px] text-muted">{String(i + 1).padStart(2, "0")}</span>
+          <div class="min-w-0">
+            <p class="text-[13px] leading-snug">{e.rule}</p>
+            <p class="mt-0.5 truncate font-mono text-[10.5px] text-muted">{e.type}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <p class="border-t border-border bg-surface-2 px-5 py-3 text-xs leading-relaxed text-muted">
+      {contracts._meta.note}
+    </p>
+  </div>
+</div>
+
+<style>
+  .contract-table {
+    @apply w-full min-w-[620px] border-separate border-spacing-0 text-sm;
+  }
+  .contract-table th,
+  .contract-table td {
+    @apply border-b border-border px-3 py-2 text-center;
+  }
+  .contract-table thead th {
+    @apply pb-3 font-mono text-[10px] font-medium uppercase tracking-wider text-muted;
+  }
+  .contract-table tfoot th,
+  .contract-table tfoot td {
+    @apply border-b-0 bg-surface-2 text-[13px];
+  }
+  .cell-count {
+    @apply inline-flex h-6 min-w-6 items-center justify-center rounded-md px-1.5 font-mono text-[12px] font-semibold text-fg;
+    background: rgb(var(--color-accent) / calc(0.08 + var(--n) * 0.05));
+  }
+</style>

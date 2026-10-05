@@ -1,0 +1,793 @@
+{
+  "_meta": {
+    "synthetic": true,
+    "generatedBy": "portfolio-site/scripts/artifacts/fraud.py",
+    "source": "project-fraud-signals/data/eval_events.jsonl (make eval, seed 42)",
+    "sourceDigest": "e0af7cd4bdc7",
+    "note": "Aggregated from the labeled make eval event set. The producer applies its 5% fraud rate per decision; velocity bursts emit 5-8 events, so the labeled share of events is higher than 5%."
+  },
+  "kpis": {
+    "events": 16664,
+    "accounts": 1000,
+    "labeledEvents": 2419,
+    "labeledEventShare": 0.1452,
+    "flaggedEvents": 1253,
+    "flaggedAccounts": 888
+  },
+  "labelCounts": {
+    "normal": 14245,
+    "velocity_burst": 1650,
+    "impossible_travel": 540,
+    "amount_outlier": 229
+  },
+  "byCategory": [
+    {
+      "category": "atm_withdrawal",
+      "total": 2167,
+      "normal": 1835,
+      "velocity_burst": 219,
+      "impossible_travel": 80,
+      "amount_outlier": 33,
+      "labeledShare": 0.1532
+    },
+    {
+      "category": "electronics",
+      "total": 2085,
+      "normal": 1778,
+      "velocity_burst": 206,
+      "impossible_travel": 74,
+      "amount_outlier": 27,
+      "labeledShare": 0.1472
+    },
+    {
+      "category": "gas",
+      "total": 2056,
+      "normal": 1757,
+      "velocity_burst": 215,
+      "impossible_travel": 53,
+      "amount_outlier": 31,
+      "labeledShare": 0.1454
+    },
+    {
+      "category": "grocery",
+      "total": 2042,
+      "normal": 1756,
+      "velocity_burst": 209,
+      "impossible_travel": 43,
+      "amount_outlier": 34,
+      "labeledShare": 0.1401
+    },
+    {
+      "category": "online_retail",
+      "total": 2035,
+      "normal": 1723,
+      "velocity_burst": 226,
+      "impossible_travel": 63,
+      "amount_outlier": 23,
+      "labeledShare": 0.1533
+    },
+    {
+      "category": "restaurant",
+      "total": 2100,
+      "normal": 1833,
+      "velocity_burst": 189,
+      "impossible_travel": 61,
+      "amount_outlier": 17,
+      "labeledShare": 0.1271
+    },
+    {
+      "category": "subscription",
+      "total": 2182,
+      "normal": 1860,
+      "velocity_burst": 204,
+      "impossible_travel": 97,
+      "amount_outlier": 21,
+      "labeledShare": 0.1476
+    },
+    {
+      "category": "travel",
+      "total": 1997,
+      "normal": 1703,
+      "velocity_burst": 182,
+      "impossible_travel": 69,
+      "amount_outlier": 43,
+      "labeledShare": 0.1472
+    }
+  ],
+  "byCountry": [
+    {
+      "country": "AU",
+      "total": 1527,
+      "normal": 1287,
+      "velocity_burst": 192,
+      "impossible_travel": 16,
+      "amount_outlier": 32,
+      "labeledShare": 0.1572
+    },
+    {
+      "country": "BR",
+      "total": 1052,
+      "normal": 898,
+      "velocity_burst": 122,
+      "impossible_travel": 19,
+      "amount_outlier": 13,
+      "labeledShare": 0.1464
+    },
+    {
+      "country": "CA",
+      "total": 1558,
+      "normal": 1366,
+      "velocity_burst": 95,
+      "impossible_travel": 74,
+      "amount_outlier": 23,
+      "labeledShare": 0.1232
+    },
+    {
+      "country": "DE",
+      "total": 1285,
+      "normal": 1073,
+      "velocity_burst": 172,
+      "impossible_travel": 22,
+      "amount_outlier": 18,
+      "labeledShare": 0.165
+    },
+    {
+      "country": "ES",
+      "total": 1143,
+      "normal": 997,
+      "velocity_burst": 111,
+      "impossible_travel": 19,
+      "amount_outlier": 16,
+      "labeledShare": 0.1277
+    },
+    {
+      "country": "FR",
+      "total": 1146,
+      "normal": 996,
+      "velocity_burst": 110,
+      "impossible_travel": 22,
+      "amount_outlier": 18,
+      "labeledShare": 0.1309
+    },
+    {
+      "country": "GB",
+      "total": 1157,
+      "normal": 1005,
+      "velocity_burst": 124,
+      "impossible_travel": 16,
+      "amount_outlier": 12,
+      "labeledShare": 0.1314
+    },
+    {
+      "country": "IT",
+      "total": 1145,
+      "normal": 987,
+      "velocity_burst": 126,
+      "impossible_travel": 15,
+      "amount_outlier": 17,
+      "labeledShare": 0.138
+    },
+    {
+      "country": "JP",
+      "total": 1286,
+      "normal": 1117,
+      "velocity_burst": 140,
+      "impossible_travel": 21,
+      "amount_outlier": 8,
+      "labeledShare": 0.1314
+    },
+    {
+      "country": "NG",
+      "total": 1164,
+      "normal": 1034,
+      "velocity_burst": 95,
+      "impossible_travel": 23,
+      "amount_outlier": 12,
+      "labeledShare": 0.1117
+    },
+    {
+      "country": "US",
+      "total": 2834,
+      "normal": 2299,
+      "velocity_burst": 223,
+      "impossible_travel": 270,
+      "amount_outlier": 42,
+      "labeledShare": 0.1888
+    },
+    {
+      "country": "ZA",
+      "total": 1367,
+      "normal": 1186,
+      "velocity_burst": 140,
+      "impossible_travel": 23,
+      "amount_outlier": 18,
+      "labeledShare": 0.1324
+    }
+  ],
+  "amountBuckets": [
+    {
+      "bucket": "0-25",
+      "normal": 749,
+      "velocity_burst": 0,
+      "impossible_travel": 22,
+      "amount_outlier": 0
+    },
+    {
+      "bucket": "25-50",
+      "normal": 1825,
+      "velocity_burst": 0,
+      "impossible_travel": 64,
+      "amount_outlier": 0
+    },
+    {
+      "bucket": "50-100",
+      "normal": 3440,
+      "velocity_burst": 7,
+      "impossible_travel": 157,
+      "amount_outlier": 12
+    },
+    {
+      "bucket": "100-200",
+      "normal": 5360,
+      "velocity_burst": 113,
+      "impossible_travel": 200,
+      "amount_outlier": 32
+    },
+    {
+      "bucket": "200-400",
+      "normal": 2814,
+      "velocity_burst": 287,
+      "impossible_travel": 96,
+      "amount_outlier": 64
+    },
+    {
+      "bucket": "400-800",
+      "normal": 57,
+      "velocity_burst": 597,
+      "impossible_travel": 1,
+      "amount_outlier": 109
+    },
+    {
+      "bucket": "800-1600",
+      "normal": 0,
+      "velocity_burst": 607,
+      "impossible_travel": 0,
+      "amount_outlier": 12
+    },
+    {
+      "bucket": "1600-3200",
+      "normal": 0,
+      "velocity_burst": 39,
+      "impossible_travel": 0,
+      "amount_outlier": 0
+    },
+    {
+      "bucket": "3200+",
+      "normal": 0,
+      "velocity_burst": 0,
+      "impossible_travel": 0,
+      "amount_outlier": 0
+    }
+  ],
+  "timeline": [
+    {
+      "t": 0,
+      "events": 251,
+      "labeled": 14,
+      "flagged": 0
+    },
+    {
+      "t": 5,
+      "events": 255,
+      "labeled": 11,
+      "flagged": 3
+    },
+    {
+      "t": 10,
+      "events": 260,
+      "labeled": 22,
+      "flagged": 4
+    },
+    {
+      "t": 15,
+      "events": 263,
+      "labeled": 26,
+      "flagged": 10
+    },
+    {
+      "t": 20,
+      "events": 270,
+      "labeled": 37,
+      "flagged": 20
+    },
+    {
+      "t": 25,
+      "events": 274,
+      "labeled": 34,
+      "flagged": 22
+    },
+    {
+      "t": 30,
+      "events": 277,
+      "labeled": 39,
+      "flagged": 16
+    },
+    {
+      "t": 35,
+      "events": 272,
+      "labeled": 38,
+      "flagged": 33
+    },
+    {
+      "t": 40,
+      "events": 270,
+      "labeled": 37,
+      "flagged": 34
+    },
+    {
+      "t": 45,
+      "events": 277,
+      "labeled": 34,
+      "flagged": 40
+    },
+    {
+      "t": 50,
+      "events": 274,
+      "labeled": 37,
+      "flagged": 37
+    },
+    {
+      "t": 55,
+      "events": 277,
+      "labeled": 39,
+      "flagged": 49
+    },
+    {
+      "t": 60,
+      "events": 284,
+      "labeled": 47,
+      "flagged": 50
+    },
+    {
+      "t": 65,
+      "events": 283,
+      "labeled": 47,
+      "flagged": 44
+    },
+    {
+      "t": 70,
+      "events": 283,
+      "labeled": 48,
+      "flagged": 27
+    },
+    {
+      "t": 75,
+      "events": 276,
+      "labeled": 43,
+      "flagged": 32
+    },
+    {
+      "t": 80,
+      "events": 282,
+      "labeled": 53,
+      "flagged": 34
+    },
+    {
+      "t": 85,
+      "events": 279,
+      "labeled": 40,
+      "flagged": 35
+    },
+    {
+      "t": 90,
+      "events": 285,
+      "labeled": 46,
+      "flagged": 31
+    },
+    {
+      "t": 95,
+      "events": 277,
+      "labeled": 41,
+      "flagged": 31
+    },
+    {
+      "t": 100,
+      "events": 276,
+      "labeled": 34,
+      "flagged": 28
+    },
+    {
+      "t": 105,
+      "events": 274,
+      "labeled": 40,
+      "flagged": 31
+    },
+    {
+      "t": 110,
+      "events": 276,
+      "labeled": 42,
+      "flagged": 26
+    },
+    {
+      "t": 115,
+      "events": 277,
+      "labeled": 37,
+      "flagged": 24
+    },
+    {
+      "t": 120,
+      "events": 277,
+      "labeled": 39,
+      "flagged": 22
+    },
+    {
+      "t": 125,
+      "events": 284,
+      "labeled": 53,
+      "flagged": 22
+    },
+    {
+      "t": 130,
+      "events": 281,
+      "labeled": 46,
+      "flagged": 26
+    },
+    {
+      "t": 135,
+      "events": 282,
+      "labeled": 43,
+      "flagged": 21
+    },
+    {
+      "t": 140,
+      "events": 285,
+      "labeled": 39,
+      "flagged": 18
+    },
+    {
+      "t": 145,
+      "events": 280,
+      "labeled": 38,
+      "flagged": 15
+    },
+    {
+      "t": 150,
+      "events": 268,
+      "labeled": 35,
+      "flagged": 22
+    },
+    {
+      "t": 155,
+      "events": 268,
+      "labeled": 29,
+      "flagged": 22
+    },
+    {
+      "t": 160,
+      "events": 273,
+      "labeled": 32,
+      "flagged": 19
+    },
+    {
+      "t": 165,
+      "events": 271,
+      "labeled": 34,
+      "flagged": 22
+    },
+    {
+      "t": 170,
+      "events": 267,
+      "labeled": 35,
+      "flagged": 12
+    },
+    {
+      "t": 175,
+      "events": 272,
+      "labeled": 34,
+      "flagged": 16
+    },
+    {
+      "t": 180,
+      "events": 271,
+      "labeled": 31,
+      "flagged": 13
+    },
+    {
+      "t": 185,
+      "events": 276,
+      "labeled": 41,
+      "flagged": 16
+    },
+    {
+      "t": 190,
+      "events": 279,
+      "labeled": 40,
+      "flagged": 10
+    },
+    {
+      "t": 195,
+      "events": 287,
+      "labeled": 50,
+      "flagged": 15
+    },
+    {
+      "t": 200,
+      "events": 274,
+      "labeled": 33,
+      "flagged": 22
+    },
+    {
+      "t": 205,
+      "events": 274,
+      "labeled": 35,
+      "flagged": 16
+    },
+    {
+      "t": 210,
+      "events": 280,
+      "labeled": 39,
+      "flagged": 20
+    },
+    {
+      "t": 215,
+      "events": 282,
+      "labeled": 46,
+      "flagged": 15
+    },
+    {
+      "t": 220,
+      "events": 273,
+      "labeled": 31,
+      "flagged": 14
+    },
+    {
+      "t": 225,
+      "events": 274,
+      "labeled": 40,
+      "flagged": 20
+    },
+    {
+      "t": 230,
+      "events": 266,
+      "labeled": 31,
+      "flagged": 14
+    },
+    {
+      "t": 235,
+      "events": 266,
+      "labeled": 26,
+      "flagged": 13
+    },
+    {
+      "t": 240,
+      "events": 269,
+      "labeled": 30,
+      "flagged": 13
+    },
+    {
+      "t": 245,
+      "events": 272,
+      "labeled": 32,
+      "flagged": 13
+    },
+    {
+      "t": 250,
+      "events": 271,
+      "labeled": 37,
+      "flagged": 12
+    },
+    {
+      "t": 255,
+      "events": 284,
+      "labeled": 44,
+      "flagged": 18
+    },
+    {
+      "t": 260,
+      "events": 283,
+      "labeled": 49,
+      "flagged": 16
+    },
+    {
+      "t": 265,
+      "events": 276,
+      "labeled": 35,
+      "flagged": 9
+    },
+    {
+      "t": 270,
+      "events": 278,
+      "labeled": 40,
+      "flagged": 10
+    },
+    {
+      "t": 275,
+      "events": 274,
+      "labeled": 37,
+      "flagged": 13
+    },
+    {
+      "t": 280,
+      "events": 281,
+      "labeled": 45,
+      "flagged": 12
+    },
+    {
+      "t": 285,
+      "events": 288,
+      "labeled": 49,
+      "flagged": 13
+    },
+    {
+      "t": 290,
+      "events": 281,
+      "labeled": 44,
+      "flagged": 11
+    },
+    {
+      "t": 295,
+      "events": 284,
+      "labeled": 50,
+      "flagged": 12
+    },
+    {
+      "t": 300,
+      "events": 29,
+      "labeled": 29,
+      "flagged": 1
+    },
+    {
+      "t": 305,
+      "events": 23,
+      "labeled": 23,
+      "flagged": 1
+    },
+    {
+      "t": 310,
+      "events": 15,
+      "labeled": 15,
+      "flagged": 1
+    },
+    {
+      "t": 315,
+      "events": 14,
+      "labeled": 14,
+      "flagged": 0
+    },
+    {
+      "t": 320,
+      "events": 13,
+      "labeled": 13,
+      "flagged": 0
+    },
+    {
+      "t": 325,
+      "events": 2,
+      "labeled": 2,
+      "flagged": 0
+    },
+    {
+      "t": 330,
+      "events": 6,
+      "labeled": 6,
+      "flagged": 0
+    },
+    {
+      "t": 335,
+      "events": 1,
+      "labeled": 1,
+      "flagged": 0
+    },
+    {
+      "t": 340,
+      "events": 2,
+      "labeled": 2,
+      "flagged": 1
+    },
+    {
+      "t": 345,
+      "events": 5,
+      "labeled": 5,
+      "flagged": 1
+    },
+    {
+      "t": 350,
+      "events": 7,
+      "labeled": 7,
+      "flagged": 2
+    },
+    {
+      "t": 355,
+      "events": 4,
+      "labeled": 4,
+      "flagged": 0
+    },
+    {
+      "t": 360,
+      "events": 4,
+      "labeled": 4,
+      "flagged": 1
+    },
+    {
+      "t": 365,
+      "events": 3,
+      "labeled": 3,
+      "flagged": 0
+    },
+    {
+      "t": 370,
+      "events": 2,
+      "labeled": 2,
+      "flagged": 1
+    },
+    {
+      "t": 375,
+      "events": 4,
+      "labeled": 4,
+      "flagged": 0
+    },
+    {
+      "t": 380,
+      "events": 3,
+      "labeled": 3,
+      "flagged": 2
+    },
+    {
+      "t": 385,
+      "events": 4,
+      "labeled": 4,
+      "flagged": 4
+    }
+  ],
+  "bucketSec": 5,
+  "travelDestinations": {
+    "US": 223,
+    "CA": 49
+  },
+  "countries": [
+    "US",
+    "CA",
+    "GB",
+    "DE",
+    "FR",
+    "ES",
+    "IT",
+    "AU",
+    "BR",
+    "JP",
+    "ZA",
+    "NG"
+  ],
+  "scores": [
+    {
+      "kind": "velocity",
+      "label": "velocity_burst",
+      "trueAccounts": 226,
+      "flaggedAccounts": 865,
+      "truePositives": 226,
+      "precision": 0.2613,
+      "recall": 1.0,
+      "f1": 0.4143
+    },
+    {
+      "kind": "geo",
+      "label": "impossible_travel",
+      "trueAccounts": 240,
+      "flaggedAccounts": 240,
+      "truePositives": 240,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0
+    },
+    {
+      "kind": "amount",
+      "label": "amount_outlier",
+      "trueAccounts": 200,
+      "flaggedAccounts": 121,
+      "truePositives": 117,
+      "precision": 0.9669,
+      "recall": 0.585,
+      "f1": 0.729
+    }
+  ]
+}
