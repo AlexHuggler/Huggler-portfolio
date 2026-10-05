@@ -6,7 +6,7 @@ import RuleCoverage from "../../components/sqlopt/RuleCoverage.astro";
 import KeywordAttributionChart from "../../components/sqlopt/KeywordAttributionChart.tsx";
 import transcript from "../../data/measurements/ai-sql-optimizer.txt?raw";
 import { corpus } from "../../data/artifacts";
-import { measuredLabel } from "../../data/measured";
+import { measuredLabel, metric } from "../../data/measured";
 
 // The benchmark table exactly as `make benchmark` printed it.
 const benchStart = transcript.indexOf("$ make benchmark");
@@ -24,7 +24,7 @@ const stack = [
   { label: "Typer + Rich", rationale: "Ergonomic CLI with readable findings tables." },
   { label: "Anthropic SDK", rationale: "Claude Messages API with retry/backoff on rate limits and 5xx." },
   { label: "PyYAML", rationale: "Ground truth for the benchmark lives in reviewable YAML." },
-  { label: "pytest", rationale: "18 tests across analyzer, benchmark, CLI and client (API mocked)." },
+  { label: "pytest", rationale: `${metric("sqlopt.tests").value} tests across analyzer, benchmark, CLI and client (API mocked).` },
 ];
 ---
 

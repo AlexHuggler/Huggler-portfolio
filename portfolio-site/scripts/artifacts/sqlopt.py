@@ -1,8 +1,8 @@
 """Export the AI-assisted SQL optimizer's real corpus + analyzer output.
 
 Reads project-ai-sql-optimizer's corpus, ground truth, analyzer rules and
-prompt, runs the real ``analyze()`` on every query, scores keyword hits the
-way ``benchmark._score`` does (and, separately, against findings only), and
+prompt, runs the real ``analyze()`` on every query, scores keyword hits with
+``benchmark._score`` (analyzer findings only, never the query text), and
 checks the hand-written reference rewrites in src/data/sqlopt/rewrites/.
 
     uv run --project ../project-ai-sql-optimizer python scripts/artifacts/sqlopt.py [--check]
@@ -128,19 +128,20 @@ def main(check: bool) -> int:
 
         gt = truth_by_id[qid]
         keywords = [k.lower() for k in gt["expected_keywords"]]
-        finding_text = " ".join(f.message for f in result.findings).lower()
+        # Same haystack as benchmark._score, so "inFindings" is exactly what it counts;
+        # "inQueryText" marks keywords the query itself contains, which the scorer ignores.
+        finding_text = "\n".join(f.message for f in result.findings).lower()
         query_text = text.lower()
         hits = [
             {"keyword": k, "inFindings": k in finding_text, "inQueryText": k in query_text}
             for k in keywords
         ]
         overlap, findings_hit = benchmark._score(
-            text, [f.message for f in result.findings], benchmark.GroundTruthEntry(
+            [f.message for f in result.findings], benchmark.GroundTruthEntry(
                 query_id=qid, category=gt["category"], expected_keywords=keywords,
                 expected_cost_direction=gt["expected_cost_direction"],
             )
         )
-        findings_only = sum(h["inFindings"] for h in hits) / len(hits)
 
         entry: dict = {
             "id": qid,
@@ -165,7 +166,6 @@ def main(check: bool) -> int:
             "benchmark": {
                 "keywordOverlap": round(overlap, 4),
                 "findingsHit": findings_hit,
-                "keywordOverlapFindingsOnly": round(findings_only, 4),
             },
             "payload": _build_user_message(result),
         }
@@ -202,9 +202,6 @@ def main(check: bool) -> int:
     summary = {
         "queries": n,
         "meanKeywordOverlap": round(sum(q["benchmark"]["keywordOverlap"] for q in queries) / n, 4),
-        "meanKeywordOverlapFindingsOnly": round(
-            sum(q["benchmark"]["keywordOverlapFindingsOnly"] for q in queries) / n, 4
-        ),
         "queriesWithFindings": sum(1 for q in queries if q["findings"]),
         "rulesFired": sorted(r for r, qs in fired.items() if qs),
         "rulesNeverFired": sorted(r for r, qs in fired.items() if not qs),
@@ -220,9 +217,9 @@ def main(check: bool) -> int:
             "sourceDigest": digest([*sources, TRUTH, ANALYZER, PROMPT, *rewrite_files]),
             "sqlglot": version("sqlglot"),
             "note": (
-                "Real corpus queries and real analyze() output. Keyword scoring mirrors "
-                "benchmark._score, which searches the query text as well as the findings; "
-                "keywordOverlapFindingsOnly re-scores against findings alone. Rewrites are "
+                "Real corpus queries and real analyze() output. Keyword overlap comes from "
+                "benchmark._score, which searches the analyzer findings only, never the query "
+                "text; inQueryText marks keywords the query already contains. Rewrites are "
                 "hand-written references, not Claude output, and are not EXPLAIN-verified."
             ),
         },
