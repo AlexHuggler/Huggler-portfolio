@@ -75,11 +75,9 @@ Adding a case is one `.sql` file plus one ground-truth entry.
 `make benchmark` (dry run) finds at least one issue in
 {metric("sqlopt.findings").value} queries and averages {metric("sqlopt.overlap").value}
 keyword overlap against ground truth, with the analyzer taking
-{metric("sqlopt.latency").value} per query in process. Read those numbers with the scorer in
-mind: it searches the query text — comments included — as well as the findings, so
-partition_pruning scores
-{ev.byCategory.find((c) => c.category === "partition_pruning")?.keywordOverlap.toFixed(2)} with no findings at all. Scored on findings alone the
-average is {ev.summary.meanKeywordOverlapFindingsOnly.toFixed(2)}. The partition rule never fires
+{metric("sqlopt.latency").value} per query in process. The score counts only what the
+findings say, never the query text, so partition_pruning, which gets no finding, scores
+{ev.byCategory.find((c) => c.category === "partition_pruning")?.keywordOverlap.toFixed(2)}. The partition rule never fires
 in the benchmark because it needs partition columns passed in; with
 `--partition-columns ingest_date` it flags query 04 at high severity. Two of six
 rules ({ev.summary.rulesNeverFired.filter((r) => r !== "parse_error").join(" and ")}) are never
