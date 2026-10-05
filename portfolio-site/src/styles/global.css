@@ -229,23 +229,6 @@
     background: linear-gradient(90deg, rgb(var(--color-accent) / 0.85), transparent);
   }
 
-  /* Hero data-node decoration — tasteful, non-distracting. */
-  .hero-node {
-    position: absolute;
-    width: 6px;
-    height: 6px;
-    border-radius: 9999px;
-    background: rgb(var(--color-accent) / 0.45);
-    box-shadow: 0 0 12px rgb(var(--color-accent) / 0.35);
-    opacity: 0;
-    animation: hero-node-pulse 6.5s ease-in-out infinite;
-  }
-  @keyframes hero-node-pulse {
-    0%, 100% { opacity: 0; transform: scale(0.6); }
-    40%      { opacity: 0.75; transform: scale(1); }
-    60%      { opacity: 0.55; transform: scale(1); }
-  }
-
   /* Gradient text for the signature accent — used sparingly (one per page). */
   .text-gradient-accent {
     background: var(--gradient-accent);
@@ -268,10 +251,6 @@
     .metric-card::before,
     .featured-card-edge {
       transition: none;
-    }
-    .hero-node {
-      animation: none;
-      opacity: 0;
     }
   }
 }
