@@ -182,6 +182,10 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+  /* The hidden attribute must win over display utilities (grid, flex…). */
+  [hidden] {
+    display: none !important;
+  }
 }
 
 @layer components {

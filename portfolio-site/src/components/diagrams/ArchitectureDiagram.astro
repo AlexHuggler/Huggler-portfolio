@@ -53,9 +53,10 @@ const isPath = (f?: string) =>
                   href={`${blobBase}/${n.file.replace(/\/$/, "")}`}
                   target="_blank"
                   rel="noopener noreferrer"
-                  class="mt-2 inline-block truncate font-mono text-[10.5px] text-accent-fg hover:underline"
+                  class="mt-2 inline-block max-w-full truncate font-mono text-[10.5px] text-accent-fg hover:underline"
+                  title={n.file}
                 >
-                  {n.file}<span class="sr-only"> (opens in new tab)</span>
+                  {n.file.replace(/\/$/, "").split("/").pop()}{n.file.endsWith("/") ? "/" : ""}<span class="sr-only"> — {n.file} (opens in new tab)</span>
                 </a>
               ) : (
                 <p class="mt-2 truncate font-mono text-[10.5px] text-muted">{n.file}</p>
