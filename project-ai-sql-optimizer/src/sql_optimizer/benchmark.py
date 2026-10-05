@@ -65,13 +65,21 @@ def _detect_dialect(sql: str) -> str:
 
 
 def _score(
-    sql: str,
     findings: list[str],
     truth: GroundTruthEntry | None,
+    *,
+    rewrite: str = "",
+    reasoning: str = "",
 ) -> tuple[float, bool]:
+    """Score what the tool produced: finding messages, plus Claude's rewrite and
+    reasoning once a live mode supplies them.
+
+    The input SQL is deliberately not searched - keywords it already contains
+    (table names, JOIN, its comments) would count as hits the tool never earned.
+    """
     if truth is None:
         return 0.0, False
-    haystack = (sql + " ".join(findings)).lower()
+    haystack = "\n".join([*findings, rewrite, reasoning]).lower()
     if not truth.expected_keywords:
         return 1.0, True
     hits = sum(1 for kw in truth.expected_keywords if kw in haystack)
@@ -97,7 +105,7 @@ def run_benchmark(
             continue
         analysis = analyze(sql, dialect=_detect_dialect(sql))
         finding_msgs = [f.message for f in analysis.findings]
-        overlap, hit = _score(sql, finding_msgs, truth.get(qid))
+        overlap, hit = _score(finding_msgs, truth.get(qid))
         evaluations.append(
             QueryEvaluation(
                 query_id=qid,

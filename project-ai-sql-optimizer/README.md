@@ -81,7 +81,9 @@ ground-truth entry, and the corpus is designed to grow - adding a query
 is one `.sql` file plus one ground-truth entry.
 
 Each ground-truth entry lists expected keywords (substrings the
-suggestion should mention) and expected cost direction. The benchmark
+suggestion should mention) and expected cost direction. Keywords are
+matched against the tool's output only - never the input query, so a
+table name already in the SQL does not count as a hit. The benchmark
 prints per-category averages of keyword overlap and findings-hit rate.
 
 See [`docs/methodology.md`](docs/methodology.md) for scoring detail and
@@ -90,22 +92,27 @@ the limitations of these proxies.
 ## Results
 
 Measured with `make benchmark` in heuristic-only `--dry-run` mode (no
-API key), seeded 5-category corpus, Linux container, 2026-07. Reproduce
-with one command.
+API key), seeded 5-category corpus, Linux container. Keyword overlap,
+findings hit rate and unit tests re-measured 2026-10-05; wall clock
+from 2026-07. Reproduce with one command.
 
 | Metric | Measured |
 | --- | --- |
-| Avg keyword overlap vs ground truth (heuristics only) | 0.67 across 5 queries |
-| Findings hit rate (>= 1 correct finding per query) | 4 of 5 queries (0.80) |
+| Avg keyword overlap vs ground truth (findings only, heuristics only) | 0.33 across 5 queries |
+| Findings hit rate (>= 1 analyzer finding per query) | 4 of 5 queries (0.80) |
 | Benchmark wall clock | 0.34 s for the corpus (~68 ms per query) |
-| Unit tests | 18 passed |
+| Unit tests | 20 passed |
 
 ![sql-optimizer benchmark --dry-run: per-category keyword overlap and findings hit rate](docs/img/benchmark.png)
 
-The cte_flattening query scores 0.00 on keyword overlap in dry-run mode:
-its rewrite vocabulary ("single scan", "CASE") only appears once Claude
-proposes the rewrite - the heuristics alone flag the multi-scan pattern
-but do not name the fix. That gap is exactly what the LLM adds.
+Two categories score 0.00 on keyword overlap in dry-run mode. The
+cte_flattening query's rewrite vocabulary ("single scan", "CASE") only
+appears once Claude proposes the rewrite - the heuristics alone flag the
+multi-scan pattern but do not name the fix. That gap is exactly what the
+LLM adds. The partition_pruning query gets no finding at all: the
+benchmark passes no partition columns, so the missing-partition-predicate
+rule never fires and nothing names `ingest_date`. It is the one query of
+five without a finding.
 
 ### Planned evaluation (needs an engine and/or reviewers - not run here)
 
