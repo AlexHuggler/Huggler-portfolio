@@ -1,12 +1,11 @@
 import type { JSX } from "react";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import { X } from "lucide-react";
 import EChart from "./EChart";
 import ChartCard, { type Provenance } from "./ChartCard";
 import KpiCard from "./KpiCard";
 import {
   axisLabel,
-  barStyle,
   grid,
   legend,
   lineStyle,

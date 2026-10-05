@@ -6,52 +6,6 @@
  */
 
 @layer components {
-  .demo-card {
-    @apply rounded-xl border border-border bg-surface p-5;
-    box-shadow: var(--shadow-1), var(--highlight);
-  }
-
-  .demo-surface {
-    @apply rounded-lg border border-border bg-surface-2 p-4;
-  }
-
-  .demo-tag {
-    @apply inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-[11px] font-mono text-muted;
-  }
-
-  .demo-section {
-    @apply mx-auto max-w-page px-6 py-12 md:py-16;
-  }
-
-  .demo-headline {
-    @apply font-display font-semibold;
-    font-size: var(--step-4);
-    line-height: 1.06;
-    letter-spacing: -0.03em;
-  }
-
-  .demo-tagline {
-    @apply mt-4 text-muted;
-    font-size: var(--step-1);
-    line-height: 1.6;
-    max-width: 62ch;
-  }
-
-  .demo-eyebrow {
-    @apply font-mono text-[11px] font-medium uppercase text-muted;
-    letter-spacing: 0.14em;
-  }
-
-  .demo-grid-bg {
-    background-image:
-      linear-gradient(to right, rgb(var(--color-accent) / 0.06) 1px, transparent 1px),
-      linear-gradient(to bottom, rgb(var(--color-accent) / 0.06) 1px, transparent 1px);
-    background-size: 32px 32px;
-  }
-
-  .demo-divider {
-    @apply h-px w-full bg-border;
-  }
 
   /*
    * Provenance chip for synthetic/demo data. Reads as a deliberate part of
@@ -73,10 +27,6 @@
     background: rgb(var(--color-success));
   }
 
-  .code-block {
-    @apply rounded-md border border-border bg-surface-2 p-3 font-mono text-[12px] leading-snug overflow-x-auto;
-  }
-
   .demo-fade-in {
     animation: demo-fade-in 320ms ease-out both;
   }
@@ -86,21 +36,12 @@
     to   { opacity: 1; transform: translateY(0); }
   }
 
-  .demo-dot-pulse {
-    animation: demo-dot-pulse 1200ms ease-in-out infinite;
-  }
-  @keyframes demo-dot-pulse {
-    0%,100% { opacity: 0.5; transform: scale(1); }
-    50%     { opacity: 1;   transform: scale(1.35); }
-  }
-
   /*
    * Honor prefers-reduced-motion in CSS too. React islands also gate via
    * useReducedMotion; this catches purely-CSS animated elements.
    */
   @media (prefers-reduced-motion: reduce) {
-    .demo-fade-in,
-    .demo-dot-pulse {
+    .demo-fade-in {
       animation: none !important;
     }
     .demo-fade-in { opacity: 1; transform: none; }

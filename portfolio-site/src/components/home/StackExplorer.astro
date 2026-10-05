@@ -77,7 +77,7 @@ const filters = [
   </div>
 </div>
 
-<script define:vars={{ projectNames }}>
+<script is:inline define:vars={{ projectNames }}>
   const bind = () => {
     const root = document.querySelector("[data-stack-explorer]");
     if (!root || root.dataset.bound === "1") return;

@@ -17,11 +17,6 @@ import { yearsOfExperience } from "../data/experience";
 const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
 const assets = import.meta.glob<{ default: ImageMetadata }>("/src/assets/projects/*.{png,svg}", { eager: true });
 const preview = (file?: string) => (file ? assets[`/src/assets/projects/${file}`]?.default : undefined);
-const previewAlt: Record<string, string> = {
-  "fraud-signals": "Streamlit fraud dashboard from the project's demo path",
-  "telecom-lakehouse": "Terminal capture of make demo with Bronze, Silver and Gold row counts",
-  "ai-sql-optimizer": "Terminal capture of the analyzer's findings table",
-};
 // Lead each project with its two most telling measured results.
 const leadMetrics: Record<string, string[]> = {
   "fraud-signals": ["fraud.geo.pr", "fraud.throughput"],
@@ -139,7 +134,6 @@ const jsonLd = {
               repoUrl={p.data.repoUrl}
               metrics={lead}
               image={preview(p.data.screenshot)}
-              imageAlt={previewAlt[p.slug] ?? p.data.title}
               flip={i % 2 === 1}
             />
           );

@@ -478,11 +478,8 @@
   .diff-line[data-op="del"]::before { content: "−"; color: rgb(var(--color-danger)); }
 
   /* ---------------------------------------------------------------- *
-   * Legacy aliases (kept until every page is migrated)
+   * Hero accents
    * ---------------------------------------------------------------- */
-  .prose-callout {
-    @apply rounded-md border border-border p-4 text-sm text-muted;
-  }
   .hero-glow {
     position: absolute;
     inset: 0;
@@ -493,21 +490,6 @@
       transparent 42%
     );
     transition: opacity 300ms ease;
-  }
-  .card-glow {
-    @apply bg-surface;
-    box-shadow: var(--shadow-1), var(--highlight);
-    transition: border-color var(--dur-2) ease, box-shadow var(--dur-2) ease;
-  }
-  .card-glow:hover {
-    border-color: rgb(var(--color-accent) / 0.4);
-    box-shadow: var(--shadow-2), var(--highlight);
-  }
-  .metric-card {
-    @apply card relative overflow-hidden p-5;
-  }
-  .featured-card {
-    @apply bg-surface;
   }
   .focus-item {
     @apply relative pl-5 text-sm leading-relaxed;
@@ -544,7 +526,7 @@
 
   @media (prefers-reduced-motion: reduce) {
     .hero-glow { transition: none; }
-    .btn, .card-interactive, .card-glow { transition: none; }
+    .btn, .card-interactive { transition: none; }
     .card-interactive:hover { transform: none; }
     .reveal, .reveal.reveal-pending { opacity: 1; transform: none; transition: none; }
   }

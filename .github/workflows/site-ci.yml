@@ -36,8 +36,17 @@ jobs:
           cache: npm
           cache-dependency-path: portfolio-site/package-lock.json
 
+      # Pinned so the seeded scenario generator stays byte-for-byte reproducible.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
       - run: npm ci
       - name: Type-check (astro check)
         run: npm run check
+      - name: Content and data guardrails
+        run: npm run validate
+      - name: Scenario data is reproducible
+        run: npm run data:check
       - name: Build
         run: npm run build

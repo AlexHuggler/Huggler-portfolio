@@ -18,11 +18,10 @@ interface Props {
   repoUrl: string;
   metrics: MeasuredMetric[];
   image?: ImageMetadata;
-  imageAlt: string;
   flip?: boolean;
 }
 
-const { slug, index, title, problem, approach, stack, repoUrl, metrics, image, imageAlt, flip } = Astro.props;
+const { slug, index, title, problem, approach, stack, repoUrl, metrics, image, flip } = Astro.props;
 const num = String(index).padStart(2, "0");
 ---
 
