@@ -6,7 +6,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import duckdb
-from data_generator.generate_cdrs import make_rows, write_partitioned
+from data_generator.generate_cdrs import generate, make_rows, write_partitioned
 
 from lakehouse.transform import bronze_to_silver, raw_to_bronze, silver_to_gold
 
@@ -59,3 +59,26 @@ def test_silver_drops_invalid_rows(tmp_path: Path):
         f"SELECT cdr_id FROM '{silver_dir}/cdr.parquet' WHERE cdr_id = 'bad-row'"
     ).fetchall()
     assert silver == []
+
+
+def test_churn_signals_spread_across_risk_tiers(tmp_path: Path):
+    """Regression guard: one MSISDN per CDR used to put every caller in 'high'."""
+    raw_dir = tmp_path / "raw"
+    rows = generate(
+        rows=12_000, days=3, seed=42, subscribers=400, end=datetime(2026, 1, 3, tzinfo=UTC)
+    )
+    write_partitioned(rows, raw_dir)
+    raw_to_bronze(raw_dir, tmp_path / "bronze")
+    bronze_to_silver(tmp_path / "bronze", tmp_path / "silver")
+    gold_counts = silver_to_gold(tmp_path / "silver", tmp_path / "gold")
+
+    assert gold_counts["churn_signals"] <= 400
+    con = duckdb.connect(":memory:")
+    tiers = dict(
+        con.execute(
+            f"SELECT churn_risk, COUNT(*) FROM '{tmp_path}/gold/churn_signals.parquet' GROUP BY 1"
+        ).fetchall()
+    )
+    assert set(tiers) == {"high", "medium", "low"}
+    assert tiers["low"] > tiers["medium"] > 0
+    assert tiers["high"] > 0
