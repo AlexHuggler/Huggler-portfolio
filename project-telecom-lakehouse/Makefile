@@ -36,8 +36,9 @@ bronze-silver:
 contract:
 	$(PY) -m lakehouse.contract
 
+# Builds the local Airflow image (DAG deps + dbt) on first run or after changes.
 airflow-up:
-	docker compose up -d
+	docker compose up -d --build
 
 airflow-down:
 	docker compose down

@@ -58,6 +58,13 @@ separate clocks: `ingest_cdr_bronze` runs `@hourly` and emits the Bronze Dataset
 because each rewrites a single output file. `tests/test_dag_integrity.py` parses
 the DAG folder with Airflow and asserts this wiring.
 
+The Silver Dataset triggers `build_gold_marts` but isn't dbt's input: the DAG runs
+`dbt run` and `dbt test` over the whole project, which rebuilds the Bronze views
+over `data/raw` and the Silver tables (`sl_cdr_clean` mirrors `bronze_to_silver`)
+before the Gold marts. In docker-compose, dbt runs from its own virtualenv in the
+Airflow image (`docker/airflow/Dockerfile`), with a profile that writes
+`data/telecom.duckdb`.
+
 ## Local vs production
 
 | Concern | Local docker-compose | AWS production |

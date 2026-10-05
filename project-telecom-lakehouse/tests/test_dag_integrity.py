@@ -101,6 +101,17 @@ def test_contract_gates_silver(dagbag: DagBag):
     assert ge_task.retries == 0
 
 
+def test_gold_builds_and_tests_the_whole_dbt_project(dagbag: DagBag):
+    # A selector such as `gold` or `+gold` fails on a fresh DuckDB file: Gold refs the
+    # Silver tables, and a Silver relationships test refs a Bronze view outside +gold.
+    dag = dagbag.dags["build_gold_marts"]
+    run, test = dag.get_task("dbt_run_gold"), dag.get_task("dbt_test_gold")
+    assert run.downstream_task_ids == {"dbt_test_gold"}
+    for task, verb in ((run, "run"), (test, "test")):
+        assert f"dbt {verb} --profiles-dir /opt/airflow/dbt_profiles" in task.bash_command
+        assert "--select" not in task.bash_command
+
+
 def test_failing_expectation_fails_the_ge_task(
     dagbag: DagBag, fake_gx, write_bronze, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ):

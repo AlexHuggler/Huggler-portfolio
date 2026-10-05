@@ -65,6 +65,12 @@ file, so all three run with `max_active_runs=1`. The wiring is asserted by
 [`tests/test_dag_integrity.py`](tests/test_dag_integrity.py), which CI runs with
 Airflow installed.
 
+`build_gold_marts` runs `dbt run` then `dbt test` over the whole dbt project, as
+`make dbt-run` / `make dbt-test` do: the Bronze views over `data/raw`, then the
+Silver tables, then the Gold marts. The Silver Dataset triggers the run but isn't
+dbt's input. dbt's `sl_cdr_clean` mirrors `bronze_to_silver`, and in the compose
+run under Results it held the same 49,998 `cdr_id`s as `data/silver/cdr.parquet`.
+
 ## Stack
 
 | Tool | Why this one |
@@ -89,10 +95,14 @@ make demo
 
 ![make demo output: 50k CDRs generated, then Bronze/Silver/Gold row counts from the medallion transform](docs/img/pipeline-run.png)
 
-For the full Airflow + MinIO experience:
+For the full Airflow + MinIO experience (after `make demo`, which writes the
+`data/raw` the ingest DAG reads):
 
 ```bash
-# Bring up Airflow + Postgres + MinIO
+# Linux only: let the containers write ./data and great_expectations/uncommitted
+echo "AIRFLOW_UID=$(id -u)" >> .env
+
+# Build the Airflow image (first run) and bring up Airflow + Postgres + MinIO
 make airflow-up
 
 # UI:    http://localhost:8080  (admin / admin)
@@ -101,6 +111,14 @@ make airflow-up
 # Trigger DAGs from the UI or via CLI:
 docker compose exec airflow-scheduler airflow dags trigger ingest_cdr_bronze
 ```
+
+`make airflow-up` builds a local image from
+[`docker/airflow/Dockerfile`](docker/airflow/Dockerfile): `apache/airflow:2.9.3`
+plus the DAGs' Python dependencies, installed against Airflow's constraints file
+so no package the image ships changes. dbt-core and dbt-duckdb go into a separate
+virtualenv, because dbt-core 1.11 needs `protobuf>=6` and the image pins
+`opentelemetry-proto` 1.25.0, which needs `protobuf<5`. The image also carries the
+compose dbt profile, which writes `data/telecom.duckdb`.
 
 To run the Bronze data contract (the same GE checkpoint the DAG runs) over the
 demo's Bronze output:
@@ -172,8 +190,8 @@ commands above.
 | dbt tests | 41 of 41 passing (unique, not_null, accepted_values, relationships, expression checks) |
 | Bronze data contract | 10 of 10 expectations pass over 49,998 Bronze rows (`make contract`, GE 0.18.22): 3.8-4.0 s warm, 6.4-7.4 s on a cold first run, including the GE import |
 | Contract enforcement | One injected raw row with `market = 'MARS'` failed `great_expectations_bronze` with `DataContractError` (1 of 10 expectations); `bronze_to_silver` went `upstream_failed`, Silver was not rewritten, and `build_gold_marts` got no run (docker-compose) |
-| DAG linkage | One `ingest_cdr_bronze` run led to a `dataset_triggered` run of `transform_silver`, then one of `build_gold_marts` (docker-compose); 9 DAG-integrity tests assert the same wiring in CI |
-| Unit tests | 27 passed with the `airflow` + `quality` extras (Airflow 2.11.2, GE 0.18.22); 14 passed on the base install, where the DAG-integrity and real-checkpoint tests skip |
+| DAG linkage | One `ingest_cdr_bronze` run led to a `dataset_triggered` run of `transform_silver`, then one of `build_gold_marts`, all three `success` (docker-compose). Its dbt tasks (dbt-core 1.11.15) built 8 models and passed 41 of 41 tests. 10 DAG-integrity tests assert the wiring in CI |
+| Unit tests | 29 passed with the `airflow` + `quality` extras (Airflow 2.11.2, GE 0.18.22); 15 passed on the base install, where the DAG-integrity and real-checkpoint tests skip |
 
 ![dbt test output: 41 of 41 data tests passing](docs/img/dbt-tests.png)
 
@@ -206,6 +224,9 @@ claim depends on the upstream feed format.
   whole batch. Today any violation blocks that run's Silver and Gold.
 - Point the Datasets at the S3 / Iceberg table URIs on the AWS path; they
   currently name the local files the DuckDB transforms write.
+- Point dbt's sources at the contract-validated Silver output instead of
+  re-deriving Bronze and Silver from `data/raw`, so Gold is built from exactly
+  what the Silver Dataset event announced.
 - Add lineage via OpenLineage emitters on every Airflow task and dbt
   run.
 - Add `expect_column_pair_values_to_be_equal` style cross-column
@@ -223,10 +244,5 @@ claim depends on the upstream feed format.
   environment-specific to template.
 - `airflow dags list` requires Airflow installed; the ingestion code
   itself does not.
-- The docker-compose stack installs the DAGs' Python dependencies at
-  container start (`_PIP_ADDITIONAL_REQUIREMENTS`, an Airflow dev-only
-  feature) but not dbt. So `build_gold_marts` is triggered by the Silver
-  Dataset, but its dbt tasks fail in compose (`dbt: command not found`).
-  The dbt layer is measured through `make dbt-run` / `make dbt-test`.
 
 See [`docs/architecture.md`](docs/architecture.md) for deeper detail.

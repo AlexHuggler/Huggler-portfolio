@@ -1,0 +1,11 @@
+# dbt profile for the docker-compose Airflow image, copied to
+# /opt/airflow/dbt_profiles/profiles.yml. The DuckDB file lives on the mounted
+# ./data volume, next to the files the DAGs write.
+telecom:
+  target: compose
+  outputs:
+    compose:
+      type: duckdb
+      path: /opt/airflow/data/telecom.duckdb
+      schema: main
+      threads: 4
