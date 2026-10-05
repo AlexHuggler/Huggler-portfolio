@@ -7,7 +7,7 @@
     "os": "Linux-6.18.44-fc-v70-x86_64-with-glibc2.39",
     "python": "3.11.15",
     "uv": "uv 0.8.17",
-    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.80GHz",
     "cpus": 4
   },
   "evaluations": {
@@ -62,8 +62,8 @@
         }
       ],
       "analyzerLatencyMs": {
-        "median": 0.89,
-        "p95": 2.81,
+        "median": 0.9,
+        "p95": 3.76,
         "samples": 200
       }
     },
@@ -235,8 +235,8 @@
       },
       "throughput": {
         "events": 16664,
-        "secondsMedian": 0.1083,
-        "eventsPerSec": 153803,
+        "secondsMedian": 0.138,
+        "eventsPerSec": 120713,
         "runs": 5
       }
     },
@@ -244,7 +244,7 @@
       "method": "make demo (seed 42) → DuckDB medallion transform; dbt build over the same raw parquet",
       "transcript": "src/data/measurements/telecom-lakehouse.txt",
       "tests": {
-        "passed": 8,
+        "passed": 16,
         "skipped": 0
       },
       "dbt": {
@@ -261,18 +261,18 @@
         "silver": 49998,
         "gold.revenue_by_market": 15,
         "gold.arpu_monthly": 5,
-        "gold.churn_signals": 49998
+        "gold.churn_signals": 1124
       },
       "partitions": 3,
       "transform": {
-        "secondsMedian": 0.24,
+        "secondsMedian": 0.195,
         "runs": 5
       }
     }
   },
   "site": [
     {
-      "value": "0.24s",
+      "value": "0.20s",
       "label": "raw → Gold, 49,998 CDRs",
       "sublabel": "median of 5 in-process runs · DuckDB",
       "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
@@ -288,7 +288,7 @@
       "id": "telecom.dbt"
     },
     {
-      "value": "~154k/s",
+      "value": "~121k/s",
       "label": "events scored by 3 detectors",
       "sublabel": "16,664 events · single process · median of 5",
       "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -296,7 +296,7 @@
       "id": "fraud.throughput"
     },
     {
-      "value": "71",
+      "value": "79",
       "label": "unit tests passing",
       "sublabel": "pytest across 3 projects · 1 skipped",
       "method": "make test ×3",
@@ -308,7 +308,7 @@
     "fraud-signals": {
       "metrics": [
         {
-          "value": "~154k/s",
+          "value": "~121k/s",
           "label": "events scored by 3 detectors",
           "sublabel": "16,664 events · single process · median of 5",
           "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -345,7 +345,7 @@
     "telecom-lakehouse": {
       "metrics": [
         {
-          "value": "0.24s",
+          "value": "0.20s",
           "label": "raw → Gold, 49,998 CDRs",
           "sublabel": "median of 5 in-process runs · DuckDB",
           "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
@@ -370,7 +370,7 @@
           "id": "telecom.ge"
         },
         {
-          "value": "8",
+          "value": "16",
           "label": "unit tests passing",
           "sublabel": "generator + transforms",
           "method": "make test",
@@ -419,7 +419,7 @@
   },
   "metrics": {
     "telecom.transform": {
-      "value": "0.24s",
+      "value": "0.20s",
       "label": "raw → Gold, 49,998 CDRs",
       "sublabel": "median of 5 in-process runs · DuckDB",
       "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
@@ -444,7 +444,7 @@
       "id": "telecom.ge"
     },
     "telecom.tests": {
-      "value": "8",
+      "value": "16",
       "label": "unit tests passing",
       "sublabel": "generator + transforms",
       "method": "make test",
@@ -452,7 +452,7 @@
       "id": "telecom.tests"
     },
     "fraud.throughput": {
-      "value": "~154k/s",
+      "value": "~121k/s",
       "label": "events scored by 3 detectors",
       "sublabel": "16,664 events · single process · median of 5",
       "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -526,7 +526,7 @@
       "id": "sqlopt.tests"
     },
     "site.tests": {
-      "value": "71",
+      "value": "79",
       "label": "unit tests passing",
       "sublabel": "pytest across 3 projects · 1 skipped",
       "method": "make test ×3",

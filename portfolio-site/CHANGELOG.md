@@ -2,6 +2,15 @@
 
 All notable changes to the portfolio site. Versions follow `package.json`.
 
+## Unreleased
+
+- **Telecom re-measured on a subscriber pool.** The lakehouse generator now
+  draws callers and callees from a seeded subscriber pool, so `churn_signals`
+  spans high / medium / low and `arpu_monthly` differs by plan. `measure.py
+  run` refreshed the transcripts, `samples.json` and `measured.json`; the
+  evidence page's "churn mart is degenerate" limitation now describes what the
+  count-based tiers actually show. Telecom unit tests 8 → 16.
+
 ## 0.2.1 — 2026-10-05
 
 Follows the SQL optimizer's live benchmark and EXPLAIN step (PR #16), and

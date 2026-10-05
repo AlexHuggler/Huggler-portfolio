@@ -12,8 +12,8 @@ outputs through DuckDB. Writes:
 
     uv run --project ../project-telecom-lakehouse python scripts/artifacts/telecom.py [--check]
 
-The generator stamps rows with uuid4 ids and dates relative to "today", so
-ids are truncated/masked and dates are expressed as partition offsets.
+make demo stamps rows with seeded uuid4 ids and dates relative to "today", so
+ids are redacted, MSISDNs masked and dates expressed as partition offsets.
 Transform timing is printed on stdout for scripts/measure.py.
 """
 
@@ -351,9 +351,10 @@ def samples() -> dict:
             "generatedBy": "portfolio-site/scripts/artifacts/telecom.py",
             "source": rel(DATA_DIR) + " (make demo, seed 42)",
             "note": (
-                "Real make demo output read with DuckDB. MSISDNs are masked, cdr_id (a "
-                "random uuid4) is redacted, and dates are shown as partition offsets (D1..D3) because the "
-                "generator stamps rows relative to the run date."
+                "Real make demo output read with DuckDB. Callers and callees come from a seeded "
+                "subscriber pool; MSISDNs are masked, cdr_id (a seeded uuid4) is redacted, and dates "
+                "are shown as partition offsets (D1..D3) because make demo stamps rows relative to "
+                "the run date."
             ),
         },
         "partitions": len(dates),

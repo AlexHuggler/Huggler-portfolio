@@ -31,11 +31,14 @@ capabilities:
   - { name: "Three Airflow DAGs (hourly, hourly, daily)", status: "needs-infra", note: "docker compose: Airflow + MinIO" }
   - { name: "Terraform: S3 buckets + Glue catalog", status: "implemented", note: "terraform validate + fmt in CI" }
   - { name: "Iceberg tables", status: "planned", note: "target format; demo writes Parquet" }
-  - { name: "Churn signals mart", status: "implemented", note: "degenerate on current synthetic data" }
+  - { name: "Churn signals mart", status: "implemented", note: "high / medium / low tiers over a seeded subscriber pool" }
 ---
 
 import { metric, evaluation } from "../../data/measured";
+import { samples } from "../../data/artifacts";
 export const ev = evaluation("telecom-lakehouse");
+export const churn = samples.gold.churnRisk;
+export const arpu = [...samples.gold.arpuMonthly].sort((a, b) => a.arpuUsd - b.arpuUsd);
 
 ## Problem
 
@@ -87,11 +90,14 @@ marts; the transform itself runs in {metric("telecom.transform").value} (median 
 {ev.dbt.models} models and passes {metric("telecom.dbt").value} tests. The project vendors
 local replacements for its two dbt_utils macros, so it runs completely offline.
 
-One result is a finding rather than a success: the generator draws a fresh
-random MSISDN for every record, so each caller appears exactly once and the
-`churn_signals` mart classifies every caller as high risk. The SQL is right;
-the synthetic data isn't shaped for it. The fix — a fixed subscriber pool —
-belongs in the generator.
+The generator draws callers and callees from a seeded subscriber pool. Each
+subscriber has a stable plan and market, activity is heavy-tailed, and a share
+of subscribers go quiet before the last day. That gives the Gold marts
+something to separate: `churn_signals` puts {samples.distinctCallers.toLocaleString("en-US")}
+callers into {churn.high.toLocaleString("en-US")} high, {churn.medium.toLocaleString("en-US")} medium and {churn.low.toLocaleString("en-US")}
+low risk. `arpu_monthly` runs from ${arpu[0].arpuUsd.toFixed(2)} ({arpu[0].plan}) to
+${arpu[arpu.length - 1].arpuUsd.toFixed(2)} ({arpu[arpu.length - 1].plan}). The tiers are raw
+event counts, so the split moves with traffic per subscriber.
 
 ## What I would do differently in production
 

@@ -65,7 +65,7 @@ const tiers: {
     ],
   },
 ];
-const churnHigh = samples.gold.churnRisk.high ?? 0;
+const churn = samples.gold.churnRisk;
 ---
 
 <div class="card overflow-hidden" data-tabs>
@@ -104,10 +104,12 @@ const churnHigh = samples.gold.churnRisk.high ?? 0;
           <ul class="mt-3 space-y-2">{t.checks.map((c) => <li class="focus-item text-[14px] text-fg/90">{c}</li>)}</ul>
           {t.key === "gold" && (
             <p class="mt-4 rounded-lg border border-warn/30 bg-warn/5 p-3 text-[13px] leading-relaxed">
-              <span class="font-semibold text-warn-fg">Finding · </span>
-              all {fmt(churnHigh)} callers land in <code class="font-mono">high</code> churn risk: the generator
-              draws a new MSISDN per record, so nobody has more than one event. The mart is
-              right; the synthetic data isn't shaped for it.
+              <span class="font-semibold text-warn-fg">Caveat · </span>
+              the {fmt(samples.distinctCallers)} callers split into {fmt(churn.high ?? 0)}{" "}
+              <code class="font-mono">high</code>, {fmt(churn.medium ?? 0)}{" "}
+              <code class="font-mono">medium</code> and {fmt(churn.low ?? 0)}{" "}
+              <code class="font-mono">low</code> churn risk. The tiers are absolute event counts
+              over a {samples.partitions}-day window, so the split moves with traffic per subscriber.
             </p>
           )}
         </div>

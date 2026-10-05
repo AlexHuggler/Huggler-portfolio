@@ -66,7 +66,14 @@ make install
 make demo
 ```
 
-![make demo output: 50k CDRs generated, then Bronze/Silver/Gold row counts from the medallion transform](docs/img/pipeline-run.png)
+![make demo output: 50k CDRs from a 1,200-subscriber pool, then Bronze/Silver/Gold row counts from the medallion transform](docs/img/pipeline-run.png)
+
+The generator draws every CDR's caller and callee from a seeded pool of
+subscribers (`--subscribers`, default 1,200). Each subscriber has a stable
+plan and home market, activity is heavy-tailed (light, regular and heavy
+users), and about one in eight goes quiet part-way through the window.
+Output is deterministic for a given `--seed`; add `--end-date YYYY-MM-DD` to
+pin the partition dates too (they default to ending today).
 
 For the full Airflow + MinIO experience:
 
@@ -121,19 +128,35 @@ A representative excerpt:
 
 ## Results
 
-Measured on the no-infra demo path (`make demo` + `make dbt-run` +
-`make dbt-test`, DuckDB engine, seed 42, 49,998 CDR rows across 3 day
-partitions). Single process on a Linux container, 2026-07. Reproduce
-with the three commands above.
+Measured on the no-infra demo path (`make demo`, then `dbt build` over the
+same raw parquet; DuckDB engine, seed 42, 49,998 CDR rows from a
+1,200-subscriber pool across 3 day partitions). Single process on a Linux
+container, 2026-10. This is the same run `portfolio-site/scripts/measure.py`
+recorded in `portfolio-site/src/data/measured.json`. Reproduce with the
+commands above.
 
 | Metric | Measured |
 | --- | --- |
-| Raw -> Bronze -> Silver -> Gold transform | 49,998 rows in 0.53 s (~94k rows/sec, single process) |
-| End-to-end demo (generate + transform) | 2.8 s wall clock |
+| Raw -> Bronze -> Silver -> Gold transform | 49,998 rows in 0.20 s (median of 5 in-process runs, ~256k rows/sec) |
+| End-to-end demo (generate + transform) | 1.95 s wall clock (median of 3 `make demo` runs) |
 | dbt build | 8 models (bronze views, silver + gold tables), all built |
 | dbt tests | 41 of 41 passing (unique, not_null, accepted_values, relationships, expression checks) |
 | Bronze data contract | 10 expectations defined in `cdr_bronze_suite.json` (demo DAG stubs enforcement) |
-| Unit tests | 8 passed |
+| Unit tests | 16 passed |
+
+What the Gold marts show on that data (the DuckDB transform and `dbt build`
+agree on every figure):
+
+| Mart / signal | `make demo`, seed 42 |
+| --- | --- |
+| Distinct callers | 1,124 of the 1,200-subscriber pool (76 placed no calls in the window) |
+| Traffic concentration | top 10% of callers produce 36% of CDRs |
+| `churn_signals` tiers | 70 high · 137 medium · 917 low |
+| Callers silent on the final day | 201 |
+| `arpu_monthly` by plan | PREPAID $2.76 · BASIC_5GB $4.50 · FAMILY_50GB $8.26 · PRO_25GB $8.46 · UNLIMITED $13.13 |
+
+Before the subscriber pool, every CDR had a fresh random caller: all 49,998
+callers landed in `high` churn risk, and ARPU was about $0.16 on every plan.
 
 ![dbt test output: 41 of 41 data tests passing](docs/img/dbt-tests.png)
 
@@ -172,7 +195,11 @@ claim depends on the upstream feed format.
 
 ## Limitations
 
-- Synthetic data: phone numbers are random `+1NNNNNNNNNN`, no real PII.
+- Synthetic data: MSISDNs are random `+1NNNNNNNNNN` numbers drawn once
+  per subscriber into a seeded pool; no real PII.
+- `churn_signals` tiers are absolute event counts over the window (<=1
+  high, <=5 medium) and ignore recency, so the tier mix depends on rows
+  per subscriber: more traffic per subscriber shifts everyone toward `low`.
 - The local demo uses DuckDB instead of a true Iceberg engine - the
   data contract is the same but partition pruning is approximated.
 - Terraform doesn't provision IAM, KMS, or VPC - too
