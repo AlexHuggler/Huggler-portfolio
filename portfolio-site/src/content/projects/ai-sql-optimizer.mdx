@@ -26,8 +26,8 @@ capabilities:
   - { name: "5-query corpus with ground truth", status: "measured", note: "make benchmark (dry run)" }
   - { name: "Claude rewrite via versioned prompt", status: "implemented", note: "needs ANTHROPIC_API_KEY; not benchmarked" }
   - { name: "Cloudflare Worker proxy for live mode", status: "stub", note: "wrangler.toml placeholders" }
-  - { name: "Claude in the benchmark (--no-dry-run)", status: "planned" }
-  - { name: "EXPLAIN cost verification", status: "planned" }
+  - { name: "Claude in the benchmark (--no-dry-run)", status: "implemented", note: "needs ANTHROPIC_API_KEY; no run recorded" }
+  - { name: "EXPLAIN cost verification", status: "needs-infra", note: "--explain spark|snowflake; needs the corpus tables on an engine" }
   - { name: "Human acceptance study", status: "planned" }
 ---
 
@@ -52,10 +52,15 @@ joins lack hints, whether a subquery is correlated. A sqlglot pass extracts
 those cheaply and ships them as structured findings, leaving the model to
 decide what to do about them.
 
-**EXPLAIN is the planned verifier, not a claimed one.** Cost estimates
+**EXPLAIN is a verifier, not a claimed result.** Cost estimates
 reflect the planner's statistics and thresholds, so they make a tiebreaker
-rather than ground truth. The EXPLAIN runner is designed in the methodology
-doc but not implemented, and the site says so.
+rather than ground truth. `benchmark --explain spark|snowflake` records the
+engine's estimated bytes scanned before and after a rewrite, and leaves a
+value empty with the reason when the engine can't estimate it. It hasn't
+been run against tables holding the corpus, so the site shows no cost
+number. Bytes scanned also misses join-strategy wins: on a local Spark
+session, a broadcast hint or an explicit column list left the estimate
+unchanged.
 
 **Prompt sensitivity is a real risk.** Small prompt edits change suggestion
 quality, so the prompt lives in version control
@@ -83,7 +88,7 @@ exercised by the corpus — the obvious next corpus additions.
 
 ## Honest limitations
 
-- `benchmark --no-dry-run` does not call Claude yet, so model rewrite quality is unmeasured.
+- `benchmark --no-dry-run` asks Claude to rewrite every query, but no live run has been recorded, so model rewrite quality is unmeasured.
 - Claude can hallucinate plausible column or table names that are not in the schema.
 - The benchmark ignores each query's `-- engine:` header, so Snowflake queries are parsed as Spark.
-- EXPLAIN cost deltas and human acceptance rate are planned, not run.
+- The EXPLAIN cost step is implemented but has not been run against an engine holding the corpus tables, and the human acceptance study is planned. Neither has a number.
