@@ -1,0 +1,18 @@
+# Bronze data contract gate, run by the transform_silver DAG before bronze_to_silver.
+# The Bronze DataFrame is supplied at run time (runtime_parameters.batch_data) by
+# lakehouse.contract.validate_bronze; any failed expectation fails the checkpoint.
+name: cdr_bronze_checkpoint
+config_version: 1.0
+class_name: Checkpoint
+module_name: great_expectations.checkpoint
+run_name_template: "%Y%m%dT%H%M%S-cdr-bronze"
+validations:
+  - batch_request:
+      datasource_name: cdr_local
+      data_connector_name: default_runtime
+      data_asset_name: cdr_bronze
+    expectation_suite_name: cdr_bronze_suite
+action_list:
+  - name: store_validation_result
+    action:
+      class_name: StoreValidationResultAction

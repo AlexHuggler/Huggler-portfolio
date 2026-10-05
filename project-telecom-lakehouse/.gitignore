@@ -42,3 +42,5 @@ crash.log
 
 # Great Expectations
 great_expectations/uncommitted/
+# The repo-root .gitignore ignores checkpoints/ (model checkpoints); GE checkpoints are config.
+!great_expectations/checkpoints/

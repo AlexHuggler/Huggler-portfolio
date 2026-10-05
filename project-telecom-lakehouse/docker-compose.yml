@@ -14,11 +14,16 @@ x-airflow-common: &airflow-common
     AWS_ACCESS_KEY_ID: minio
     AWS_SECRET_ACCESS_KEY: minio12345
     AWS_ENDPOINT_URL: http://minio:9000
+    # What the DAG callables import that the stock image lacks. GE is required:
+    # transform_silver fails rather than skip the Bronze contract without it.
+    # rich<14 keeps the image's flask-limiter satisfied when typer is added.
+    _PIP_ADDITIONAL_REQUIREMENTS: "duckdb>=1.0 typer>=0.12 rich<14 great-expectations>=0.18.22,<0.19"
   volumes:
     - ./dags:/opt/airflow/dags
     - ./src:/opt/airflow/src
     - ./data_generator:/opt/airflow/data_generator
     - ./dbt_telecom:/opt/airflow/dbt_telecom
+    - ./great_expectations:/opt/airflow/great_expectations
     - ./data:/opt/airflow/data
     - airflow-logs:/opt/airflow/logs
   depends_on: &airflow-deps

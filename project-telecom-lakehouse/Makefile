@@ -1,5 +1,5 @@
-.PHONY: install install-airflow install-quality test lint format gen-data \
-        airflow-up airflow-down dbt-run dbt-test demo run clean
+.PHONY: install install-airflow install-dags install-quality test lint format gen-data \
+        contract airflow-up airflow-down dbt-run dbt-test demo run clean
 
 UV ?= uv
 PY ?= $(UV) run python
@@ -9,6 +9,13 @@ install:
 
 install-airflow:
 	$(UV) sync --extra dev --extra airflow --extra quality --extra storage --extra dbt
+
+install-quality:
+	$(UV) sync --extra dev --extra quality
+
+# What the DAG-integrity and real-checkpoint tests need (CI `dags` job).
+install-dags:
+	$(UV) sync --extra dev --extra airflow --extra quality
 
 test:
 	$(UV) run pytest
@@ -24,6 +31,10 @@ gen-data:
 
 bronze-silver:
 	$(PY) -m lakehouse.transform bronze-silver
+
+# Run the GE Bronze data contract over data/bronze (needs the quality extra).
+contract:
+	$(PY) -m lakehouse.contract
 
 airflow-up:
 	docker compose up -d

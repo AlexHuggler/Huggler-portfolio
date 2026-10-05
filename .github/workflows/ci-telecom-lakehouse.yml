@@ -34,6 +34,32 @@ jobs:
       - run: make test
       - run: make demo
 
+  # DAG-integrity and Great Expectations checkpoint tests. They skip without the
+  # airflow/quality extras, so this job installs them and refuses to run without.
+  dags:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: project-telecom-lakehouse
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v3
+        with:
+          enable-cache: true
+          cache-dependency-glob: "project-*/pyproject.toml"
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - run: make install-dags
+      - name: Require Airflow and Great Expectations (no silent skips)
+        run: uv run python -c "import airflow, great_expectations.data_context"
+        env:
+          AIRFLOW_HOME: ${{ runner.temp }}/airflow
+      - run: uv run pytest -rs tests/test_dag_integrity.py tests/test_contract.py
+
   terraform:
     runs-on: ubuntu-latest
     defaults:

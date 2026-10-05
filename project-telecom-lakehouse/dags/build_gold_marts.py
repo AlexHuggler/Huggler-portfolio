@@ -1,4 +1,9 @@
-"""Airflow DAG: build Gold marts via dbt run + dbt test."""
+"""Airflow DAG: build Gold marts via dbt run + dbt test.
+
+Scheduled on the Silver Dataset rather than a clock: it runs after
+``transform_silver`` lands Silver, and never after a Bronze contract failure
+(Silver is not produced, so no Dataset event fires).
+"""
 
 from __future__ import annotations
 
@@ -25,13 +30,16 @@ DBT_PROJECT_DIR = "/opt/airflow/dbt_telecom"
 DBT_PROFILES_DIR = "/opt/airflow/dbt_telecom"
 
 if AIRFLOW_AVAILABLE:
+    from dags.lakehouse_datasets import SILVER_CDR
+
     with DAG(
         dag_id="build_gold_marts",
         description="Run dbt to build Gold marts and dbt test to validate them",
         default_args=DEFAULT_ARGS,
         start_date=datetime(2026, 1, 1),
-        schedule="@daily",
+        schedule=[SILVER_CDR],
         catchup=False,
+        max_active_runs=1,
         tags=["telecom", "gold", "dbt"],
     ) as dag:
         dbt_run = BashOperator(
