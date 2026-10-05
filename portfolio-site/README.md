@@ -3,7 +3,8 @@
 Static portfolio for [Alex Huggler](https://github.com/alexhuggler) built with
 Astro 5, Tailwind CSS, MDX, React islands, and TypeScript. Deploys to
 GitHub Pages, fronted by Cloudflare for HTTPS, analytics, and (optionally)
-a Worker that runs the SQL optimizer demo against the live Anthropic API.
+a Worker that proxies the Anthropic API for a future live SQL optimizer
+demo. The site does not call that Worker yet.
 
 ## Stack
 
@@ -69,7 +70,7 @@ Copy `.env.example` to `.env` (gitignored) and set:
 
 ```
 PUBLIC_CF_ANALYTICS_TOKEN=...   # optional; Cloudflare Web Analytics beacon
-PUBLIC_LIVE_DEMO_URL=...        # optional; Worker URL for SQL optimizer live mode
+PUBLIC_LIVE_DEMO_URL=...        # optional; Worker URL, reserved (the demo does not call it yet)
 ```
 
 Both are optional. The site builds and runs without either.
@@ -132,9 +133,13 @@ that handshake.
 
 ### 5. Optional: deploy the SQL optimizer Worker
 
-The Worker at `src/workers/sql-optimizer-proxy/` lets the optimizer
-demo run against the live Anthropic API without exposing keys. Off by
-default; only deploy if you want live mode.
+The Worker at `src/workers/sql-optimizer-proxy/` proxies the Anthropic
+API without exposing keys. **The site does not call it yet.**
+`src/components/sqlopt/SqlOptimizerDemo.tsx` reads `PUBLIC_LIVE_DEMO_URL`
+but ignores it, and the demo always replays
+`src/data/sql-optimizations.json`. Deploying the Worker lets you
+exercise it on its own (for example with `curl`); it does not change
+the site.
 
 ```bash
 cd src/workers/sql-optimizer-proxy
@@ -148,9 +153,12 @@ wrangler deploy
 ```
 
 Then in Cloudflare → Workers Routes, bind the Worker to
-`your-domain.com/api/sql-optimize/*`. Set
-`PUBLIC_LIVE_DEMO_URL=https://your-domain.com/api/sql-optimize` in the
-portfolio's `.env` and rebuild.
+`your-domain.com/api/sql-optimize/*`.
+
+Setting `PUBLIC_LIVE_DEMO_URL=https://your-domain.com/api/sql-optimize`
+and rebuilding does **not** switch the demo to live calls. Live mode
+still needs a fetch path in `SqlOptimizerDemo.tsx`, plus an adapter
+wherever the Worker's response shape differs from the fixture's.
 
 See `src/workers/sql-optimizer-proxy/README.md` for the full Worker
 setup, response schema, rate-limit knobs, and security checklist.
