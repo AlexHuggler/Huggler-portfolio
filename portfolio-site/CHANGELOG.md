@@ -2,32 +2,27 @@
 
 All notable changes to the portfolio site. Versions follow `package.json`.
 
-## Unreleased
+## 0.2.1 — 2026-10-05
+
+Follows the SQL optimizer's live benchmark and EXPLAIN step (PR #16), and
+corrects its keyword-overlap score (PRs #11 and #15).
 
 - **SQL optimizer keyword overlap is 0.33, not 0.67.** `benchmark._score`
   searched the input query text as well as the findings; it now scores tool
-  output only (PR #11, reconciled with PR #16's live mode). Re-measured with
-  `npm run measure`. The "upper bound" label, its caveat and the separate
-  findings-only re-score are gone — the benchmark figure is now the strict one.
-- Re-measured alongside: SQL optimizer tests 43 → 45, all-project tests
-  69 → 71; detector throughput ~172k/s → ~154k/s and analyzer latency
-  0.7 ms → 0.9 ms moved run to run.
-
-## 0.2.1 — 2026-10-05
-
-Follows the SQL optimizer's live benchmark and EXPLAIN step (PR #16).
-
+  output only — finding messages in a dry run, Claude's rewrite and reasoning
+  in a live run. The "upper bound" label, its caveat and the separate
+  findings-only re-score are gone: the benchmark figure is now the strict one.
 - **Statuses.** `benchmark --no-dry-run` (Claude in the benchmark) is now
   *implemented*, and `benchmark --explain spark|snowflake` is *needs-infra*.
-  Neither has a recorded run, so the site adds no new numbers. Updated the
-  capability list, evaluation panels, architecture lane, capability matrix
-  and the not-measured reasons.
+  Neither has a recorded run, so the site adds no new numbers for them.
+  Updated the capability list, evaluation panels, architecture lane,
+  capability matrix and the not-measured reasons.
 - **Re-measured** with `npm run measure` on a different container (CPU in
   `environmentDetail`):
-  - SQL optimizer tests 18 → 43, all-project tests 44 → 69;
-  - dry-run scores unchanged;
-  - timings moved with the hardware: transform 0.32 s → 0.24 s, detector
-    throughput ~100k/s → ~172k/s, analyzer latency 1.3 ms → 0.7 ms.
+  - SQL optimizer tests 18 → 45, all-project tests 44 → 71;
+  - timings moved with the hardware and run to run: transform 0.32 s →
+    0.24 s, detector throughput ~100k/s → ~154k/s, analyzer latency
+    1.3 ms → 0.9 ms.
 - The SQL stack list reads its test count from `measured.json` instead of
   hard-coding it.
 
