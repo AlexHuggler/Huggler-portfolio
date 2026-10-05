@@ -1,7 +1,7 @@
 $ make test
 uv run pytest
-....................                                                                                                                                                                             [100%]
-20 passed in 2.29s
+...........................................                                                                                                                                                      [100%]
+43 passed in 1.95s
 
 $ make benchmark
 uv run sql-optimizer benchmark --dry-run
@@ -10,8 +10,9 @@ uv run sql-optimizer benchmark --dry-run
 ┃ Category            ┃ Queries ┃ Avg keyword overlap ┃ Findings hit rate ┃
 ┡━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━┩
 │ join_optimization   │       1 │                1.00 │              1.00 │
-│ aggregation_rewrite │       1 │                0.33 │              1.00 │
+│ aggregation_rewrite │       1 │                0.67 │              1.00 │
 │ cte_flattening      │       1 │                0.00 │              1.00 │
-│ partition_pruning   │       1 │                0.00 │              0.00 │
-│ broadcast_join      │       1 │                0.33 │              1.00 │
+│ partition_pruning   │       1 │                0.67 │              0.00 │
+│ broadcast_join      │       1 │                1.00 │              1.00 │
 └─────────────────────┴─────────┴─────────────────────┴───────────────────┘
+EXPLAIN step not run: no engine (pass --explain spark|snowflake).

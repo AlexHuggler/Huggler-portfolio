@@ -32,16 +32,18 @@ sequenceDiagram
   participant CLI as sql-optimizer CLI
   participant A as Analyzer (sqlglot + heuristics)
   participant C as Claude API
-  participant E as EXPLAIN runner (optional)
+  participant E as EXPLAIN engine (Spark / Snowflake)
 
-  U->>CLI: analyze query.sql
+  U->>CLI: analyze query.sql (or benchmark --no-dry-run)
   CLI->>A: parse + collect findings
   A-->>CLI: AST metadata + findings
   CLI->>C: optimizer_prompt + sql + findings
   C-->>CLI: rewrite + reasoning + confidence
-  CLI->>E: EXPLAIN original / EXPLAIN rewrite (optional)
-  E-->>CLI: cost deltas
-  CLI-->>U: markdown diff + cost report
+  opt benchmark --explain spark|snowflake
+    CLI->>E: EXPLAIN original / EXPLAIN rewrite
+    E-->>CLI: estimated bytes scanned, before / after
+  end
+  CLI-->>U: rewrite (analyze) or scores + cost report (benchmark)
 ```
 
 Without `ANTHROPIC_API_KEY`, the CLI prints the heuristic findings only
@@ -60,7 +62,9 @@ To enable the full Claude path:
 
 ```bash
 cp .env.example .env
-# add ANTHROPIC_API_KEY=sk-... to .env
+# add ANTHROPIC_API_KEY=sk-... to .env, then export it -
+# the CLI reads the environment and does not load .env itself
+set -a; . ./.env; set +a
 sql-optimizer analyze corpus/queries/01_join_optimization.sql
 ```
 
@@ -69,8 +73,42 @@ CLI:
 ```bash
 sql-optimizer --help
 sql-optimizer analyze <file.sql> [--dry-run] [--dialect spark|snowflake]
-sql-optimizer benchmark [--dry-run] [--limit 50]
+sql-optimizer benchmark [--dry-run | --no-dry-run] [--limit 50] \
+    [--explain spark|snowflake] [--explain-setup setup.sql] [--output results.json]
 ```
+
+### Live benchmark and EXPLAIN cost step
+
+`benchmark --no-dry-run` (or `make benchmark-live`) asks Claude to rewrite
+every corpus query and scores the rewrite + its reasoning against ground
+truth with the same keyword scorer. Without `ANTHROPIC_API_KEY` it exits
+with status 2 - it never falls back to heuristic scoring. `--output`
+saves every rewrite, the model, the scores and any EXPLAIN plans as JSON.
+
+`--explain` adds an optional EXPLAIN of the original and the rewritten
+query and records the engine's estimated bytes scanned before and after:
+
+| Engine | Connects via | Estimate recorded |
+| --- | --- | --- |
+| `spark` | local SparkSession (`uv sync --extra dev --extra spark`, needs a JDK) | sum of `sizeInBytes` over the leaf nodes of the `EXPLAIN COST` optimized logical plan |
+| `snowflake` | `SNOWFLAKE_ACCOUNT`, `SNOWFLAKE_USER`, `SNOWFLAKE_PASSWORD` (+ optional warehouse, database, schema, role; see `.env.example`), `uv sync --extra dev --extra snowflake` | `GlobalStats.bytesAssigned` from `EXPLAIN USING JSON` |
+
+```bash
+make benchmark-live EXPLAIN=spark EXPLAIN_SETUP=path/to/setup.sql
+```
+
+- The corpus tables must exist on the engine. A local Spark session starts
+  empty, so pass `--explain-setup` with SQL that creates or registers them
+  over representative data, plus `ANALYZE TABLE ... COMPUTE STATISTICS` for
+  partitioned tables (without statistics Spark reports its `8.0 EiB`
+  "unknown" default, which the runner refuses to treat as an estimate).
+- Only queries whose `-- engine:` header matches the engine are explained;
+  the rest are listed as skipped.
+- If the engine is not configured (package or env vars missing) the step is
+  skipped with a message and the benchmark still runs.
+- Any side the engine cannot estimate (missing table, a rewrite that
+  references a hallucinated column, no statistics) is recorded as a note
+  with no number. In `--dry-run` only the "before" side runs.
 
 ## Methodology
 
@@ -85,6 +123,10 @@ suggestion should mention) and expected cost direction. Keywords are
 matched against the tool's output only - never the input query, so a
 table name already in the SQL does not count as a hit. The benchmark
 prints per-category averages of keyword overlap and findings-hit rate.
+In `--no-dry-run` mode the same scorer runs over Claude's rewrite +
+reasoning instead of the heuristic findings, and with
+`--explain` the observed cost direction is checked against the expected
+one.
 
 See [`docs/methodology.md`](docs/methodology.md) for scoring detail and
 the limitations of these proxies.
@@ -101,7 +143,7 @@ from 2026-07. Reproduce with one command.
 | Avg keyword overlap vs ground truth (findings only, heuristics only) | 0.33 across 5 queries |
 | Findings hit rate (>= 1 analyzer finding per query) | 4 of 5 queries (0.80) |
 | Benchmark wall clock | 0.34 s for the corpus (~68 ms per query) |
-| Unit tests | 20 passed |
+| Unit tests | 45 passed (`make test`, 2026-10) |
 
 ![sql-optimizer benchmark --dry-run: per-category keyword overlap and findings hit rate](docs/img/benchmark.png)
 
@@ -114,12 +156,14 @@ benchmark passes no partition columns, so the missing-partition-predicate
 rule never fires and nothing names `ingest_date`. It is the one query of
 five without a finding.
 
-### Planned evaluation (needs an engine and/or reviewers - not run here)
+### Planned evaluation (needs an API key, an engine and/or reviewers - not run here)
 
 | Metric | Status |
 | --- | --- |
+| Claude rewrite keyword overlap (`benchmark --no-dry-run`) | implemented; not measured (needs `ANTHROPIC_API_KEY` - no live run recorded) |
+| Avg cost reduction via EXPLAIN | runner implemented (`--explain spark` / `--explain snowflake`); not measured (needs an engine holding the corpus tables with statistics) |
+| Cost direction matches `expected_cost_direction` | implemented with the EXPLAIN runner; not measured |
 | % suggestions accepted by human reviewer | not measured (needs sampled human review) |
-| Avg cost reduction via EXPLAIN | not measured (needs a live Spark/Snowflake engine) |
 | Human-rated quality (5-point Likert) | not measured |
 
 ## Limitations
@@ -128,7 +172,12 @@ five without a finding.
   do not exist in the schema. Always run the rewrite against a real
   EXPLAIN before shipping.
 - EXPLAIN-based scoring is only as good as the optimizer's cost
-  estimates - a "cheaper" plan can still be slower in practice.
+  estimates - a "cheaper" plan can still be slower in practice. The
+  recorded estimate is bytes scanned, so it shows partition pruning and
+  removed scans but not join-strategy changes: on Spark, adding a
+  broadcast hint or replacing `SELECT *` with explicit columns leaves the
+  estimate unchanged (checked against a local Spark session). Spark also
+  prints sizes to one decimal per unit (`183.2 KiB`).
 - Dialect drift between Spark SQL and Snowflake catches edge cases
   (`QUALIFY`, lateral views, `FLATTEN(...)`).
 - Prompt sensitivity: small changes to the prompt template materially
@@ -151,8 +200,9 @@ five without a finding.
 
 ## What I would do differently in production
 
-- Wrap the EXPLAIN runner so it can compare original vs rewritten plans
-  against a real Spark / Snowflake instance.
+- Run the EXPLAIN comparison against production-sized tables with fresh
+  statistics, and pair the estimate with runtime / credits from a sampled
+  execution, since bytes scanned cannot see join-strategy wins.
 - Add a learned scorer that fine-tunes per-team taste (some teams
   prefer many small CTEs for readability over one mega-statement).
 - Cache prompt + response pairs by SQL fingerprint to keep API costs

@@ -1,7 +1,7 @@
 $ make test
 uv run pytest
 ..................s                                                                                                                                                                              [100%]
-18 passed, 1 skipped in 0.24s
+18 passed, 1 skipped in 0.12s
 
 $ make eval
 ==> Generating a labeled evaluation set (seed 42, ~17k simulated events)
@@ -18,4 +18,4 @@ uv run python -m anomaly.evaluate data/eval_events.jsonl
 │ geo      │ impossible_travel    │                 240 │              240 │      1.00 │   1.00 │ 1.00 │
 │ amount   │ amount_outlier       │                 200 │              121 │      0.97 │   0.58 │ 0.73 │
 └──────────┴──────────────────────┴─────────────────────┴──────────────────┴───────────┴────────┴──────┘
-Scored 16664 events in 0.11s (154,603 events/sec, single process)
+Scored 16664 events in 0.12s (144,355 events/sec, single process)
