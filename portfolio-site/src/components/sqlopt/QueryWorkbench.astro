@@ -75,7 +75,7 @@ const severityOf = Object.fromEntries(corpus.rules.map((r) => [r.id, r.severity]
         <p class="mt-4 flex flex-wrap items-center gap-2 font-mono text-[11px] text-muted">
           <span class="pill">tagged: {q.engineTag}</span>
           <span class="pill">parsed as: {q.parsedAs}</span>
-          {mismatch && <span class="text-warn">The benchmark ignores the engine header.</span>}
+          {mismatch && <span class="text-warn-fg">The benchmark ignores the engine header.</span>}
         </p>
 
         <div class="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)]">
@@ -173,7 +173,7 @@ const severityOf = Object.fromEntries(corpus.rules.map((r) => [r.id, r.severity]
             <div class="grid gap-0 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
               <div class="min-w-0 border-b border-border lg:border-b-0 lg:border-r">
                 <p class="sr-only">Line diff, original to rewrite</p>
-                <pre class="overflow-x-auto bg-surface-2 py-3 font-mono text-[12px] leading-[1.7]" aria-label="Diff from original to rewrite">{q.rewrite.diff.map((l) => <span class="diff-line" data-op={l.op}>{l.text || " "}</span>)}</pre>
+                <pre class="overflow-x-auto bg-surface-2 py-3 font-mono text-[12px] leading-[1.7]" tabindex="0" aria-label="Diff from original to rewrite">{q.rewrite.diff.map((l) => <span class="diff-line" data-op={l.op}>{l.text || " "}</span>)}</pre>
               </div>
               <div class="space-y-4 p-5">
                 <ul class="space-y-2 text-sm">
@@ -207,12 +207,12 @@ const severityOf = Object.fromEntries(corpus.rules.map((r) => [r.id, r.severity]
         )}
 
         <details class="group mt-5 rounded-xl border border-border">
-          <summary class="flex cursor-pointer list-none items-center justify-between gap-3 px-5 py-3.5">
+          <summary class="flex cursor-pointer list-none flex-wrap items-center justify-between gap-x-3 gap-y-1 px-5 py-3.5">
             <span class="text-sm font-medium">What Claude would receive for this query</span>
-            <span class="font-mono text-[11px] text-muted">client._build_user_message()</span>
+            <span class="font-mono text-[11px] text-muted max-sm:hidden">client._build_user_message()</span>
           </summary>
           <div class="border-t border-border" data-code-copy>
-            <pre class="max-h-80 overflow-auto bg-surface-2 p-5 font-mono text-[12px] leading-relaxed text-fg/90">{q.payload}</pre>
+            <pre class="max-h-80 overflow-auto bg-surface-2 p-5 font-mono text-[12px] leading-relaxed text-fg/90" tabindex="0">{q.payload}</pre>
           </div>
         </details>
       </section>

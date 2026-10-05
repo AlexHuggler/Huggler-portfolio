@@ -39,16 +39,13 @@ function buildOption(t: VizTokens, _mode: VizMode, reduced: boolean) {
   });
   return {
     ...motion(reduced),
-    grid: grid({ left: 8, right: 16, top: 36, bottom: 8 }),
+    grid: grid({ left: 8, right: 20, top: 40, bottom: 8 }),
     legend: legend(t, { top: 0, left: 0 }),
     tooltip: tooltip(t, { trigger: "axis", axisPointer: { type: "shadow" } }),
     xAxis: {
       type: "value",
       max: 3,
       interval: 1,
-      name: "keywords",
-      nameLocation: "end",
-      nameTextStyle: { color: t.muted, fontSize: 10 },
       axisLabel: axisLabel(t),
       splitLine: splitLine(t),
     },
@@ -60,7 +57,7 @@ function buildOption(t: VizTokens, _mode: VizMode, reduced: boolean) {
       axisTick: { show: false },
     },
     series: [
-      seg("In analyzer findings", "inFindings", t.series[0]),
+      seg("In findings", "inFindings", t.series[0]),
       seg("Query text only", "textOnly", t.series[1]),
       seg("Missed", "missed", withAlpha(t.muted, 0.3), true),
     ],

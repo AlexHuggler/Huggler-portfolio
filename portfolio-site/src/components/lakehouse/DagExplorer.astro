@@ -63,7 +63,7 @@ const isStub = (doc?: string) => !!doc && /great expectations|suite/i.test(doc);
       {list.map((d) => {
         const n = runsPerDay(d.schedule);
         return (
-          <div class="grid grid-cols-[140px_1fr] items-center gap-3 sm:grid-cols-[180px_1fr]" role="listitem">
+          <div class="grid grid-cols-1 items-center gap-1.5 sm:grid-cols-[180px_1fr] sm:gap-3" role="listitem">
             <span class="truncate font-mono text-[11px]">{d.id}</span>
             <div class="relative h-6 rounded-md bg-surface-2" aria-label={`${d.id}: ${n} run${n === 1 ? "" : "s"} per day`} role="img">
               {Array.from({ length: n }).map((_, h) => (
@@ -73,8 +73,8 @@ const isStub = (doc?: string) => !!doc && /great expectations|suite/i.test(doc);
           </div>
         );
       })}
-      <div class="grid grid-cols-[140px_1fr] gap-3 sm:grid-cols-[180px_1fr]" aria-hidden="true">
-        <span></span>
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-[180px_1fr]" aria-hidden="true">
+        <span class="hidden sm:block"></span>
         <div class="flex justify-between font-mono text-[10px] text-muted"><span>00:00</span><span>06:00</span><span>12:00</span><span>18:00</span><span>24:00</span></div>
       </div>
     </div>

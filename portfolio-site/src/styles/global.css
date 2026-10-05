@@ -33,7 +33,9 @@
     --color-accent-2-fg: 14 116 144; /* #0e7490 — cyan as text */
     --color-success: 4 120 87; /* #047857 */
     --color-warn: 180 83 9; /* #b45309 */
+    --color-warn-fg: 146 64 14; /* #92400e — amber as small text on tints */
     --color-danger: 185 28 28; /* #b91c1c */
+    --color-accent-solid: 37 99 235; /* #2563eb — fills that carry white text */
     --color-shadow: 15 23 42;
 
     /* Medallion tiers */
@@ -104,7 +106,9 @@
     --color-accent-2-fg: 34 211 238; /* #22d3ee */
     --color-success: 52 211 153; /* #34d399 */
     --color-warn: 251 191 36; /* #fbbf24 */
+    --color-warn-fg: 251 191 36; /* #fbbf24 */
     --color-danger: 248 113 113; /* #f87171 */
+    --color-accent-solid: 37 99 235; /* #2563eb — white text holds 5.2:1 */
     --color-shadow: 0 0 0;
 
     --tier-bronze: 217 145 92; /* #d9915c */
@@ -307,11 +311,11 @@
     transform: translateY(1px);
   }
   .btn-primary {
-    @apply border-transparent bg-accent text-white;
+    @apply border-transparent bg-accent-solid text-white;
     box-shadow: var(--shadow-2), inset 0 1px 0 rgb(255 255 255 / 0.18);
   }
   .btn-primary:hover {
-    @apply border-transparent bg-accent;
+    @apply border-transparent bg-accent-solid;
     filter: brightness(1.08);
   }
   .btn-ghost {
@@ -398,7 +402,7 @@
   }
   .status-chip[data-status="measured"] { --status: var(--color-success); }
   .status-chip[data-status="implemented"] { --status: var(--color-accent-fg); }
-  .status-chip[data-status="stub"] { --status: var(--color-warn); }
+  .status-chip[data-status="stub"] { --status: var(--color-warn-fg); }
   .status-chip[data-status="needs-infra"] { --status: var(--color-accent-2-fg); }
   .status-chip[data-status="planned"] {
     --status: var(--color-muted);
@@ -421,7 +425,7 @@
     background: rgb(var(--sev) / 0.1);
     box-shadow: inset 0 0 0 1px rgb(var(--sev) / 0.25);
   }
-  .severity[data-severity="warn"] { --sev: var(--color-warn); }
+  .severity[data-severity="warn"] { --sev: var(--color-warn-fg); }
   .severity[data-severity="high"] { --sev: var(--color-danger); }
 
   .tier-text-bronze { color: rgb(var(--tier-bronze)); }

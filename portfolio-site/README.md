@@ -32,6 +32,7 @@ npm run dev        # http://localhost:4321
 | `npm run data:viz` | Regenerates `src/data/viz/telecom.json` |
 | `npm run measure` | Re-runs every project's make targets and rewrites `measured.json` (needs `uv` and PyPI access) |
 | `npm run measure:render` | Re-renders metric labels from the stored evaluations only |
+| `npm run qa` | Release QA against `npm run preview`: axe (WCAG 2.2 AA) in both themes at 1280 and 375 wide, keyboard flows, reduced motion, console errors, third-party requests, CLS, two-page résumé print. `--shots <dir>` also saves screenshots at four widths |
 
 CI (`.github/workflows/site-ci.yml`) runs `check`, `validate`, `data:check` and
 `build` on every pull request that touches the site.

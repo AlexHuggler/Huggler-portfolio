@@ -143,7 +143,8 @@ export function tooltip(t: VizTokens, extra: Record<string, unknown> = {}) {
 }
 
 export function axisLabel(t: VizTokens, extra: Record<string, unknown> = {}) {
-  return { color: t.muted, fontSize: 11, fontFamily: MONO, ...extra };
+  // hideOverlap drops colliding tick labels on narrow charts instead of overprinting them.
+  return { color: t.muted, fontSize: 11, fontFamily: MONO, hideOverlap: true, ...extra };
 }
 
 export function axisName(t: VizTokens) {
@@ -219,6 +220,14 @@ export function usd(n: number): string {
   if (abs >= 1_000) return `$${(n / 1_000).toFixed(1)}k`;
   if (abs >= 10) return `$${n.toFixed(0)}`;
   return `$${n.toFixed(2)}`;
+}
+
+/** Axis tick money: $10k / $2.5k / $500, no trailing ".0". */
+export function usdTick(n: number): string {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `$${+(n / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `$${+(n / 1_000).toFixed(1)}k`;
+  return `$${+n.toFixed(2)}`;
 }
 
 /** Compact number: 1,284 / 12.9k / 4.2M. */

@@ -23,7 +23,7 @@ const env = measured.environmentDetail;
   <div class="flex items-center justify-between gap-2">
     <span class="status-chip" data-status={m.kind}>{kindLabel}</span>
     {m.caveat && (
-      <span class="font-mono text-[10px] uppercase tracking-wider text-warn" title={m.caveat}>
+      <span class="font-mono text-[10px] uppercase tracking-wider text-warn-fg" title={m.caveat}>
         Caveat
       </span>
     )}
@@ -52,7 +52,7 @@ const env = measured.environmentDetail;
       </dl>
       {m.caveat && (
         <p class="rounded-md border border-warn/30 bg-warn/5 p-2.5 leading-relaxed text-fg/90">
-          <span class="font-semibold text-warn">Caveat · </span>{m.caveat}
+          <span class="font-semibold text-warn-fg">Caveat · </span>{m.caveat}
         </p>
       )}
       <a href={`/evidence#m-${m.id}`} class="link inline-block font-mono text-[11px]">

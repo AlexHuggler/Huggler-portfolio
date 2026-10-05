@@ -82,12 +82,19 @@ presentation moves from a template feel to an editorial one.
   user pause control on every animation.
 - Every chart has a table view; the live feed announces a throttled summary
   instead of every event.
+- Scrollable tables and code blocks are focusable, named regions; small amber
+  text and white-on-blue buttons meet 4.5:1 in both themes (`--color-warn-fg`,
+  `--color-accent-solid`); the evidence ledger stacks into rows on phones.
 
 ### Tooling
 
 - `npm run check`, `validate` (token, phrase, metric-id and data-consistency
   guardrail) and `data:check` (scenario reproducibility).
 - Site CI on pull requests: install, type check, validate, data check, build.
+- `npm run qa` (`scripts/qa.mjs`): axe-core WCAG 2.2 AA in both themes at desktop and
+  phone widths, with the palette, menu, chart dialog and data tables open;
+  keyboard flows; reduced motion; résumé prints on two pages. All passing at
+  release.
 - Removed: Monaco, react-diff-viewer, React Flow, Framer Motion, Mermaid,
   `vite.ssr.noExternal`, and the unused live-demo environment read.
 

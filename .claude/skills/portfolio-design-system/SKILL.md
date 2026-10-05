@@ -41,6 +41,8 @@ can compose alpha (`rgb(var(--color-accent) / 0.4)`).
 | Motion | `--ease-out`, `--dur-1..3` | every transition; motion transitions are dropped under reduced motion |
 | Tiers | `--tier-bronze/silver/gold` | medallion layers only |
 | Secondary accent text | `--color-accent-2-fg` | cyan text that holds contrast |
+| Solid fill for white text | `--color-accent-solid` | primary buttons, skip link (white holds 5.2:1 in both modes) |
+| Amber as small text | `--color-warn-fg` | stub chips, warn severity, caveats (`--color-warn` stays for fills) |
 | Code | `--shiki-*` | Shiki CSS-variables theme (set in `astro.config.mjs`) |
 
 ### Status vocabulary

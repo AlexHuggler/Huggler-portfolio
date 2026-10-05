@@ -13,6 +13,7 @@ import {
   splitLine,
   tooltip,
   usd,
+  usdTick,
   withAlpha,
   type VizMode,
   type VizTokens,
@@ -86,7 +87,7 @@ export default function TelecomDashboard(): JSX.Element {
         grid: grid({ top: 16 }),
         tooltip: tooltip(t, { trigger: "axis", axisPointer: { type: "shadow" }, valueFormatter: (v: unknown) => usd(Number(v)) }),
         xAxis: { type: "category", data: s.monthly.map((r) => monthLabel(r.month)), axisLabel: axisLabel(t), axisTick: { show: false }, axisLine: { lineStyle: { color: t.border } } },
-        yAxis: { type: "value", axisLabel: axisLabel(t, { formatter: (v: number) => usd(v) }), splitLine: splitLine(t) },
+        yAxis: { type: "value", axisLabel: axisLabel(t, { formatter: (v: number) => usdTick(v) }), splitLine: splitLine(t) },
         series: [{
           name: "Usage revenue",
           type: "bar",
@@ -116,7 +117,7 @@ export default function TelecomDashboard(): JSX.Element {
         markLine: {
           symbol: "none",
           silent: true,
-          label: { color: t.muted, fontSize: 10, formatter: "12-mo mean" },
+          label: { color: t.muted, fontSize: 10, formatter: "12-mo mean", position: "insideEndTop" },
           lineStyle: { color: t.muted, type: "dashed", width: 1 },
           data: [{ yAxis: +s.arpuMonthlyMean.toFixed(2) }],
         },
@@ -132,7 +133,7 @@ export default function TelecomDashboard(): JSX.Element {
         ...motion(reduced),
         grid: grid({ top: 8, right: 56 }),
         tooltip: tooltip(t, { trigger: "item", valueFormatter: (v: unknown) => usd(Number(v)) }),
-        xAxis: { type: "value", axisLabel: axisLabel(t, { formatter: (v: number) => usd(v) }), splitLine: splitLine(t) },
+        xAxis: { type: "value", splitNumber: 4, axisLabel: axisLabel(t, { formatter: (v: number) => usdTick(v) }), splitLine: splitLine(t) },
         yAxis: { type: "category", data: rows.map((r) => r.m), axisLabel: axisLabel(t, { color: t.fg }), axisTick: { show: false }, axisLine: { show: false } },
         series: [{
           type: "bar",

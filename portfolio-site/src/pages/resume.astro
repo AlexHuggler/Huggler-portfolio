@@ -19,7 +19,7 @@ const site = (Astro.site?.toString() ?? siteConfig.url).replace(/\/$/, "");
 ---
 
 <BaseLayout title="Résumé" description={`${siteConfig.name} — résumé: senior data engineer, PySpark, Databricks, Delta Lake, dbt, Airflow.`}>
-  <div class="container-page py-12 md:py-16">
+  <div class="resume-wrap container-page py-12 md:py-16">
     <div class="no-print mb-8 flex flex-wrap items-center justify-between gap-4">
       <div role="tablist" aria-label="Résumé format" class="segmented" data-resume-tabs>
         <button role="tab" id="tab-web" aria-controls="panel-web" aria-selected="true" tabindex="0">Web</button>
@@ -36,10 +36,10 @@ const site = (Astro.site?.toString() ?? siteConfig.url).replace(/\/$/, "");
 
     <div id="panel-web" role="tabpanel" aria-labelledby="tab-web" tabindex="0">
       <article class="resume card mx-auto max-w-[880px] p-6 md:p-12">
-        <header class="flex flex-wrap items-end justify-between gap-6 border-b border-border pb-6">
+        <header class="resume-header flex flex-wrap items-end justify-between gap-6 border-b border-border pb-6">
           <div>
             <h1 class="display-2 text-[2.5rem] md:text-[3rem]">{siteConfig.name}</h1>
-            <p class="mt-2 text-lg text-fg/90">Senior Data Engineer · PySpark · Databricks · Delta Lake · SQL</p>
+            <p class="resume-tagline mt-2 text-lg text-fg/90">Senior Data Engineer · PySpark · Databricks · Delta Lake · SQL</p>
           </div>
           <ul class="space-y-1 text-right font-mono text-[12px] text-muted">
             <li>{siteConfig.location}</li>
@@ -95,7 +95,7 @@ const site = (Astro.site?.toString() ?? siteConfig.url).replace(/\/$/, "");
 
         <section class="resume-section" aria-labelledby="r-skills">
           <h2 id="r-skills" class="resume-h">Technical skills</h2>
-          <dl class="spec !gap-y-2.5">
+          <dl class="spec !gap-y-2.5 max-sm:!grid-cols-1 max-sm:!gap-y-1">
             {stackGroups.map((g) => {
               const items = stack.filter((s) => s.group === g);
               const core = items.filter((s) => s.level === "core").map((s) => s.name);
@@ -220,25 +220,75 @@ const site = (Astro.site?.toString() ?? siteConfig.url).replace(/\/$/, "");
   @media print {
     @page {
       size: letter;
-      margin: 0.55in 0.6in;
+      margin: 0.5in 0.55in;
+    }
+    .resume-wrap {
+      padding: 0 !important;
+      max-width: none !important;
     }
     .resume {
       border: 0 !important;
       padding: 0 !important;
       max-width: none !important;
+      font-size: 9.5pt;
+      line-height: 1.4;
+    }
+    .resume-header {
+      display: grid !important;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 12pt !important;
+      padding-bottom: 8pt !important;
     }
     .resume :global(h1) {
-      font-size: 22pt !important;
+      font-size: 20pt !important;
+      line-height: 1.1;
+    }
+    .resume-tagline {
+      font-size: 10.5pt !important;
+      margin-top: 2pt !important;
+    }
+    .resume-header ul {
+      font-size: 8.5pt !important;
     }
     .resume-section {
-      margin-top: 14pt;
+      margin-top: 10pt;
     }
-    .resume-role {
+    .resume-h {
+      margin-bottom: 6pt;
+      break-after: avoid;
+    }
+    .resume :global(p),
+    .resume :global(dd),
+    .resume :global(li) {
+      font-size: 9.5pt !important;
+      line-height: 1.4 !important;
+    }
+    .resume :global(.space-y-7) > :global(* + *) {
+      margin-top: 10pt !important;
+    }
+    .resume :global(.space-y-2) > :global(* + *),
+    .resume :global(.space-y-3) > :global(* + *) {
+      margin-top: 3pt !important;
+    }
+    .resume :global(.spec) {
+      row-gap: 3pt !important;
+    }
+    .resume :global(h3) {
+      font-size: 10.5pt !important;
+    }
+    .resume-role > :global(div:first-child),
+    .resume-role > :global(p) {
+      break-after: avoid;
+    }
+    .resume :global(li) {
       break-inside: avoid;
     }
-    .resume :global(.focus-item) {
-      font-size: 9.5pt !important;
-      line-height: 1.4;
+    .resume :global(p.font-mono) {
+      font-size: 8pt !important;
+    }
+    .resume-section[aria-labelledby="r-skills"] {
+      break-inside: avoid;
     }
     #panel-web {
       display: block !important;

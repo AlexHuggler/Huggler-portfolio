@@ -66,7 +66,8 @@ const layerLabel = { source: "source", bronze: "bronze", silver: "silver", gold:
         <p class="text-[15px] font-semibold tracking-tight">dbt_telecom · {dbt.models.length} models, {dbt.testCount} tests</p>
         <span class="data-chip" data-kind="real" title={dbt._meta.note}>Parsed from the dbt project</span>
       </div>
-      <div class="overflow-x-auto px-3 pb-4 pt-2">
+      <p class="px-5 pt-2 font-mono text-[11px] text-muted md:hidden" aria-hidden="true">Swipe the graph sideways to follow Bronze → Silver → Gold →</p>
+      <div class="overflow-x-auto px-3 pb-4 pt-2" tabindex="0" role="region" aria-label="dbt lineage graph (scrollable)">
         <div class="relative" style={`width:${width}px;height:${height + 40}px`}>
           <svg class="absolute inset-0" width={width} height={height + 40} aria-hidden="true">
             <defs>

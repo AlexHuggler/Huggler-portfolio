@@ -103,7 +103,7 @@ export default function FeedReplay(): JSX.Element {
   return (
     <div ref={rootRef} className="card overflow-hidden">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-3">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button type="button" className={btn} onClick={toggle}>
             {paused ? <Play size={13} aria-hidden="true" /> : <Pause size={13} aria-hidden="true" />}
             {paused ? "Play" : "Pause"}
@@ -134,7 +134,7 @@ export default function FeedReplay(): JSX.Element {
       </div>
 
       <div className="grid lg:grid-cols-[minmax(0,1fr)_240px]">
-        <div className="min-w-0 overflow-x-auto">
+        <div className="min-w-0 overflow-x-auto" tabIndex={0} role="region" aria-label="Replayed events (scrollable)">
           <table className="w-full min-w-[620px] text-left text-sm">
             <caption className="sr-only">Most recent replayed events, newest first</caption>
             <thead>

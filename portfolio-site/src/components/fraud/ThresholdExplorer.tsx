@@ -142,7 +142,7 @@ export default function ThresholdExplorer(): JSX.Element {
                       onChange={() => setSelected((s) => ({ ...s, [kind]: r.threshold }))}
                     />
                     {cfg.fmt(r.threshold)}
-                    {r.threshold === cfg.shipped && <span className="text-[9px] uppercase tracking-wider opacity-70">shipped</span>}
+                    {r.threshold === cfg.shipped && <span className="text-[10px] font-semibold uppercase tracking-wider">shipped</span>}
                   </label>
                 );
               })}

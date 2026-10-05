@@ -17,7 +17,7 @@ const { command, output, caption, class: className } = Astro.props;
   <div class="terminal-bar" aria-hidden="true">
     <span></span><span></span><span></span>
   </div>
-  <pre class="terminal-body"><span class="terminal-prompt">$</span> {`${command}\n${output}`}</pre>
+  <pre class="terminal-body" tabindex="0"><span class="terminal-prompt">$</span> {`${command}\n${output}`}</pre>
   {caption && <figcaption class="terminal-caption">{caption}</figcaption>}
 </figure>
 

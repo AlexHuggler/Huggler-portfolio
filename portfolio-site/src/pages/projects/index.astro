@@ -96,7 +96,8 @@ const short: Record<string, string> = {
       title="What each project actually covers"
       description="The same engineering concerns down the side and an honest status per project. A dash means the concern is out of scope for that project."
     />
-    <div class="card overflow-x-auto">
+    <p class="mb-2 font-mono text-[11px] text-muted md:hidden" aria-hidden="true">Swipe the table sideways for all three projects →</p>
+    <div class="card overflow-x-auto" tabindex="0" role="region" aria-label="Capability matrix (scrollable)">
       <table class="matrix w-full min-w-[720px] text-left text-sm">
         <caption class="sr-only">Capability status by project</caption>
         <thead>

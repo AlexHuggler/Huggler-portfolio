@@ -15,7 +15,8 @@
     "measure:render": "python3 scripts/measure.py render",
     "data:check": "python3 scripts/generate_viz_data.py --check",
     "data:viz": "python3 scripts/generate_viz_data.py",
-    "validate": "node scripts/validate-data.mjs"
+    "validate": "node scripts/validate-data.mjs",
+    "qa": "node scripts/qa.mjs"
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
