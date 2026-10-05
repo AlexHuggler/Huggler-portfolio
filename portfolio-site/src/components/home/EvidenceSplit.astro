@@ -1,0 +1,53 @@
+---
+/**
+ * Two kinds of evidence, kept visibly apart: career results from AT&T
+ * (résumé-reported, cannot be re-run here) and demo metrics that a reader
+ * can reproduce with make targets (measured.json, with provenance).
+ */
+import MetricTile from "../ui/MetricTile.astro";
+import { headlineImpact } from "../../data/experience";
+import { measured, measuredLabel } from "../../data/measured";
+---
+
+<div class="grid gap-5 lg:grid-cols-2">
+  <section class="card card-pad flex flex-col" aria-labelledby="ev-prod">
+    <header class="flex flex-wrap items-center justify-between gap-3">
+      <h3 id="ev-prod" class="heading-2 text-[1.25rem]">Production impact · AT&amp;T</h3>
+      <span class="status-chip" data-status="career">Résumé-reported</span>
+    </header>
+    <p class="mt-2 text-sm leading-relaxed text-muted">
+      Results from my own production work. They can't be re-run outside AT&amp;T, so
+      they're stated as reported, never mixed with demo numbers.
+    </p>
+    <dl class="mt-6 grid grid-cols-1 gap-px overflow-hidden rounded-lg border border-border bg-border sm:grid-cols-2">
+      {headlineImpact.map((f) => (
+        <div class="flex flex-col bg-surface p-5">
+          <dt class="order-2 mt-2 text-sm leading-snug text-fg/90">{f.label}</dt>
+          <dd class="order-1 font-display text-[2rem] font-semibold leading-none tracking-tight">{f.value}</dd>
+          {f.context && <dd class="order-3 mt-1 text-xs leading-relaxed text-muted">{f.context}</dd>}
+          <dd class="order-4 mt-3 font-mono text-[10px] uppercase tracking-[0.12em] text-muted">{f.role}</dd>
+        </div>
+      ))}
+    </dl>
+    <p class="mt-5 text-xs leading-relaxed text-muted">
+      Also from the same roles: a document-authentication data flow that led to a
+      vendor pilot <em>projected</em> at ~$500K/yr, and datasets serving 1 SVP, 7 VPs and 25 AVPs.
+    </p>
+    <a href="/about#experience" class="link mt-auto self-start pt-4 text-sm">Read the roles behind these numbers</a>
+  </section>
+
+  <section class="card card-pad flex flex-col" aria-labelledby="ev-demo">
+    <header class="flex flex-wrap items-center justify-between gap-3">
+      <h3 id="ev-demo" class="heading-2 text-[1.25rem]">Reproducible demos · measured locally</h3>
+      <span class="status-chip" data-status="measured">Re-run {measuredLabel()}</span>
+    </header>
+    <p class="mt-2 text-sm leading-relaxed text-muted">
+      Re-measured by each project's own <code class="font-mono text-[12px]">make</code> targets on
+      synthetic data (seed 42). Open any tile to see how.
+    </p>
+    <div class="mt-6 grid flex-1 gap-3 sm:grid-cols-2">
+      {measured.site.map((m) => <MetricTile metric={m} class="!p-4" />)}
+    </div>
+    <a href="/evidence" class="link mt-4 self-start text-sm">Open the evidence ledger</a>
+  </section>
+</div>

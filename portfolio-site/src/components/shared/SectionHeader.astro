@@ -1,26 +1,37 @@
 ---
 /**
- * SectionHeader
- *
- * Project-page section header with eyebrow, title, and optional supporting
- * description. Keeps spacing and typography consistent across the three
- * interactive demos.
+ * SectionHeader — numbered kicker, title, optional lede, optional action
+ * link aligned right. The index ("01") is only used where sections are a
+ * real sequence on the page.
  */
 interface Props {
   eyebrow?: string;
+  index?: string;
   title: string;
   description?: string;
   id?: string;
+  action?: { href: string; label: string };
+  class?: string;
 }
-const { eyebrow, title, description, id } = Astro.props;
+const { eyebrow, index, title, description, id, action, class: className } = Astro.props;
 ---
 
-<header class="mb-6" id={id}>
-  {eyebrow && (
-    <p class="demo-eyebrow">{eyebrow}</p>
-  )}
-  <h2 class="mt-2 text-xl md:text-2xl font-semibold tracking-tight">{title}</h2>
-  {description && (
-    <p class="mt-2 max-w-prose text-sm text-muted">{description}</p>
+<header class:list={["mb-8 flex flex-wrap items-end justify-between gap-x-8 gap-y-4", className]} id={id}>
+  <div class="min-w-0 max-w-3xl">
+    {(eyebrow || index) && (
+      <p class="flex items-center gap-3">
+        {index && <span class="kicker-index">{index}</span>}
+        {index && eyebrow && <span class="h-px w-6 bg-border-strong" aria-hidden="true" />}
+        {eyebrow && <span class="kicker">{eyebrow}</span>}
+      </p>
+    )}
+    <h2 class="heading-1 mt-3">{title}</h2>
+    {description && <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">{description}</p>}
+  </div>
+  {action && (
+    <a href={action.href} class="group inline-flex items-center gap-1.5 rounded-sm text-sm text-muted hover:text-fg">
+      {action.label}
+      <span aria-hidden="true" class="transition-transform group-hover:translate-x-0.5">→</span>
+    </a>
   )}
 </header>

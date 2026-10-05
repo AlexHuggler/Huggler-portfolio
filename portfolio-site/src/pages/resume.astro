@@ -1,50 +1,297 @@
 ---
+/**
+ * HTML résumé — indexable, accessible, and printable (prints to ~2 pages via
+ * the print stylesheet). Experience, education and certifications come from
+ * the same data files as /about; "Selected projects" comes from the project
+ * content collection so it always matches the repos. The original PDF is one
+ * tab away and only loads when that tab is opened.
+ */
+import { getCollection } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { siteConfig } from "../site.config";
+import { roles, monthLabel, yearsOfExperience } from "../data/experience";
+import { certifications, education } from "../data/credentials";
+import { stack, stackGroups } from "../data/stack";
+
+const projects = (await getCollection("projects")).sort((a, b) => a.data.order - b.data.order);
+const years = yearsOfExperience();
+const site = (Astro.site?.toString() ?? siteConfig.url).replace(/\/$/, "");
 ---
 
-<BaseLayout
-  title="Resume"
-  description={`Download ${siteConfig.name}'s resume as PDF.`}
->
-  <section class="mx-auto max-w-prose px-6 pt-16 pb-12">
-    <p class="font-mono text-xs uppercase tracking-widest text-muted">Resume</p>
-    <h1 class="mt-3 text-3xl md:text-4xl font-semibold tracking-tight">
-      Resume
-    </h1>
-    <p class="mt-3 text-muted">
-      Download the latest PDF or read the full work history on
-      <a class="text-accent-fg hover:opacity-80" href={siteConfig.linkedin}>LinkedIn</a>.
-      For an interactive look at the analytics and BI work, see the
-      <a class="text-accent-fg hover:opacity-80" href="/visualizations">data visualizations</a>.
-    </p>
-    <div class="mt-6 flex flex-wrap gap-3">
-      <a class="btn btn-primary" href={siteConfig.resumePath} download>
-        Download PDF
-      </a>
-      <a class="btn" href={siteConfig.linkedin} target="_blank" rel="noopener noreferrer">
-        View on LinkedIn
-      </a>
-      <a class="btn" href="/visualizations">
-        Data visualizations
-      </a>
+<BaseLayout title="Résumé" description={`${siteConfig.name} — résumé: senior data engineer, PySpark, Databricks, Delta Lake, dbt, Airflow.`}>
+  <div class="resume-wrap container-page py-12 md:py-16">
+    <div class="no-print mb-8 flex flex-wrap items-center justify-between gap-4">
+      <div role="tablist" aria-label="Résumé format" class="segmented" data-resume-tabs>
+        <button role="tab" id="tab-web" aria-controls="panel-web" aria-selected="true" tabindex="0">Web</button>
+        <button role="tab" id="tab-pdf" aria-controls="panel-pdf" aria-selected="false" tabindex="-1">Original PDF</button>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button type="button" class="btn" data-print>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+          Print / save as PDF
+        </button>
+        <a class="btn btn-primary" href={siteConfig.resumePath} download>Download PDF</a>
+      </div>
     </div>
-  </section>
 
-  <section class="mx-auto max-w-page px-6 pb-24">
-    <div class="rounded-lg border border-border overflow-hidden">
-      <object
-        data={siteConfig.resumePath}
-        type="application/pdf"
-        class="w-full h-[80vh] bg-bg"
-      >
-        <p class="p-6 text-sm text-muted">
-          Your browser cannot display embedded PDFs.
-          <a class="text-accent-fg hover:opacity-80" href={siteConfig.resumePath}>
-            Download the resume directly.
-          </a>
-        </p>
-      </object>
+    <div id="panel-web" role="tabpanel" aria-labelledby="tab-web" tabindex="0">
+      <article class="resume card mx-auto max-w-[880px] p-6 md:p-12">
+        <header class="resume-header flex flex-wrap items-end justify-between gap-6 border-b border-border pb-6">
+          <div>
+            <h1 class="display-2 text-[2.5rem] md:text-[3rem]">{siteConfig.name}</h1>
+            <p class="resume-tagline mt-2 text-lg text-fg/90">Senior Data Engineer · PySpark · Databricks · Delta Lake · SQL</p>
+          </div>
+          <ul class="space-y-1 text-right font-mono text-[12px] text-muted">
+            <li>{siteConfig.location}</li>
+            <li><a class="link no-print-url" href={`mailto:${siteConfig.email}`}>{siteConfig.email}</a></li>
+            <li><a class="link no-print-url" href={site}>{site.replace(/^https?:\/\//, "")}</a></li>
+            <li><a class="link no-print-url" href={siteConfig.linkedin}>{siteConfig.linkedin.replace(/^https?:\/\/(www\.)?/, "")}</a></li>
+          </ul>
+        </header>
+
+        <section class="resume-section" aria-labelledby="r-summary">
+          <h2 id="r-summary" class="resume-h">Summary</h2>
+          <p class="leading-relaxed text-fg/90">
+            Senior data engineer with {years} years at AT&amp;T building production PySpark and
+            Delta Lake pipelines that power nationwide fraud investigations and a $2.2B
+            forecasting portfolio. Owner of an Azure Databricks platform spanning billing,
+            device, and authentication data with daily and intraday SLAs. Microsoft
+            Certified: Azure Data Engineer (DP-203) and Azure Data Scientist (DP-100).
+          </p>
+        </section>
+
+        <section class="resume-section" aria-labelledby="r-exp">
+          <h2 id="r-exp" class="resume-h">Experience</h2>
+          <div class="space-y-7">
+            {roles.map((r) => (
+              <div class="resume-role">
+                <div class="flex flex-wrap items-baseline justify-between gap-x-4">
+                  <h3 class="text-base font-semibold tracking-tight">{r.title}</h3>
+                  <p class="font-mono text-[12px] text-muted">{monthLabel(r.start)} – {monthLabel(r.end)}</p>
+                </div>
+                <p class="text-sm text-muted">{r.company} · {r.location}</p>
+                <ul class="mt-3 space-y-2">
+                  {r.bullets.map((b) => <li class="focus-item text-[14.5px] text-fg/90">{b}</li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section class="resume-section" aria-labelledby="r-proj">
+          <h2 id="r-proj" class="resume-h">Selected projects</h2>
+          <ul class="space-y-3">
+            {projects.map((p) => (
+              <li>
+                <a href={`/projects/${p.slug}`} class="font-semibold hover:text-accent-fg">{p.data.title}</a>
+                <span class="text-muted"> — {p.data.tagline}</span>
+              </li>
+            ))}
+          </ul>
+          <p class="mt-3 font-mono text-[11px] text-muted">
+            Code, CI and measured results: {siteConfig.githubRepo.replace(/^https?:\/\//, "")}
+          </p>
+        </section>
+
+        <section class="resume-section" aria-labelledby="r-skills">
+          <h2 id="r-skills" class="resume-h">Technical skills</h2>
+          <dl class="spec !gap-y-2.5 max-sm:!grid-cols-1 max-sm:!gap-y-1">
+            {stackGroups.map((g) => {
+              const items = stack.filter((s) => s.group === g);
+              const core = items.filter((s) => s.level === "core").map((s) => s.name);
+              const fam = items.filter((s) => s.level === "familiar").map((s) => s.name);
+              return (
+                <>
+                  <dt class="pt-0.5">{g}</dt>
+                  <dd class="text-sm leading-relaxed text-fg/90">
+                    {core.join(", ")}
+                    {fam.length > 0 && <span class="text-muted">{core.length ? "; " : ""}familiar with {fam.join(", ")}</span>}
+                  </dd>
+                </>
+              );
+            })}
+          </dl>
+        </section>
+
+        <div class="grid gap-8 md:grid-cols-2">
+          <section class="resume-section" aria-labelledby="r-edu">
+            <h2 id="r-edu" class="resume-h">Education</h2>
+            <ul class="space-y-3 text-sm">
+              {education.map((e) => (
+                <li>
+                  <p class="font-semibold">{e.degree}, {e.field}</p>
+                  <p class="text-muted">{e.school} · {e.honors}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+          <section class="resume-section" aria-labelledby="r-cert">
+            <h2 id="r-cert" class="resume-h">Certifications</h2>
+            <ul class="space-y-3 text-sm">
+              {certifications.map((c) => (
+                <li>
+                  <p class="font-semibold">{c.name}</p>
+                  <p class="text-muted">{c.issuer} · {c.code}</p>
+                </li>
+              ))}
+            </ul>
+          </section>
+        </div>
+      </article>
     </div>
-  </section>
+
+    <div id="panel-pdf" role="tabpanel" aria-labelledby="tab-pdf" tabindex="0" hidden class="no-print">
+      <div class="card overflow-hidden" data-pdf-slot>
+        <p class="p-6 text-sm text-muted">Loading the PDF…</p>
+      </div>
+      <p class="mt-3 text-xs text-muted">
+        Can't see it? <a class="link" href={siteConfig.resumePath}>Open the PDF directly</a>.
+      </p>
+    </div>
+  </div>
 </BaseLayout>
+
+<script>
+  const bind = () => {
+    const tablist = document.querySelector<HTMLElement>("[data-resume-tabs]");
+    if (!tablist || tablist.dataset.bound === "1") return;
+    tablist.dataset.bound = "1";
+    const tabs = Array.from(tablist.querySelectorAll<HTMLButtonElement>("[role=tab]"));
+
+    const select = (tab: HTMLButtonElement, focus = true) => {
+      tabs.forEach((t) => {
+        const on = t === tab;
+        t.setAttribute("aria-selected", String(on));
+        t.tabIndex = on ? 0 : -1;
+        const panel = document.getElementById(t.getAttribute("aria-controls")!);
+        if (panel) panel.hidden = !on;
+      });
+      if (focus) tab.focus();
+      if (tab.id === "tab-pdf") {
+        const slot = document.querySelector<HTMLElement>("[data-pdf-slot]");
+        if (slot && !slot.querySelector("object")) {
+          const obj = document.createElement("object");
+          obj.data = "/Alexandre_Huggler_Resume.pdf";
+          obj.type = "application/pdf";
+          obj.title = "Alex Huggler résumé (PDF)";
+          obj.className = "block h-[80vh] w-full bg-surface";
+          slot.replaceChildren(obj);
+        }
+      }
+    };
+
+    tabs.forEach((tab, i) => {
+      tab.addEventListener("click", () => select(tab));
+      tab.addEventListener("keydown", (e) => {
+        const k = e.key;
+        if (k === "ArrowRight" || k === "ArrowLeft") {
+          e.preventDefault();
+          select(tabs[(i + (k === "ArrowRight" ? 1 : -1) + tabs.length) % tabs.length]);
+        } else if (k === "Home") {
+          e.preventDefault();
+          select(tabs[0]);
+        } else if (k === "End") {
+          e.preventDefault();
+          select(tabs[tabs.length - 1]);
+        }
+      });
+    });
+
+    document.querySelector("[data-print]")?.addEventListener("click", () => {
+      select(tabs[0], false);
+      window.print();
+    });
+  };
+  document.addEventListener("astro:page-load", bind);
+</script>
+
+<style>
+  .resume-section {
+    @apply mt-8;
+  }
+  .resume-h {
+    @apply mb-4 flex items-center gap-3 font-mono text-[11px] font-medium uppercase text-accent-fg;
+    letter-spacing: 0.16em;
+  }
+  .resume-h::after {
+    content: "";
+    @apply h-px flex-1 bg-border;
+  }
+  @media print {
+    @page {
+      size: letter;
+      margin: 0.5in 0.55in;
+    }
+    .resume-wrap {
+      padding: 0 !important;
+      max-width: none !important;
+    }
+    .resume {
+      border: 0 !important;
+      padding: 0 !important;
+      max-width: none !important;
+      font-size: 9.5pt;
+      line-height: 1.4;
+    }
+    .resume-header {
+      display: grid !important;
+      grid-template-columns: 1fr auto;
+      align-items: end;
+      gap: 12pt !important;
+      padding-bottom: 8pt !important;
+    }
+    .resume :global(h1) {
+      font-size: 20pt !important;
+      line-height: 1.1;
+    }
+    .resume-tagline {
+      font-size: 10.5pt !important;
+      margin-top: 2pt !important;
+    }
+    .resume-header ul {
+      font-size: 8.5pt !important;
+    }
+    .resume-section {
+      margin-top: 10pt;
+    }
+    .resume-h {
+      margin-bottom: 6pt;
+      break-after: avoid;
+    }
+    .resume :global(p),
+    .resume :global(dd),
+    .resume :global(li) {
+      font-size: 9.5pt !important;
+      line-height: 1.4 !important;
+    }
+    .resume :global(.space-y-7) > :global(* + *) {
+      margin-top: 10pt !important;
+    }
+    .resume :global(.space-y-2) > :global(* + *),
+    .resume :global(.space-y-3) > :global(* + *) {
+      margin-top: 3pt !important;
+    }
+    .resume :global(.spec) {
+      row-gap: 3pt !important;
+    }
+    .resume :global(h3) {
+      font-size: 10.5pt !important;
+    }
+    .resume-role > :global(div:first-child),
+    .resume-role > :global(p) {
+      break-after: avoid;
+    }
+    .resume :global(li) {
+      break-inside: avoid;
+    }
+    .resume :global(p.font-mono) {
+      font-size: 8pt !important;
+    }
+    .resume-section[aria-labelledby="r-skills"] {
+      break-inside: avoid;
+    }
+    #panel-web {
+      display: block !important;
+    }
+  }
+</style>

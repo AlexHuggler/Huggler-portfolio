@@ -4,6 +4,7 @@ import tailwind from "@astrojs/tailwind";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
 import react from "@astrojs/react";
+import { cssVarsTheme } from "./src/lib/shiki-theme.mjs";
 
 // Custom domain deployment. SITE_URL env var overrides at build time.
 // CNAME at public/CNAME binds GitHub Pages to www.alexhuggler.com.
@@ -13,15 +14,13 @@ const SITE = process.env.SITE_URL ?? "https://www.alexhuggler.com";
 export default defineConfig({
   site: SITE,
   trailingSlash: "ignore",
+  markdown: {
+    shikiConfig: { theme: cssVarsTheme, wrap: false },
+  },
   integrations: [
     react(),
     tailwind({ applyBaseStyles: false }),
     mdx(),
-    sitemap(),
+    sitemap({ filter: (page) => !page.includes("/404") }),
   ],
-  vite: {
-    ssr: {
-      noExternal: ["react-diff-viewer-continued"],
-    },
-  },
 });

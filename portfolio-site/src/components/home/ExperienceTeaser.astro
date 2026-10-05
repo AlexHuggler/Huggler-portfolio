@@ -1,0 +1,61 @@
+---
+/**
+ * Compact career timeline: a proportional time axis from the first role to
+ * today, one bar per role, with the headline outcome of each.
+ */
+import { roles, monthLabel, durationLabel, CAREER_START } from "../../data/experience";
+
+const toMonths = (ym: string) => {
+  const [y, m] = ym.split("-").map(Number);
+  return y * 12 + (m - 1);
+};
+const now = new Date();
+const nowMonths = now.getUTCFullYear() * 12 + now.getUTCMonth();
+const start = toMonths(CAREER_START);
+const span = nowMonths - start;
+const ordered = [...roles].reverse(); // oldest first, left to right
+const years: number[] = [];
+for (let y = Math.ceil(start / 12); y * 12 <= nowMonths; y++) years.push(y);
+---
+
+<div class="card card-pad">
+  <div class="relative">
+    <div class="relative h-24" aria-hidden="true">
+      {years.map((y) => (
+        <span class="absolute top-0 bottom-0 border-l border-dashed border-border" style={`left:${((y * 12 - start) / span) * 100}%`}>
+          <span class="absolute -top-0.5 left-1.5 font-mono text-[10px] text-muted">{y}</span>
+        </span>
+      ))}
+      {ordered.map((r, i) => {
+        const left = ((toMonths(r.start) - start) / span) * 100;
+        const right = (((r.end ? toMonths(r.end) : nowMonths) - start) / span) * 100;
+        return (
+          <span
+            class:list={["timeline-bar absolute h-3 rounded-full", i === ordered.length - 1 ? "timeline-bar-current" : "bg-border-strong"]}
+            style={`left:${left}%;width:${right - left}%;top:${40 + i * 0}px`}
+          />
+        );
+      })}
+    </div>
+    <ol class="mt-2 grid gap-6 md:grid-cols-2">
+      {ordered.map((r) => (
+        <li>
+          <p class="font-mono text-[11px] text-muted">
+            {monthLabel(r.start)} – {monthLabel(r.end)} · {durationLabel(r.start, r.end)}
+          </p>
+          <h3 class="mt-1.5 text-base font-semibold tracking-tight">{r.title}</h3>
+          <p class="text-sm text-muted">{r.company} · {r.location}</p>
+          <p class="mt-2 text-sm leading-relaxed text-fg/90">{r.summary}</p>
+        </li>
+      ))}
+    </ol>
+  </div>
+  <a href="/about#experience" class="link mt-6 inline-block text-sm">Full experience timeline</a>
+</div>
+
+<style>
+  .timeline-bar-current {
+    background: rgb(var(--color-accent));
+    box-shadow: 0 0 0 4px rgb(var(--color-accent) / 0.12);
+  }
+</style>

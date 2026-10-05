@@ -7,12 +7,20 @@ from pathlib import Path
 
 import pytest
 
-from sql_optimizer.dialect import detect_dialect
+from sql_optimizer.dialect import detect_dialect, engine_tag
 
 REPO = Path(__file__).resolve().parent.parent
 
 PLAIN_SQL = "SELECT id FROM events WHERE region = 'US'"
 QUALIFY_SQL = "SELECT id FROM events QUALIFY ROW_NUMBER() OVER (ORDER BY id) = 1"
+
+
+def test_engine_tag_reads_header():
+    assert engine_tag(f"-- Engine: Snowflake\n{PLAIN_SQL}") == "snowflake"
+
+
+def test_engine_tag_is_none_without_header():
+    assert engine_tag(QUALIFY_SQL) is None
 
 
 def test_engine_header_overrides_heuristic():

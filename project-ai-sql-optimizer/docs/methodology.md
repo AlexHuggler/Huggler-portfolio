@@ -32,8 +32,52 @@ The benchmark computes:
 - `findings_hit_rate`: fraction of queries where the heuristic analyzer
   returned at least one finding.
 
-When run with `--no-dry-run`, an EXPLAIN runner (out of scope for this
-scaffold) compares cost before and after the suggested rewrite.
+In `--dry-run` mode the scored text is the original query (including its
+header comments) plus the heuristic findings, so a keyword already present
+in the input counts as a hit.
+
+## Live mode (`--no-dry-run`)
+
+- Claude is called once per query through `AnthropicClient.suggest`, with
+  the same prompt and findings payload as `sql-optimizer analyze`. The
+  model id is recorded in the summary (`--output` JSON).
+- `keyword_overlap` uses the same scorer, but the scored text is Claude's
+  rewrite + reasoning only - the original query is not included. Dry-run
+  and live scores are therefore not directly comparable: dry-run credits
+  keywords that were already in the input.
+- `findings_hit_rate` stays the heuristic analyzer's result in both modes.
+- Without `ANTHROPIC_API_KEY` the run exits with status 2 before scoring
+  anything. An API failure (after the client's three retries) aborts the
+  run; partial averages are never printed.
+- Known gap: the dialect sent to Claude is the benchmark's detected
+  dialect, which ignores the `-- engine:` header, so the two
+  Snowflake-tagged queries (02, 05) are currently sent as `spark`.
+
+## EXPLAIN cost step (`--explain spark|snowflake`)
+
+- Estimate recorded: estimated bytes scanned, on both engines.
+  - Spark: `EXPLAIN COST`, summing `sizeInBytes` over the leaf nodes of the
+    optimized logical plan (`CTERelationRef` leaves are skipped so a CTE's
+    scan is not counted twice). Sizes are parsed as printed, to one decimal
+    per unit.
+  - Snowflake: `EXPLAIN USING JSON`, `GlobalStats.bytesAssigned`.
+- Only queries whose `-- engine:` header matches the engine are explained;
+  the rest are recorded as skipped.
+- Per query: `reduction = (before - after) / before`. The reported average
+  covers only queries with both estimates and `before > 0`, and is always
+  printed with how many queries it covers.
+- Direction: the observed `lower` / `higher` / `same` is compared with
+  `expected_cost_direction`; `unknown` entries are not counted.
+- Never estimated or filled in: a side the engine cannot estimate (planning
+  error, missing table, a hallucinated column in the rewrite, or Spark's
+  `8.0 EiB` default that means "no statistics") stays `null` with the reason
+  in `note`, and that query drops out of the average.
+- What the estimate cannot see: partition pruning and removed scans (CTE
+  flattening, a correlated subquery folded into one join) change bytes
+  scanned; join-strategy changes do not. On a local Spark session, adding a
+  broadcast hint or replacing `SELECT *` with explicit columns left the
+  estimate unchanged, so `join_optimization` / `broadcast_join` rewrites
+  can read as `same` even when they would run faster.
 
 ## Scoring honesty
 

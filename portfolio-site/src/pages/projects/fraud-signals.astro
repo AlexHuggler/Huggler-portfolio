@@ -1,78 +1,89 @@
 ---
 import CaseStudyLayout from "../../layouts/CaseStudyLayout.astro";
-import MermaidBlock from "../../components/MermaidBlock.astro";
-import SectionHeader from "../../components/shared/SectionHeader.astro";
-import FraudPipelineCanvas from "../../components/fraud/FraudPipelineCanvas.tsx";
-import TransactionFeed from "../../components/fraud/TransactionFeed.tsx";
-import ThroughputChart from "../../components/fraud/ThroughputChart.tsx";
-import AnomalyPatternCards from "../../components/fraud/AnomalyPatternCards.tsx";
+import TerminalFrame from "../../components/shared/TerminalFrame.astro";
+import FeedReplay from "../../components/fraud/FeedReplay.tsx";
+import DetectorCards from "../../components/fraud/DetectorCards.astro";
+import ThresholdExplorer from "../../components/fraud/ThresholdExplorer.tsx";
+import transcript from "../../data/measurements/fraud-signals.txt?raw";
+import { detectors, feed } from "../../data/artifacts";
+import { measuredLabel } from "../../data/measured";
+
+// The detector evaluation exactly as `make eval` printed it.
+const evalStart = transcript.indexOf("Detector evaluation");
+const evalOutput = transcript.slice(evalStart).trim();
+const d = detectors.dataset;
 
 const stack = [
-  { label: "Python",         rationale: "Producer + analytics tooling." },
-  { label: "PySpark",        rationale: "Structured Streaming consumer." },
-  { label: "Apache Kafka",   rationale: "Replayable event bus, ordered per partition." },
-  { label: "Delta Lake",     rationale: "ACID lakehouse storage with MERGE." },
-  { label: "dbt",            rationale: "Tested SQL transforms with explicit lineage." },
-  { label: "Streamlit",      rationale: "Single-file operator dashboard." },
-  { label: "Docker",         rationale: "docker-compose for local Kafka + Spark." },
-  { label: "GitHub Actions", rationale: "CI: lint, test, demo on every push." },
+  { label: "Apache Kafka", rationale: "Topic keyed by account_id so per-account ordering survives consumer scale-out." },
+  { label: "Spark Structured Streaming", rationale: "Batch-equivalent semantics; one engine with the Delta lakehouse. Flink would win below ~100 ms." },
+  { label: "Delta Lake", rationale: "Streaming sink records batch ids in its log, so replays after a crash are idempotent." },
+  { label: "Python detectors", rationale: "Framework-free functions: unit-testable without a cluster, reusable in a stream or a batch job." },
+  { label: "Faker + seeded RNG", rationale: "Reproducible synthetic accounts and labeled fraud patterns (seed 42)." },
+  { label: "Streamlit", rationale: "Operator dashboard over Delta (or JSONL) — fine for ops, not for customer-facing UI." },
 ];
 ---
 
 <CaseStudyLayout
   slug="fraud-signals"
-  eyebrow="Project 01 · Streaming + lakehouse"
-  heroDescription="A production-pattern streaming pipeline: synthetic transaction events ingested through Kafka, scored by Spark Structured Streaming with exactly-once semantics, persisted to Delta, modeled in dbt, and surfaced to an operator dashboard."
+  eyebrow="Project 01 · Streaming fraud detection"
+  heroDescription={`Kafka → Spark Structured Streaming → Delta, plus three fraud detectors scored against ground truth: every one of the ${d.events.toLocaleString("en-US")} synthetic events carries its true label, so detector quality is measured rather than asserted.`}
   heroLinks={[
-    { href: "#feed", label: "See the live feed" },
-    { href: "#architecture", label: "Architecture deep-dive" },
+    { href: "#feed", label: "Replay the stream" },
+    { href: "#thresholds", label: "Tune a detector" },
   ]}
   stack={stack}
+  sections={[
+    { id: "feed", label: "Event replay" },
+    { id: "detectors", label: "Detectors" },
+    { id: "thresholds", label: "Threshold explorer" },
+  ]}
 >
-  <div slot="hero-visual" class="mt-8 demo-card relative overflow-hidden">
-    <FraudPipelineCanvas client:visible />
-  </div>
+  <TerminalFrame
+    slot="hero-visual"
+    class="mt-10 max-w-4xl"
+    command="make eval"
+    output={evalOutput}
+    caption={`Captured by scripts/measure.py · ${measuredLabel()} · seed ${d.seed}, ${d.accounts.toLocaleString("en-US")} accounts, ${d.ratePerSec} ev/s × ${d.durationSec} s`}
+  />
 
-  <!-- Live feed + throughput -->
-  <section class="demo-section" id="feed">
-    <SectionHeader
-      eyebrow="Live demo"
-      title="Synthetic stream + rolling throughput"
-      description="Plays back a 1,000-event fixture at ~2 events per second. About 5% are anomalies, balanced across velocity, geographic, and amount-outlier patterns."
-    />
-    <div class="grid gap-4 lg:grid-cols-2">
-      <TransactionFeed client:visible />
-      <ThroughputChart client:visible />
+  <section id="feed" class="cs-section" aria-labelledby="feed-title">
+    <p class="kicker">Event replay</p>
+    <h2 id="feed-title" class="heading-1 mt-3">The labeled stream, event by event</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      A {feed.events.length}-event slice of the real evaluation stream in producer order. Each row
+      shows the ground-truth label next to what the detectors did. About
+      {Math.round(d.labeledEventShare * 100)}% of events carry a fraud label — higher than
+      the producer's {Math.round(d.producerFraudRate * 100)}% per-decision rate because a
+      velocity burst emits five to eight events.
+    </p>
+    <div class="mt-8">
+      <FeedReplay client:visible />
     </div>
   </section>
 
-  <!-- Anomaly patterns -->
-  <section class="demo-section" id="patterns">
-    <SectionHeader
-      eyebrow="Detection logic"
-      title="Three fraud patterns"
-      description="Each pattern is implemented in PySpark with a watermarked window or stateful aggregation. Detector precision and recall are measured against seeded ground truth — see the metrics above and the repo's make eval."
-    />
-    <AnomalyPatternCards client:visible />
+  <section id="detectors" class="cs-section" aria-labelledby="detectors-title">
+    <p class="kicker">Detectors</p>
+    <h2 id="detectors-title" class="heading-1 mt-3">Three rules, scored against the truth</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      Precision, recall and F1 are account-level: a pattern counts as caught when the
+      detector flags any event on an account that truly carries it. The source is the
+      repo's own <code class="font-mono text-[0.9em]">detect.py</code>, exported at build time.
+    </p>
+    <div class="mt-8">
+      <DetectorCards />
+    </div>
   </section>
 
-  <!-- Architecture -->
-  <section class="demo-section" id="architecture">
-    <SectionHeader
-      eyebrow="Architecture"
-      title="From event to dashboard"
-      description="The full path an event takes, from producer to operator dashboard. The engineering narrative below covers the trade-offs senior reviewers ask about."
-    />
-    <div class="demo-card">
-      <MermaidBlock code={`flowchart LR
-        P[Synthetic event producer] -->|JSON events| K[(Kafka topic: tx-events)]
-        K -->|Structured Streaming| S[Spark consumer\nwatermark + checkpoint]
-        S -->|exactly-once| D[(Delta lakehouse\nbronze + silver)]
-        D --> M[dbt models\nfct_transactions, dim_account]
-        M --> B[Streamlit dashboard]
-        S -.scored events.-> A[Anomaly detector\nvelocity, geo, z-score]
-        A --> D
-      `} />
+  <section id="thresholds" class="cs-section" aria-labelledby="thresholds-title">
+    <p class="kicker">Threshold explorer</p>
+    <h2 id="thresholds-title" class="heading-1 mt-3">Calibration, not a new model</h2>
+    <p class="mt-3 max-w-[68ch] leading-relaxed text-muted">
+      The velocity rule's low precision is a threshold problem. Re-running the detector
+      at every threshold on the same labeled set shows where precision and recall cross —
+      and what that costs in accounts flagged.
+    </p>
+    <div class="mt-8">
+      <ThresholdExplorer client:visible />
     </div>
   </section>
 </CaseStudyLayout>

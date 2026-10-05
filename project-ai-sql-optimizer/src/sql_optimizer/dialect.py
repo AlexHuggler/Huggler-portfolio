@@ -15,6 +15,13 @@ _ENGINE_HEADER = re.compile(
 _SNOWFLAKE_MARKERS = ("QUALIFY ", "ILIKE ", "FLATTEN(")
 
 
+def engine_tag(sql: str) -> str | None:
+    """The ``-- engine: <name>`` header in the first few lines of ``sql``, if any."""
+    head = "\n".join(sql.splitlines()[:_HEADER_SCAN_LINES])
+    match = _ENGINE_HEADER.search(head)
+    return match.group(1).lower() if match else None
+
+
 def detect_dialect(sql: str, override: str | None = None) -> str:
     """Return the dialect for ``sql``.
 
@@ -24,9 +31,8 @@ def detect_dialect(sql: str, override: str | None = None) -> str:
     """
     if override:
         return override
-    head = "\n".join(sql.splitlines()[:_HEADER_SCAN_LINES])
-    if match := _ENGINE_HEADER.search(head):
-        return match.group(1).lower()
+    if tag := engine_tag(sql):
+        return tag
     upper = sql.upper()
     if any(marker in upper for marker in _SNOWFLAKE_MARKERS):
         return "snowflake"

@@ -1,109 +1,127 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import SectionHeader from "../components/shared/SectionHeader.astro";
-import FraudDashboard from "../components/viz/FraudDashboard.tsx";
 import TelecomDashboard from "../components/viz/TelecomDashboard.tsx";
+import FraudDashboard from "../components/viz/FraudDashboard.tsx";
 import SqlOptDashboard from "../components/viz/SqlOptDashboard.tsx";
+import KeywordAttributionChart from "../components/sqlopt/KeywordAttributionChart.tsx";
+import RuleCoverage from "../components/sqlopt/RuleCoverage.astro";
 
-const sections = [
+const tabs = [
   {
     id: "telecom",
-    eyebrow: "Dashboard 01 · Telecom revenue & churn",
-    title: "Telecom Billing Lakehouse",
-    description:
-      "Revenue, ARPU, call-mix, and churn marts derived from 50,000 rated Call Detail Records — the Gold layer of the Medallion lakehouse, visualized.",
-    repo: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-telecom-lakehouse",
+    label: "Telecom revenue & usage",
+    kicker: "Scenario data · dbt rules",
+    blurb:
+      "A year of simulated traffic for 1,200 subscribers, priced and aggregated with the lakehouse project's own dbt rules — pricing from sl_revenue_event, ARPU from arpu_monthly, risk tiers from churn_signals. Filter by market from the selector or by clicking a bar.",
+    repo: "/projects/telecom-lakehouse",
+    chip: { label: "Scenario · seed 42", kind: "synthetic" },
   },
   {
     id: "fraud",
-    eyebrow: "Dashboard 02 · Real-time fraud analytics",
-    title: "Fraud Signals",
-    description:
-      "Fraud-rate, geography, pattern mix, and streaming throughput from the synthetic transaction producer feeding the Spark/Delta pipeline.",
-    repo: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-fraud-signals",
+    label: "Fraud detection",
+    kicker: "Real make eval set",
+    blurb:
+      "Aggregated from the 16,664-event labeled evaluation set the fraud project generates: detector outcomes at account level, fraud and flags over the run, amount profiles by pattern, and a producer quirk worth knowing about.",
+    repo: "/projects/fraud-signals",
+    chip: { label: "Real · make eval", kind: "real" },
   },
   {
     id: "sqlopt",
-    eyebrow: "Dashboard 03 · Query optimization benchmark",
-    title: "AI-Assisted SQL Optimizer",
-    description:
-      "Cost-reduction and analyzer-finding benchmarks over a simulated 50-query optimization workload.",
-    repo: "https://github.com/AlexHuggler/Huggler-portfolio/tree/main/project-ai-sql-optimizer",
+    label: "SQL analyzer",
+    kicker: "Real corpus",
+    blurb:
+      "The five-query corpus and the analyzer's actual findings. There are no cost-reduction charts here, because no cost reduction has been measured; the planned evaluation is listed instead.",
+    repo: "/projects/ai-sql-optimizer",
+    chip: { label: "Real · analyze()", kind: "real" },
   },
 ];
 ---
 
 <BaseLayout
-  title="Data Visualizations"
-  description="Interactive BI-style dashboards built with Apache ECharts on data from Alex Huggler's data-engineering projects — hosted entirely on GitHub Pages, no Power BI or Tableau license required."
+  title="Dashboards"
+  description="Interactive BI-style dashboards built with Apache ECharts: a telecom revenue scenario on the lakehouse's dbt rules, the fraud project's real evaluation set, and the SQL optimizer's real corpus."
 >
-  <article>
-    <!-- Hero band -->
-    <section class="relative">
-      <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
-      <div class="relative mx-auto max-w-page px-6 pt-16 pb-10">
-        <p class="demo-eyebrow">Data Visualizations</p>
-        <h1 class="mt-2 demo-headline">Dashboards from the pipelines</h1>
-        <p class="demo-tagline">
-          The same kind of executive dashboards I build in Power BI and Tableau,
-          rebuilt here as fully self-hosted, interactive visualizations. Every
-          chart is rendered in your browser with
-          <a
-            class="underline decoration-accent/40 underline-offset-2 hover:decoration-accent"
-            href="https://echarts.apache.org/"
-            target="_blank"
-            rel="noopener noreferrer">Apache ECharts</a
-          >
-          over data generated from the three projects' own data generators — no
-          third-party BI service, no license, just static JSON on GitHub Pages.
-        </p>
-        <div class="mt-6 flex flex-wrap gap-3">
-          <a class="btn" href="#telecom">Telecom</a>
-          <a class="btn" href="#fraud">Fraud</a>
-          <a class="btn" href="#sqlopt">SQL optimizer</a>
-          <a class="btn" href="/projects">See the projects</a>
-        </div>
-        <p class="mt-4 text-xs text-muted">
-          Tip: toggle the theme (top-right) — the charts restyle live. Numbers
-          are synthetic and seeded; they illustrate the shape of the data, not
-          production figures.
-        </p>
-      </div>
-    </section>
+  <section class="relative overflow-hidden border-b border-border">
+    <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+    <div class="container-page relative py-16 md:py-20">
+      <p class="kicker">Dashboards</p>
+      <h1 class="display-2 mt-4 max-w-[22ch]">The BI layer, rebuilt in the open.</h1>
+      <p class="lede mt-5">
+        The kind of executive dashboards I ship in Power BI and Tableau, rebuilt as
+        self-hosted ECharts over the projects' own data. Every chart states its
+        source, opens its data table, exports CSV, and expands full screen — and
+        each takeaway is computed from the data, not written beside it.
+      </p>
+      <ul class="mt-6 flex flex-wrap gap-x-6 gap-y-2 font-mono text-[11px] text-muted">
+        <li class="inline-flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-success" aria-hidden="true"></span>Real = exported from the projects</li>
+        <li class="inline-flex items-center gap-2"><span class="h-1.5 w-1.5 rounded-full bg-accent-2" aria-hidden="true"></span>Scenario = simulated with the projects' rules, labelled</li>
+      </ul>
+    </div>
+  </section>
 
-    {
-      sections.map((s) => (
-        <section id={s.id} class="demo-section scroll-mt-20">
-          <SectionHeader
-            eyebrow={s.eyebrow}
-            title={s.title}
-            description={s.description}
-          />
-          <div class="mb-4">
-            <a
-              class="text-sm text-accent-fg hover:underline"
-              href={s.repo}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              View the project repository ↗
-            </a>
+  <div class="container-page py-10 md:py-12" data-tabs data-tabs-hash>
+    <div class="sticky top-16 z-20 -mx-5 border-b border-border bg-bg/85 px-5 py-3 backdrop-blur-xl sm:-mx-6 sm:px-6">
+      <div role="tablist" aria-label="Dashboards" class="segmented max-w-full overflow-x-auto">
+        {tabs.map((t, i) => (
+          <button
+            role="tab"
+            id={`dash-tab-${t.id}`}
+            aria-controls={`dash-panel-${t.id}`}
+            aria-selected={i === 0 ? "true" : "false"}
+            tabindex={i === 0 ? 0 : -1}
+            data-hash={t.id}
+            class="whitespace-nowrap"
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    {tabs.map((t, i) => (
+      <section
+        role="tabpanel"
+        id={`dash-panel-${t.id}`}
+        aria-labelledby={`dash-tab-${t.id}`}
+        hidden={i !== 0}
+        tabindex="-1"
+        class="pt-8"
+      >
+        <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
+          <div class="max-w-3xl">
+            <p class="kicker">{t.kicker}</p>
+            <h2 class="heading-1 mt-2">{t.label}</h2>
+            <p class="mt-2 text-sm leading-relaxed text-muted">{t.blurb}</p>
           </div>
-          <div class="viz-shell">
-            {s.id === "telecom" && <TelecomDashboard client:only="react" />}
-            {s.id === "fraud" && <FraudDashboard client:only="react" />}
-            {s.id === "sqlopt" && <SqlOptDashboard client:only="react" />}
-          </div>
-          <div class="demo-divider mt-12" />
-        </section>
-      ))
-    }
-  </article>
+          <a href={t.repo} class="btn btn-sm">Case study <span aria-hidden="true">→</span></a>
+        </header>
+        <div class="dash-shell">
+          {t.id === "telecom" && <TelecomDashboard client:visible />}
+          {t.id === "fraud" && <FraudDashboard client:visible />}
+          {t.id === "sqlopt" && (
+            <div class="space-y-5">
+              <SqlOptDashboard client:visible />
+              <KeywordAttributionChart client:visible />
+              <RuleCoverage />
+              <div class="card card-pad">
+                <p class="kicker">Planned evaluation · not measured</p>
+                <p class="mt-2 max-w-[72ch] text-sm leading-relaxed text-muted">
+                  Cost reduction needs EXPLAIN on a live Spark or Snowflake engine, and rewrite
+                  quality needs the benchmark to call Claude. Neither exists yet, so neither is
+                  charted. See the <a class="link" href="/evidence#not-measured">not-measured list</a>.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+    ))}
+  </div>
 </BaseLayout>
 
 <style>
-  /* Reserve dashboard height so client:only hydration causes no layout shift. */
-  .viz-shell {
-    min-height: 640px;
+  /* Reserve space so hydrating dashboards don't shift the page. */
+  .dash-shell {
+    min-height: 900px;
   }
 </style>
