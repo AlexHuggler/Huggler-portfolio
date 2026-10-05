@@ -28,9 +28,18 @@ Each query has a ground-truth entry in `corpus/ground_truth.yaml` with:
 The benchmark computes:
 
 - `keyword_overlap`: fraction of expected keywords that appear in the
-  rewrite or findings.
+  tool's output - the heuristic finding messages and, once a live mode
+  calls Claude, its rewrite and reasoning. The input query is never
+  searched: a keyword it already contains (a table name, `JOIN`, a word
+  in a comment) would otherwise count as a hit the tool never earned.
+  In `--dry-run` mode only the findings are scored.
 - `findings_hit_rate`: fraction of queries where the heuristic analyzer
   returned at least one finding.
+
+Correction: before 2026-10-05 the scorer also searched the input query
+text, including its explanatory comments, which inflated keyword
+overlap. Every keyword-overlap figure in the README is scored on tool
+output only.
 
 When run with `--no-dry-run`, an EXPLAIN runner (out of scope for this
 scaffold) compares cost before and after the suggested rewrite.

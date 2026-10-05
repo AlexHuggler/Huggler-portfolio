@@ -18,8 +18,8 @@ demonstrates:
   - "Engineer-in-the-loop UX"
 screenshot: "sqlopt-analyze.svg"
 results:
-  - "0.67 avg keyword overlap vs ground truth in heuristic-only dry-run mode (measured via make benchmark)"
-  - "Correct findings on 4 of 5 corpus queries at ~68ms analyzer latency per query"
+  - "0.33 avg keyword overlap vs ground truth, scored on analyzer findings only, in heuristic-only dry-run mode (measured via make benchmark)"
+  - "At least one analyzer finding on 4 of 5 corpus queries at ~68ms analyzer latency per query"
   - "Heuristic analyzer flags select-*, cross joins, missing partition predicates, and broadcast opportunities"
 ---
 
@@ -60,12 +60,15 @@ corpus that matches its documentation beats a padded one.
 
 ## Measured results
 
-`make benchmark` in heuristic-only dry-run mode scores 0.67 average keyword
-overlap against ground truth, with correct findings on 4 of 5 queries at
-~68 ms analyzer latency per query. The one miss is instructive: the
-cte_flattening query's rewrite vocabulary ("single scan", "CASE") only
-appears once Claude proposes the rewrite - the heuristics flag the multi-scan
-pattern but do not name the fix. That gap is exactly what the LLM adds.
+`make benchmark` in heuristic-only dry-run mode scores 0.33 average keyword
+overlap against ground truth, counting only what the analyzer's findings say -
+never the query text itself. 4 of 5 queries get at least one finding, at
+~68 ms analyzer latency per query. Two categories score 0.00, and both are
+instructive. The cte_flattening query's rewrite vocabulary ("single scan",
+"CASE") only appears once Claude proposes the rewrite - the heuristics flag
+the multi-scan pattern but do not name the fix. That gap is exactly what the
+LLM adds. The partition_pruning query gets no finding at all, because the
+benchmark passes no partition columns to the analyzer.
 Human review and EXPLAIN cost deltas are specified in the methodology but not
 yet run - the README keeps them under "Planned evaluation" rather than
 pretending.

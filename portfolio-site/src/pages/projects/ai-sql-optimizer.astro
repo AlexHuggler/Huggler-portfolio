@@ -68,7 +68,7 @@ const stack = [
       <article class="demo-card">
         <h3 class="text-sm font-semibold tracking-tight">Scoring rubric</h3>
         <ul class="mt-3 space-y-2 text-sm text-muted leading-relaxed list-disc pl-5">
-          <li>Keyword overlap with ground-truth labels in <code class="font-mono text-xs">corpus/ground_truth.yaml</code> &mdash; coarse but cheap to run on every change. Measured: 0.67 average in dry-run mode.</li>
+          <li>Keyword overlap with ground-truth labels in <code class="font-mono text-xs">corpus/ground_truth.yaml</code> &mdash; coarse but cheap to run on every change. Measured: 0.33 average in dry-run mode, scored on analyzer findings only.</li>
           <li>EXPLAIN cost delta when a Spark or Snowflake engine is reachable; treated as approximate, not authoritative.</li>
           <li>Human review across the corpus as it grows, recorded in the repo with the reviewer&rsquo;s rationale per query.</li>
         </ul>
