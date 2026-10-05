@@ -527,24 +527,22 @@
   }
 
   /* ---------------------------------------------------------------- *
-   * Scroll reveal — only when JS is running (html.js), opacity+transform
-   * only, never above the fold on load, and off under reduced motion.
+   * Scroll reveal — scripts/reveal.ts adds .reveal-pending only to
+   * elements below the fold; opacity+transform only.
    * ---------------------------------------------------------------- */
-  html.js .reveal {
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity var(--dur-3) var(--ease-out), transform var(--dur-3) var(--ease-out);
+  .reveal {
+    transition: opacity 520ms var(--ease-out), transform 520ms var(--ease-out);
   }
-  html.js .reveal.is-visible {
-    opacity: 1;
-    transform: none;
+  .reveal.reveal-pending {
+    opacity: 0;
+    transform: translateY(14px);
   }
 
   @media (prefers-reduced-motion: reduce) {
     .hero-glow { transition: none; }
     .btn, .card-interactive, .card-glow { transition: none; }
     .card-interactive:hover { transform: none; }
-    html.js .reveal { opacity: 1; transform: none; transition: none; }
+    .reveal, .reveal.reveal-pending { opacity: 1; transform: none; transition: none; }
   }
 }
 
@@ -571,5 +569,5 @@
     color: rgb(var(--color-muted));
     word-break: break-all;
   }
-  html.js .reveal { opacity: 1 !important; transform: none !important; }
+  .reveal.reveal-pending { opacity: 1 !important; transform: none !important; }
 }

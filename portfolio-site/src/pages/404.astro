@@ -1,0 +1,41 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+
+const destinations = [
+  { href: "/projects", label: "Projects", note: "Three end-to-end builds" },
+  { href: "/visualizations", label: "Dashboards", note: "Interactive charts" },
+  { href: "/evidence", label: "Evidence ledger", note: "Every number, sourced" },
+  { href: "/resume", label: "Résumé", note: "Experience at a glance" },
+];
+---
+
+<BaseLayout title="Page not found" description="This page doesn't exist — here are the places worth visiting instead.">
+  <section class="relative overflow-hidden">
+    <div class="absolute inset-0 grid-bg pointer-events-none" aria-hidden="true"></div>
+    <div class="container-page relative py-24 md:py-32">
+      <p class="kicker">Error 404 · no rows returned</p>
+      <h1 class="display-2 mt-4 max-w-[18ch]">That page isn't in the catalog.</h1>
+      <p class="lede mt-5">
+        The link may be stale, or the page moved during the redesign. Search
+        for it, or pick up from one of these.
+      </p>
+      <div class="mt-8 flex flex-wrap gap-3">
+        <button type="button" data-cmdk-open class="btn btn-primary">
+          Search the site <kbd class="ml-1 border-white/30 bg-white/10 text-white/80">⌘K</kbd>
+        </button>
+        <a href="/" class="btn">Back to home</a>
+      </div>
+      <ul class="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {destinations.map((d) => (
+          <li>
+            <a href={d.href} class="card card-interactive group flex h-full flex-col p-5">
+              <span class="font-display text-lg font-semibold tracking-tight">{d.label}</span>
+              <span class="mt-1 text-sm text-muted">{d.note}</span>
+              <span class="mt-4 font-mono text-xs text-accent-fg" aria-hidden="true">{d.href} →</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </div>
+  </section>
+</BaseLayout>

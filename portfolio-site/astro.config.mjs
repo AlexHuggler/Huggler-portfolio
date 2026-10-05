@@ -21,7 +21,7 @@ export default defineConfig({
     react(),
     tailwind({ applyBaseStyles: false }),
     mdx(),
-    sitemap(),
+    sitemap({ filter: (page) => !page.includes("/404") }),
   ],
   vite: {
     ssr: {
