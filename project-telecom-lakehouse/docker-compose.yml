@@ -1,7 +1,10 @@
 name: telecom-lakehouse
 
 x-airflow-common: &airflow-common
-  image: apache/airflow:2.9.3-python3.11
+  # apache/airflow:2.9.3-python3.11 plus the DAGs' Python deps and dbt (in its own
+  # virtualenv); see docker/airflow/Dockerfile. `make airflow-up` rebuilds it.
+  build: ./docker/airflow
+  image: telecom-lakehouse-airflow:2.9.3
   user: "${AIRFLOW_UID:-50000}:0"
   environment: &airflow-common-env
     AIRFLOW__CORE__EXECUTOR: LocalExecutor
@@ -14,10 +17,12 @@ x-airflow-common: &airflow-common
     AWS_ACCESS_KEY_ID: minio
     AWS_SECRET_ACCESS_KEY: minio12345
     AWS_ENDPOINT_URL: http://minio:9000
-    # What the DAG callables import that the stock image lacks. GE is required:
-    # transform_silver fails rather than skip the Bronze contract without it.
-    # rich<14 keeps the image's flask-limiter satisfied when typer is added.
-    _PIP_ADDITIONAL_REQUIREMENTS: "duckdb>=1.0 typer>=0.12 rich<14 great-expectations>=0.18.22,<0.19"
+    # dbt (build_gold_marts) uses the profile baked into the image, which writes
+    # data/telecom.duckdb; target/ and logs/ stay out of the mounted project.
+    DBT_PROFILES_DIR: /opt/airflow/dbt_profiles
+    DBT_TARGET_PATH: /tmp/dbt/target
+    DBT_LOG_PATH: /tmp/dbt/logs
+    DBT_SEND_ANONYMOUS_USAGE_STATS: "false"
   volumes:
     - ./dags:/opt/airflow/dags
     - ./src:/opt/airflow/src
@@ -43,7 +48,9 @@ services:
       retries: 10
 
   minio:
-    image: minio/minio:latest
+    # minio/minio was removed from Docker Hub; pgsty/minio is a maintained
+    # community fork with the same CLI, env vars and console.
+    image: pgsty/minio:RELEASE.2026-08-04T00-00-00Z
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: minio
