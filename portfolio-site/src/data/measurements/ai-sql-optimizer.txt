@@ -1,7 +1,7 @@
 $ make test
 uv run pytest
-..................                                                                                                                                                                               [100%]
-18 passed in 1.33s
+...........................................                                                                                                                                                      [100%]
+43 passed in 1.95s
 
 $ make benchmark
 uv run sql-optimizer benchmark --dry-run
@@ -15,3 +15,4 @@ uv run sql-optimizer benchmark --dry-run
 │ partition_pruning   │       1 │                0.67 │              0.00 │
 │ broadcast_join      │       1 │                1.00 │              1.00 │
 └─────────────────────┴─────────┴─────────────────────┴───────────────────┘
+EXPLAIN step not run: no engine (pass --explain spark|snowflake).

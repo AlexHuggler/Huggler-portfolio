@@ -125,7 +125,7 @@ def render(ev: dict) -> tuple[list[dict], dict[str, dict], dict[str, dict]]:
     m["sqlopt.tests"] = {
         "value": str(sq["tests"]["passed"]),
         "label": "unit tests passing",
-        "sublabel": "analyzer, benchmark, CLI, client",
+        "sublabel": "analyzer, benchmark, CLI, client, EXPLAIN",
         "method": "make test",
         "kind": "count",
     }
@@ -152,8 +152,8 @@ def render(ev: dict) -> tuple[list[dict], dict[str, dict], dict[str, dict]]:
 
 NOT_MEASURED = {
     "ai-sql-optimizer": [
-        "Claude rewrite quality — `benchmark --no-dry-run` does not call the API yet",
-        "EXPLAIN cost delta — no EXPLAIN runner is implemented",
+        "Claude rewrite quality — `benchmark --no-dry-run` is implemented; no live run recorded (needs ANTHROPIC_API_KEY)",
+        "EXPLAIN cost delta — `benchmark --explain spark|snowflake` is implemented; no run recorded (needs an engine holding the corpus tables with statistics)",
         "Human acceptance rate of suggestions",
     ],
     "fraud-signals": [

@@ -30,7 +30,7 @@ const tabs = [
     label: "SQL analyzer",
     kicker: "Real corpus",
     blurb:
-      "The five-query corpus and the analyzer's actual findings. There are no cost-reduction charts here, because no cost reduction has been measured; the planned evaluation is listed instead.",
+      "The five-query corpus and the analyzer's actual findings. There are no cost-reduction charts here, because no cost reduction has been measured; the evaluation status is listed instead.",
     repo: "/projects/ai-sql-optimizer",
     chip: { label: "Real · analyze()", kind: "real" },
   },
@@ -104,11 +104,13 @@ const tabs = [
               <KeywordAttributionChart client:visible />
               <RuleCoverage />
               <div class="card card-pad">
-                <p class="kicker">Planned evaluation · not measured</p>
+                <p class="kicker">Evaluation status · not measured</p>
                 <p class="mt-2 max-w-[72ch] text-sm leading-relaxed text-muted">
-                  Cost reduction needs EXPLAIN on a live Spark or Snowflake engine, and rewrite
-                  quality needs the benchmark to call Claude. Neither exists yet, so neither is
-                  charted. See the <a class="link" href="/evidence#not-measured">not-measured list</a>.
+                  Cost reduction needs EXPLAIN on a Spark or Snowflake engine holding the corpus
+                  tables, and rewrite quality needs a live Claude run. Both are built into the
+                  benchmark (<code class="font-mono text-[0.9em]">--explain</code>,
+                  <code class="font-mono text-[0.9em]">--no-dry-run</code>), but no run is recorded,
+                  so neither is charted. See the <a class="link" href="/evidence#not-measured">not-measured list</a>.
                 </p>
               </div>
             </div>

@@ -2,6 +2,24 @@
 
 All notable changes to the portfolio site. Versions follow `package.json`.
 
+## 0.2.1 — 2026-10-05
+
+Follows the SQL optimizer's live benchmark and EXPLAIN step (PR #16).
+
+- **Statuses.** `benchmark --no-dry-run` (Claude in the benchmark) is now
+  *implemented*, and `benchmark --explain spark|snowflake` is *needs-infra*.
+  Neither has a recorded run, so the site adds no new numbers. Updated the
+  capability list, evaluation panels, architecture lane, capability matrix
+  and the not-measured reasons.
+- **Re-measured** with `npm run measure` on a different container (CPU in
+  `environmentDetail`):
+  - SQL optimizer tests 18 → 43, all-project tests 44 → 69;
+  - dry-run scores unchanged;
+  - timings moved with the hardware: transform 0.32 s → 0.24 s, detector
+    throughput ~100k/s → ~172k/s, analyzer latency 1.3 ms → 0.7 ms.
+- The SQL stack list reads its test count from `measured.json` instead of
+  hard-coding it.
+
 ## 0.2.0 — 2026-10-05
 
 A credibility-first redesign. Every number on the site is re-measured from

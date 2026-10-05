@@ -1,12 +1,12 @@
 $ make test
 uv run pytest
 ..................s                                                                                                                                                                              [100%]
-18 passed, 1 skipped in 0.15s
+18 passed, 1 skipped in 0.12s
 
 $ make eval
 ==> Generating a labeled evaluation set (seed 42, ~17k simulated events)
 uv run python -m producer.generate --sink jsonl --rate 50 --duration 300 --accounts 1000 --out data/eval_events.jsonl
-Wrote 16664 events to data/eval_events.jsonl in 0.3s
+Wrote 16664 events to data/eval_events.jsonl in 0.2s
 
 ==> Scoring detectors against the embedded ground-truth labels
 uv run python -m anomaly.evaluate data/eval_events.jsonl
@@ -18,4 +18,4 @@ uv run python -m anomaly.evaluate data/eval_events.jsonl
 │ geo      │ impossible_travel    │                 240 │              240 │      1.00 │   1.00 │ 1.00 │
 │ amount   │ amount_outlier       │                 200 │              121 │      0.97 │   0.58 │ 0.73 │
 └──────────┴──────────────────────┴─────────────────────┴──────────────────┴───────────┴────────┴──────┘
-Scored 16664 events in 0.18s (91,731 events/sec, single process)
+Scored 16664 events in 0.12s (144,355 events/sec, single process)
