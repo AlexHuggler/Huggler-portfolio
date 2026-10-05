@@ -2,6 +2,15 @@
 
 All notable changes to the portfolio site. Versions follow `package.json`.
 
+## Unreleased
+
+- **Telecom re-measured on a subscriber pool.** The lakehouse generator now
+  draws callers and callees from a seeded subscriber pool, so `churn_signals`
+  spans high / medium / low and `arpu_monthly` differs by plan. `measure.py
+  run` refreshed the transcripts, `samples.json` and `measured.json`; the
+  evidence page's "churn mart is degenerate" limitation now describes what the
+  count-based tiers actually show.
+
 ## 0.2.0 — 2026-10-05
 
 A credibility-first redesign. Every number on the site is re-measured from

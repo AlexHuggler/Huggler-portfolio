@@ -35,7 +35,7 @@ const sq = evaluation("ai-sql-optimizer");
 const fr = evaluation("fraud-signals");
 const velocity = fr.scores.find((s) => s.kind === "velocity")!;
 const bestVelocity = [...fr.sweeps.velocity].sort((a, b) => b.f1 - a.f1)[0];
-const churnHigh = (samples.gold.churnRisk as Record<string, number>).high ?? 0;
+const churn = samples.gold.churnRisk as Record<string, number>;
 const env = measured.environmentDetail;
 const transformDag = dags.dags.find((d) => d.id === "transform_silver");
 
@@ -56,8 +56,8 @@ const limitations = [
     href: "/projects/fraud-signals#thresholds",
   },
   {
-    title: "Churn mart is degenerate on synthetic data",
-    body: `The generator draws a new MSISDN per record, so all ${churnHigh.toLocaleString("en-US")} callers appear once and classify as high churn risk.`,
+    title: "Churn tiers are raw event counts",
+    body: `churn_signals buckets callers by event count alone (≤1 high, ≤5 medium) over the ${samples.partitions}-day demo window: ${(churn.high ?? 0).toLocaleString("en-US")} high, ${(churn.medium ?? 0).toLocaleString("en-US")} medium, ${(churn.low ?? 0).toLocaleString("en-US")} low across ${samples.distinctCallers.toLocaleString("en-US")} callers. Recency isn't used, and more traffic per subscriber shifts everyone toward low.`,
     href: "/projects/telecom-lakehouse#medallion",
   },
   {

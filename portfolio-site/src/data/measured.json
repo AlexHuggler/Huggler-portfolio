@@ -63,8 +63,8 @@
         }
       ],
       "analyzerLatencyMs": {
-        "median": 1.33,
-        "p95": 5.08,
+        "median": 0.71,
+        "p95": 2.37,
         "samples": 200
       }
     },
@@ -236,8 +236,8 @@
       },
       "throughput": {
         "events": 16664,
-        "secondsMedian": 0.1667,
-        "eventsPerSec": 99943,
+        "secondsMedian": 0.1465,
+        "eventsPerSec": 113746,
         "runs": 5
       }
     },
@@ -245,7 +245,7 @@
       "method": "make demo (seed 42) → DuckDB medallion transform; dbt build over the same raw parquet",
       "transcript": "src/data/measurements/telecom-lakehouse.txt",
       "tests": {
-        "passed": 8,
+        "passed": 16,
         "skipped": 0
       },
       "dbt": {
@@ -262,18 +262,18 @@
         "silver": 49998,
         "gold.revenue_by_market": 15,
         "gold.arpu_monthly": 5,
-        "gold.churn_signals": 49998
+        "gold.churn_signals": 1124
       },
       "partitions": 3,
       "transform": {
-        "secondsMedian": 0.324,
+        "secondsMedian": 0.191,
         "runs": 5
       }
     }
   },
   "site": [
     {
-      "value": "0.32s",
+      "value": "0.19s",
       "label": "raw → Gold, 49,998 CDRs",
       "sublabel": "median of 5 in-process runs · DuckDB",
       "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
@@ -289,7 +289,7 @@
       "id": "telecom.dbt"
     },
     {
-      "value": "~100k/s",
+      "value": "~114k/s",
       "label": "events scored by 3 detectors",
       "sublabel": "16,664 events · single process · median of 5",
       "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -297,7 +297,7 @@
       "id": "fraud.throughput"
     },
     {
-      "value": "44",
+      "value": "52",
       "label": "unit tests passing",
       "sublabel": "pytest across 3 projects · 1 skipped",
       "method": "make test ×3",
@@ -309,7 +309,7 @@
     "fraud-signals": {
       "metrics": [
         {
-          "value": "~100k/s",
+          "value": "~114k/s",
           "label": "events scored by 3 detectors",
           "sublabel": "16,664 events · single process · median of 5",
           "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -346,7 +346,7 @@
     "telecom-lakehouse": {
       "metrics": [
         {
-          "value": "0.32s",
+          "value": "0.19s",
           "label": "raw → Gold, 49,998 CDRs",
           "sublabel": "median of 5 in-process runs · DuckDB",
           "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
@@ -371,7 +371,7 @@
           "id": "telecom.ge"
         },
         {
-          "value": "8",
+          "value": "16",
           "label": "unit tests passing",
           "sublabel": "generator + transforms",
           "method": "make test",
@@ -401,7 +401,7 @@
           "id": "sqlopt.overlap"
         },
         {
-          "value": "1.3 ms",
+          "value": "0.7 ms",
           "label": "analyzer latency per query",
           "sublabel": "in-process median, warm · n=200",
           "method": "scripts/artifacts/sqlopt.py times analyze() over the 5 corpus queries ×40",
@@ -421,7 +421,7 @@
   },
   "metrics": {
     "telecom.transform": {
-      "value": "0.32s",
+      "value": "0.19s",
       "label": "raw → Gold, 49,998 CDRs",
       "sublabel": "median of 5 in-process runs · DuckDB",
       "method": "make demo, then scripts/artifacts/telecom.py times raw_to_bronze → bronze_to_silver → silver_to_gold",
@@ -446,7 +446,7 @@
       "id": "telecom.ge"
     },
     "telecom.tests": {
-      "value": "8",
+      "value": "16",
       "label": "unit tests passing",
       "sublabel": "generator + transforms",
       "method": "make test",
@@ -454,7 +454,7 @@
       "id": "telecom.tests"
     },
     "fraud.throughput": {
-      "value": "~100k/s",
+      "value": "~114k/s",
       "label": "events scored by 3 detectors",
       "sublabel": "16,664 events · single process · median of 5",
       "method": "make eval, then detect_all() timed in-process by scripts/artifacts/fraud.py",
@@ -513,7 +513,7 @@
       "id": "sqlopt.overlap"
     },
     "sqlopt.latency": {
-      "value": "1.3 ms",
+      "value": "0.7 ms",
       "label": "analyzer latency per query",
       "sublabel": "in-process median, warm · n=200",
       "method": "scripts/artifacts/sqlopt.py times analyze() over the 5 corpus queries ×40",
@@ -529,7 +529,7 @@
       "id": "sqlopt.tests"
     },
     "site.tests": {
-      "value": "44",
+      "value": "52",
       "label": "unit tests passing",
       "sublabel": "pytest across 3 projects · 1 skipped",
       "method": "make test ×3",

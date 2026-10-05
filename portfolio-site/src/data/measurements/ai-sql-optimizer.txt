@@ -1,7 +1,7 @@
 $ make test
 uv run pytest
 ..................                                                                                                                                                                               [100%]
-18 passed in 1.33s
+18 passed in 2.28s
 
 $ make benchmark
 uv run sql-optimizer benchmark --dry-run

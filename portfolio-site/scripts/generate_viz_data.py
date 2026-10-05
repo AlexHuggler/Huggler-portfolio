@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Telecom scenario data for the /visualizations dashboard.
 
-The telecom project's own demo covers three days with a fresh caller per
-record, which is too thin to show trends, seasonality or churn. This script
+The telecom project's own demo covers three days of a 1,200-subscriber pool,
+which is too short to show trends, seasonality or churn over time. This script
 simulates a labelled, documented *scenario* in the same domain — and keeps
 every rule identical to the project's dbt models, so the dashboard reads like
 the Gold marts would on a year of real traffic:
