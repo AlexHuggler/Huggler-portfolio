@@ -206,8 +206,8 @@ export default function FraudDashboard(): JSX.Element {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label="Events scored" value={k.events_scored.toLocaleString()} />
-        <KpiCard label="Fraud rate" value={`${k.fraud_rate_pct}%`} accent="#ef4444" />
-        <KpiCard label="Flagged amount" value={usd(k.flagged_amount_usd)} accent="#f59e0b" />
+        <KpiCard label="Fraud rate" value={`${k.fraud_rate_pct}%`} />
+        <KpiCard label="Flagged amount" value={usd(k.flagged_amount_usd)} />
         <KpiCard
           label="Top pattern"
           value={PATTERN_LABELS[k.top_pattern] ?? k.top_pattern}

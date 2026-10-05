@@ -1,0 +1,69 @@
+---
+/**
+ * MetricTile — a measured number with its provenance one click away.
+ *
+ * Value + label + sublabel up front; a native <details> disclosure carries the
+ * method, measurement date, environment, and any caveat, and links into the
+ * /evidence ledger. Works with JS disabled. Values only ever come from
+ * src/data/measured.json via the MeasuredMetric type.
+ */
+import { measured, type MeasuredMetric } from "../../data/measured";
+
+interface Props {
+  metric: MeasuredMetric;
+  class?: string;
+}
+
+const { metric: m, class: className } = Astro.props;
+const kindLabel = { measured: "Measured", count: "Test run", defined: "Defined" }[m.kind];
+const env = measured.environmentDetail;
+---
+
+<div class:list={["card metric-tile flex flex-col p-5", className]} id={`metric-${m.id}`}>
+  <div class="flex items-center justify-between gap-2">
+    <span class="status-chip" data-status={m.kind}>{kindLabel}</span>
+    {m.caveat && (
+      <span class="font-mono text-[10px] uppercase tracking-wider text-warn" title={m.caveat}>
+        Caveat
+      </span>
+    )}
+  </div>
+  <p class="mt-4 font-mono text-[1.75rem] font-semibold leading-none tracking-tight text-fg md:text-[2rem]">
+    {m.value}
+  </p>
+  <p class="mt-2.5 text-sm leading-snug text-fg/90">{m.label}</p>
+  <p class="mt-1.5 font-mono text-[11px] leading-relaxed text-muted">{m.sublabel}</p>
+
+  <details class="metric-provenance group mt-auto pt-4">
+    <summary class="inline-flex cursor-pointer list-none items-center gap-1.5 rounded-sm font-mono text-[11px] text-muted hover:text-fg">
+      <svg class="h-3 w-3 transition-transform group-open:rotate-90" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+      How this was measured
+    </summary>
+    <div class="mt-3 space-y-2 border-t border-border pt-3 text-xs">
+      <dl class="spec">
+        <dt>Method</dt>
+        <dd class="font-mono text-[11px] leading-relaxed">{m.method}</dd>
+        <dt>Date</dt>
+        <dd class="font-mono text-[11px]">{measured.measuredOn}</dd>
+        <dt>Env</dt>
+        <dd class="font-mono text-[11px] leading-relaxed">
+          {env.cpus} vCPU · Python {env.python} · seed 42
+        </dd>
+      </dl>
+      {m.caveat && (
+        <p class="rounded-md border border-warn/30 bg-warn/5 p-2.5 leading-relaxed text-fg/90">
+          <span class="font-semibold text-warn">Caveat · </span>{m.caveat}
+        </p>
+      )}
+      <a href={`/evidence#m-${m.id}`} class="link inline-block font-mono text-[11px]">
+        Evidence ledger <span aria-hidden="true">→</span>
+      </a>
+    </div>
+  </details>
+</div>
+
+<style>
+  .metric-provenance summary::-webkit-details-marker {
+    display: none;
+  }
+</style>

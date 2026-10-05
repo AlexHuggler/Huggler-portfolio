@@ -244,9 +244,9 @@ export default function TelecomDashboard(): JSX.Element {
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard label="Annual revenue" value={usd(k.revenue_usd)} accent="#2563eb" />
-        <KpiCard label="ARPU" value={`$${k.arpu_usd}`} accent="#10b981" />
-        <KpiCard label="Churn rate" value={`${k.churn_rate_pct}%`} accent="#f59e0b" />
+        <KpiCard label="Annual revenue" value={usd(k.revenue_usd)} />
+        <KpiCard label="ARPU" value={`$${k.arpu_usd}`} />
+        <KpiCard label="Churn rate" value={`${k.churn_rate_pct}%`} />
         <KpiCard label="Roaming share" value={`${k.roaming_pct}%`} />
       </div>
 

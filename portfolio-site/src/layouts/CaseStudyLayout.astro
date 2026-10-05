@@ -10,7 +10,7 @@
 import BaseLayout from "./BaseLayout.astro";
 import GitHubBadge from "../components/shared/GitHubBadge.astro";
 import SectionHeader from "../components/shared/SectionHeader.astro";
-import Stat from "../components/Stat.astro";
+import MetricTile from "../components/ui/MetricTile.astro";
 import { getCollection, render } from "astro:content";
 import { measured, projectMetrics } from "../data/measured";
 
@@ -67,7 +67,7 @@ const archDocUrl = `${project.data.repoUrl.replace("/tree/main/", "/blob/main/")
           <div class="mt-8">
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {metrics.map((m) => (
-                <Stat value={m.value} label={m.label} sublabel={m.sublabel} />
+                <MetricTile metric={m} />
               ))}
             </div>
             <p class="mt-2 font-mono text-[11px] text-muted">

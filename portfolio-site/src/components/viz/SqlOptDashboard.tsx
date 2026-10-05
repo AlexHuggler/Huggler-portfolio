@@ -261,9 +261,9 @@ export default function SqlOptDashboard(): JSX.Element {
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard label="Corpus size" value={`${k.corpus_size}`} />
-        <KpiCard label="Median cost cut" value={`${k.median_cost_reduction_pct}%`} accent="#10b981" />
-        <KpiCard label="Win rate" value={`${k.win_rate_pct}%`} accent="#2563eb" />
-        <KpiCard label="Findings / query" value={`${k.avg_findings_per_query}`} accent="#f59e0b" />
+        <KpiCard label="Median cost cut" value={`${k.median_cost_reduction_pct}%`} />
+        <KpiCard label="Win rate" value={`${k.win_rate_pct}%`} />
+        <KpiCard label="Findings / query" value={`${k.avg_findings_per_query}`} />
       </div>
 
       <figure className="demo-card mt-4">

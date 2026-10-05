@@ -7,7 +7,8 @@
 
 @layer components {
   .demo-card {
-    @apply rounded-lg border border-border bg-surface p-5;
+    @apply rounded-xl border border-border bg-surface p-5;
+    box-shadow: var(--shadow-1), var(--highlight);
   }
 
   .demo-surface {
@@ -23,15 +24,22 @@
   }
 
   .demo-headline {
-    @apply font-display text-3xl md:text-5xl font-semibold tracking-tight;
+    @apply font-display font-semibold;
+    font-size: var(--step-4);
+    line-height: 1.06;
+    letter-spacing: -0.03em;
   }
 
   .demo-tagline {
-    @apply mt-3 text-lg text-muted max-w-prose;
+    @apply mt-4 text-muted;
+    font-size: var(--step-1);
+    line-height: 1.6;
+    max-width: 62ch;
   }
 
   .demo-eyebrow {
-    @apply font-mono text-xs uppercase tracking-widest text-muted;
+    @apply font-mono text-[11px] font-medium uppercase text-muted;
+    letter-spacing: 0.14em;
   }
 
   .demo-grid-bg {
@@ -48,10 +56,11 @@
   /*
    * Provenance chip for synthetic/demo data. Reads as a deliberate part of
    * the dashboard chrome rather than an apology. Pair with a title attr
-   * carrying the fuller disclaimer.
+   * carrying the fuller disclaimer. Static on purpose: an endlessly pulsing
+   * dot is motion the reader can't pause (WCAG 2.2.2).
    */
   .data-chip {
-    @apply inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-muted;
+    @apply inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border border-border bg-surface-2 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wider text-muted;
   }
   .data-chip::before {
     content: "";
@@ -59,12 +68,9 @@
     height: 6px;
     border-radius: 9999px;
     background: rgb(var(--color-accent-2));
-    animation: data-chip-pulse 2.4s ease-in-out infinite;
   }
-
-  @keyframes data-chip-pulse {
-    0%, 100% { opacity: 0.5; }
-    50%      { opacity: 1; }
+  .data-chip[data-kind="real"]::before {
+    background: rgb(var(--color-success));
   }
 
   .code-block {
@@ -94,11 +100,38 @@
    */
   @media (prefers-reduced-motion: reduce) {
     .demo-fade-in,
-    .demo-dot-pulse,
-    .data-chip::before {
+    .demo-dot-pulse {
       animation: none !important;
     }
     .demo-fade-in { opacity: 1; transform: none; }
+  }
+
+  /* Expanded-chart dialog (ChartCard). */
+  .chart-dialog {
+    @apply m-auto w-[min(1100px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] overflow-auto rounded-2xl border border-border bg-surface p-0 text-fg;
+    box-shadow: var(--shadow-3), var(--highlight);
+  }
+  .chart-dialog::backdrop {
+    background: rgb(var(--color-bg) / 0.72);
+    backdrop-filter: blur(6px);
+  }
+
+  /* Visible data table (ChartCard "Show data"). */
+  .data-table-visible table {
+    @apply w-full border-collapse text-left text-xs;
+    font-variant-numeric: tabular-nums;
+  }
+  .data-table-visible caption {
+    @apply sr-only;
+  }
+  .data-table-visible th {
+    @apply sticky top-0 border-b border-border bg-surface-2 px-3 py-2 font-mono text-[10px] font-medium uppercase tracking-wider text-muted;
+  }
+  .data-table-visible td {
+    @apply border-b border-border px-3 py-1.5 font-mono text-[11.5px] text-fg/90;
+  }
+  .data-table-visible tr:last-child td {
+    @apply border-b-0;
   }
 
   /* Visually hidden table for chart accessibility. */
@@ -113,4 +146,10 @@
     white-space: nowrap;
     border: 0;
   }
+}
+
+/* Pause CSS-driven motion while off-screen, hidden, or paused by the reader. */
+[data-motion="paused"],
+[data-motion="paused"] * {
+  animation-play-state: paused !important;
 }
