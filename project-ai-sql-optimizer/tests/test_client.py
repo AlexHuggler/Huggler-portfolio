@@ -2,13 +2,21 @@
 
 from __future__ import annotations
 
+import json
+from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
 import pytest
 
-from sql_optimizer.analyzer import analyze
-from sql_optimizer.client import AnthropicClient, _parse_suggestion
+from sql_optimizer.analyzer import AnalysisResult, Finding, Severity, analyze
+from sql_optimizer.cli import _detect_dialect
+from sql_optimizer.client import AnthropicClient, _build_user_message, _parse_suggestion
+
+# Shared with the portfolio's Cloudflare Worker (sql-optimizer-proxy), whose
+# test suite asserts the same cases against its TypeScript port.
+PARITY_FIXTURE = Path(__file__).parent / "fixtures" / "user_message_parity.json"
+PARITY_CASES = json.loads(PARITY_FIXTURE.read_text(encoding="utf-8"))["cases"]
 
 
 def _resp(text: str):
@@ -58,3 +66,16 @@ def test_client_suggest_returns_parsed(mock_get_client):
     inner.messages.create.assert_called_once()
     assert suggestion.rewrite == "SELECT id FROM t"
     assert suggestion.confidence == "high"
+
+
+@pytest.mark.parametrize("case", PARITY_CASES, ids=[c["name"] for c in PARITY_CASES])
+def test_build_user_message_matches_parity_fixture(case):
+    analysis = AnalysisResult(
+        sql=case["sql"],
+        dialect=_detect_dialect(case["sql"], case["dialect"]),
+        parsed_ok=True,
+        findings=[
+            Finding(f["rule"], f["message"], Severity(f["severity"])) for f in case["findings"]
+        ],
+    )
+    assert _build_user_message(analysis) == case["expected"]

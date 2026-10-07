@@ -179,7 +179,7 @@ wrangler kv:namespace create RATE_LIMIT
 # paste the printed namespace id into wrangler.toml under [[kv_namespaces]]
 wrangler secret put ANTHROPIC_API_KEY
 # paste the key when prompted; never commit it
-wrangler deploy
+npm run deploy   # fails if the generated prompt is stale, then wrangler deploy
 ```
 
 Then in Cloudflare → Workers Routes, bind the Worker to

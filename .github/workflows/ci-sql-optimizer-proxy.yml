@@ -1,0 +1,45 @@
+name: sql-optimizer-proxy CI
+
+# The Worker's system prompt is generated from the CLI's versioned prompt and
+# its user message is a port of client.py::_build_user_message, so changes to
+# either source must re-run this workflow as well as the Worker's own files.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "portfolio-site/src/workers/sql-optimizer-proxy/**"
+      - "project-ai-sql-optimizer/src/sql_optimizer/prompts/**"
+      - "project-ai-sql-optimizer/src/sql_optimizer/client.py"
+      - "project-ai-sql-optimizer/src/sql_optimizer/cli.py"
+      - "project-ai-sql-optimizer/tests/fixtures/user_message_parity.json"
+      - ".github/workflows/ci-sql-optimizer-proxy.yml"
+  pull_request:
+    paths:
+      - "portfolio-site/src/workers/sql-optimizer-proxy/**"
+      - "project-ai-sql-optimizer/src/sql_optimizer/prompts/**"
+      - "project-ai-sql-optimizer/src/sql_optimizer/client.py"
+      - "project-ai-sql-optimizer/src/sql_optimizer/cli.py"
+      - "project-ai-sql-optimizer/tests/fixtures/user_message_parity.json"
+      - ".github/workflows/ci-sql-optimizer-proxy.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: portfolio-site/src/workers/sql-optimizer-proxy
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: portfolio-site/src/workers/sql-optimizer-proxy/package-lock.json
+
+      - name: Fail if src/prompt.generated.ts is stale
+        run: npm run check:prompt
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test

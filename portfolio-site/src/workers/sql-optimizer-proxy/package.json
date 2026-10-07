@@ -5,13 +5,20 @@
   "description": "Cloudflare Worker that proxies the Anthropic API for the portfolio's SQL optimizer demo. Optional and off by default.",
   "main": "src/worker.ts",
   "scripts": {
+    "generate:prompt": "node scripts/generate-prompt.mjs",
+    "check:prompt": "node scripts/generate-prompt.mjs --check",
+    "predev": "npm run generate:prompt",
     "dev": "wrangler dev",
+    "predeploy": "npm run check:prompt",
     "deploy": "wrangler deploy",
-    "tail": "wrangler tail"
+    "tail": "wrangler tail",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260101.0",
     "typescript": "^5.7.2",
+    "vitest": "^3.2.7",
     "wrangler": "^3.90.0"
   }
 }
