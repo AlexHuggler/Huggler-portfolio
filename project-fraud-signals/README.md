@@ -86,11 +86,13 @@ make run-stream        # Spark Structured Streaming -> Delta
 make run-dashboard     # Streamlit on http://localhost:8501
 ```
 
-For the analytics layer:
+For the analytics layer (the local duckdb target reads the JSONL from
+`make demo`, so no streaming stack is needed):
 
 ```bash
-cp dbt_fraud/profiles.yml.example ~/.dbt/profiles.yml  # edit if needed
-cd dbt_fraud && dbt deps && dbt build
+make demo                                                 # writes data/events.jsonl, which the dbt source reads
+cp dbt_fraud/profiles.yml.example dbt_fraud/profiles.yml  # gitignored; or set DBT_PROFILES_DIR
+make dbt-build                                            # dbt deps && dbt build
 ```
 
 ## Dashboard

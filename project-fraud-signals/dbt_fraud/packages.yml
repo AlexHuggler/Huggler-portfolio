@@ -1,0 +1,5 @@
+packages:
+  # dbt_utils 1.4.x declares require-dbt-version [">=1.3.0", "<3.0.0"], which
+  # covers the dbt-core>=1.8 / dbt-duckdb>=1.8 range pinned in pyproject.toml.
+  - package: dbt-labs/dbt_utils
+    version: 1.4.1
